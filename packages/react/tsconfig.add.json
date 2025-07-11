@@ -1,0 +1,19 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "declaration": true,
+    "outDir": "./dist",
+    "declarationDir": "./dist/types",
+    "declarationMap": false, //map files
+    "emitDeclarationOnly": true,
+    "noEmit": false,
+    "skipLibCheck": true,
+    "noImplicitReturns": false,
+    "sourceMap": false
+  },
+  "include": [
+    "src/index.ts",
+    "src/index.browser.ts",
+    "src/**/*.d.ts"
+  ],
+}
