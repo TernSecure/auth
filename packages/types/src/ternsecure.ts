@@ -94,7 +94,7 @@ export interface SignUpProps extends RedirectConfig {
  * for managing the authentication lifecycle. It is designed to be used by
  * UI packages like tern-ui, which act as "dumb" renderers.
  */
-export interface TernSecureInstance {
+export interface TernSecureInstanceOld {
   /** Indicates if the user is currently signed in. */
   isSignedIn: () => boolean;
 

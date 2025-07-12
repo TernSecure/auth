@@ -3,8 +3,8 @@ export {
     useIdToken,
     useSignUp,
     useSession,
-    SignIn,
+    useSignIn,
+    signIn,
     //SignOut,
     //SignOutButton,
-    SignUp,
 } from '@tern-secure/react' 

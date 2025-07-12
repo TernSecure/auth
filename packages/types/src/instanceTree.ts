@@ -143,6 +143,29 @@ export interface TernSecureInstanceTree {
   };
 }
 
+
+
+/**
+ * Instance interface for managing auth UI state
+ */
+export interface TernSecureInstance {
+  customDomain?: string;
+  proxyUrl?: string;
+  apiKey?: string;
+  projectId?: string;
+  environment?: string | undefined;
+  mode?: Mode;
+  isReady: boolean;
+  isLoading: boolean;
+  error: Error | null;
+  requiresVerification: boolean;
+
+  /** Sign out current user with optional cleanup */
+  signOut: (options?: SignOutOptions) => Promise<void>;
+  
+
+}
+
 export type SignUpFormValuesTree = {
   email: string;
   password: string;

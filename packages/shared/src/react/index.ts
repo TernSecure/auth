@@ -16,3 +16,9 @@ export {
     assertContextExists,
     createContextAndHook
 } from './ternsecureCtx'
+
+export {
+    TernSecureAuthCtx,
+    useTernSecureAuthCtx,
+    useAssertWrappedByTernSecureAuthProvider
+} from './ternSecureAuthProvider'

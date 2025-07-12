@@ -4,7 +4,6 @@ import {
 } from "@tern-secure/react"
 import type { TernSecureNextProps } from "../../types"
 import { allNextProviderPropsWithEnv } from "../../utils/allNextProviderProps"
-import { TernUIScript } from "../../utils/tern-ui-script";
 
 
 
@@ -42,7 +41,6 @@ export function TernSecureProvider(props: React.PropsWithChildren<TernSecureNext
   const providerProps = allNextProviderPropsWithEnv(nextProps);
   return (
     <TernSecureReactProvider {...providerProps}>
-      <TernUIScript router='app' />
         {children}
     </TernSecureReactProvider>
   )

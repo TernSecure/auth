@@ -1,22 +1,22 @@
 'use client'
 
 import React, { useEffect, useState, useMemo } from "react"
-import { IsomorphicTernSecureCtx } from "./IsomorphicTernSecureCtx"
 import type { 
-  IsomorphicTernSecureOptions,
+  IsoTernSecureAuthOptions
 } from '../types'
+import { IsoTernSecureAuth } from '../lib/isoTernSecureAuth'
 import {
   DEFAULT_TERN_SECURE_STATE,
   type TernSecureState
 } from '@tern-secure/types'
 import { 
-  TernSecureAuthContext,
+  TernSecureAuthCtx,
 } from '@tern-secure/shared/react'
 
 
 type TernSecureCtxProviderProps = {
   children: React.ReactNode
-  instanceOptions: IsomorphicTernSecureOptions
+  instanceOptions: IsoTernSecureAuthOptions
   initialState: TernSecureState | undefined
 }
 
@@ -30,51 +30,37 @@ export function TernSecureCtxProvider(props: TernSecureCtxProviderProps) {
     children,
     initialState, 
     instanceOptions
-  } = props
-  
-  
-  const [currentAuthState, setCurrentAuthState] = useState<TernSecureState>(
-    initialState || DEFAULT_TERN_SECURE_STATE
-  );
-
-  const { isomorphicTernSecure: instance, instanceStatus } = useLoadIsomorphicTernSecure(instanceOptions)
-
-  
-  useEffect(() => {
-    const unsubscribe = instance.events.onAuthStateChanged(setCurrentAuthState);
-    return () => unsubscribe?.();
-  }, [instance]);
+  } = props;
 
 
-  const ternsecureCtx = useMemo(() => ({
-    value: instance,
-    instanceStatus
-  }), [instance, instanceStatus]);
+  const { isoTernSecureAuth: auth } = useInitTernSecureAuth(instanceOptions);
+  console.log('[TernSecureCtxProvider] Initialized auth:', auth);
 
+  const contextValue = useMemo(() => ({
+    value: auth
+  }), [auth]);
 
-  const ternAuthCtx = useMemo(() => {
-    const value = {
-      authProvider: instance.ternAuth,
-      authState: currentAuthState,
-    }
-
-    return { value}
-  }, [instance.ternAuth, currentAuthState]);
-  
-  const loadingComponent = useMemo(() => (
-    <IsomorphicTernSecureCtx.Provider value={ternsecureCtx}>
-    </IsomorphicTernSecureCtx.Provider>
-  ), [ternsecureCtx, ternAuthCtx])
-
-
-  if (instanceStatus === 'loading' || !instance.ternAuth) {
-    return loadingComponent;
+  if (!auth?.isReady) {
+    return (
+      <TernSecureAuthCtx.Provider value={contextValue}>
+      </TernSecureAuthCtx.Provider>
+    );
   }
 
-
   return (
-     <TernSecureAuthContext.Provider value={ternAuthCtx}>
+    <TernSecureAuthCtx.Provider value={contextValue}>
       {children}
-    </TernSecureAuthContext.Provider>
+    </TernSecureAuthCtx.Provider>
   )
+}
+
+
+const useInitTernSecureAuth = (options: IsoTernSecureAuthOptions) => {
+  const isoTernSecureAuth = useMemo(() => {
+    return IsoTernSecureAuth.initialize(options);
+  }, [options]);
+
+  return {
+    isoTernSecureAuth
+  };
 }

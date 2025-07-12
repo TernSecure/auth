@@ -1,7 +1,7 @@
 import { 
     assertContextExists,
-    TernSecureAuthContext,
-    useTernSecureAuthContext
+    TernSecureAuthCtx,
+    useTernSecureAuthCtx
  } from "@tern-secure/shared/react"
 
 import type {
@@ -10,9 +10,9 @@ import type {
 
 
 export function useAuthProviderCtx(): TernSecureState {
-    const ctx = useTernSecureAuthContext();
-    assertContextExists(ctx, TernSecureAuthContext)
-    return ctx.authState;
+    const ctx = useTernSecureAuthCtx();
+    assertContextExists(ctx, TernSecureAuthCtx)
+    return ctx.internalAuthState;
 }
 
 

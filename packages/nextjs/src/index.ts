@@ -16,17 +16,13 @@ export {
     useIdToken,
     useSignUp,
     useSession,
+    useSignIn,
+    signIn
     //SignIn,
     //SignOut,
     //SignOutButton,
     //SignUp,
 } from './boundary/components'
-
-export {
-    SignIn,
-    SignUp,
-    UserButton,
-} from './components/uiComponents'
 
 export type { TernSecureUser, TernSecureUserData } from '@tern-secure/types'
 

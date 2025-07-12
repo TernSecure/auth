@@ -1,10 +1,10 @@
 {
-  "name": "@tern-secure/reactjs",
+  "name": "@tern-secure/react",
   "version": "1.1.5",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TernSecure/typescript.git",
-    "directory": "packages/reactjs"
+    "directory": "packages/react"
   },
   "bugs": {
     "url": "https://github.com/TernSecure/typescript/issues"
@@ -38,6 +38,7 @@
     "lint": "eslint src"
   },
   "dependencies": {
+    "@tern-secure/auth": "workspace:*",
     "@tern-secure/shared": "workspace:*",
     "@tern-secure/types": "workspace:*",
     "class-variance-authority": "^0.7.1",

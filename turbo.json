@@ -1,21 +1,45 @@
 {
-  "$schema": "https://turborepo.com/schema.json",
-  "ui": "tui",
-  "tasks": {
-    "build": {
-      "dependsOn": ["^build"],
-      "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**"]
-    },
-    "lint": {
-      "dependsOn": ["^lint"]
-    },
-    "check-types": {
-      "dependsOn": ["^check-types"]
-    },
-    "dev": {
-      "cache": false,
-      "persistent": true
+    "$schema": "https://turborepo.com/schema.json",
+    "ui": "tui",
+    "tasks": {
+      "build": {
+        "dependsOn": ["^build"],
+        "inputs": [
+        "*.d.ts",
+        "src/**",
+        "tsconfig.json",
+        "tsconfig.add.json",
+        "tsup.config.ts",
+        "!dist/**",
+        "!node_modules/**"
+      ],
+        "outputs": [
+          "dist/**",
+          "*/package.json"
+        ]
+      },
+      "dev": {
+        "cache": false,
+        "persistent": true
+      },
+      "lint": {
+        "dependsOn": ["^build"],
+        "inputs": [
+        "**/*.js",
+        "**/*.jsx",
+        "**/*.ts",
+        "**/*.tsx",
+        "**/*.json",
+        "**/*.md",
+        "**/*.mdx",
+        ".github/**",
+        "!*/package.json",
+        "!CHANGELOG.md",
+        "!dist/**",
+        "!examples/**",
+        "!node_modules/**"
+      ],
+        "outputs": []
+      }
     }
   }
-}

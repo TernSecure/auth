@@ -1,9 +1,9 @@
 import {
-    TernSecureInstanceContext,
-    useTernSecureInstanceContext,
+    TernSecureAuthCtx,
+    useTernSecureAuthCtx,
 } from '@tern-secure/shared/react';
 
-import { IsomorphicTernSecure } from '../lib/isomorphicTernSecure';
+import { IsoTernSecureAuth } from '../lib/isoTernSecureAuth';
 
-export const IsomorphicTernSecureCtx = TernSecureInstanceContext;
-export const useIsomorphicTernSecureCtx = useTernSecureInstanceContext as unknown as ()=> IsomorphicTernSecure;
+export const IsoTernSecureAuthCtx = TernSecureAuthCtx;
+export const useIsoTernSecureAuthCtx = useTernSecureAuthCtx as unknown as ()=> IsoTernSecureAuth;

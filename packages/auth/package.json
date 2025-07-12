@@ -1,10 +1,10 @@
 {
-  "name": "@tern-secure/auth-client",
+  "name": "@tern-secure/auth",
   "version": "0.0.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TernSecure/typescript.git",
-    "directory": "packages/auth-core"
+    "directory": "packages/auth"
   },
   "publishConfig": {
     "access": "public"
@@ -12,6 +12,8 @@
   "files": [
     "dist"
   ],
+  "license": "ISC",
+  "description": "Firebase authentication client ready to use functions",
   "exports": {
     ".": {
       "types": "./dist/types/index.d.ts",

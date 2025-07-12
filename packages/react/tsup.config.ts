@@ -1,5 +1,4 @@
 import { defineConfig } from 'tsup';
-import { version as ternUiVersion } from '../tern-ui/package.json';
 import { name, version } from './package.json';
 
 export default defineConfig(() => {
@@ -26,8 +25,7 @@ export default defineConfig(() => {
   ],
   define: {
     __PACKAGE_NAME__: `"${name}"`,
-    __PACKAGE_VERSION__: `"${version}"`,
-    __TERN_UI_VERSION__: `"${ternUiVersion}"`,
+    __PACKAGE_VERSION__: `"${version}"`
   },
   injectStyle: true,
   //onSuccess: 'pnpm build:styles'

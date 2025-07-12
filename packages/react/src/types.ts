@@ -5,6 +5,7 @@ import type {
   TernSecureInstanceTreeOptions,
   TernSecureConfig,
   TernSecureState,
+  TernSecureAuthOptions,
  } from '@tern-secure/types'
 
 declare global {
@@ -142,3 +143,5 @@ export type IsomorphicTernSecureOptions = TernSecureInstanceTreeOptions & {
   projectId?: string;
   ternSecureConfig?: TernSecureConfig;
 }
+
+export type IsoTernSecureAuthOptions = TernSecureAuthOptions

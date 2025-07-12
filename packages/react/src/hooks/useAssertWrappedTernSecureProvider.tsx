@@ -1,8 +1,8 @@
 import {
-    useAssertWrappedByTernSecureProvider as useAssertWrappedByTernSecureProviderBase,
+    useAssertWrappedByTernSecureAuthProvider as useAssertWrappedByTernSecureProviderBase,
 } from '@tern-secure/shared/react'
 
-export const useAssertWrappedByTernSecureProvider = (source: string): void => {
+export const useAssertWrappedByTernSecureAuthProvider = (source: string): void => {
     useAssertWrappedByTernSecureProviderBase(() => {
         throw new Error(
             `${source} can only be used within the <TernSecureProvider /> component.

@@ -23,11 +23,6 @@ import {
   UserCredential,
 } from 'firebase/auth'
 
-import { 
-  initializeApp, 
-  getApps,
-} from 'firebase/app';
-
 interface ProviderConfig {
   provider: GoogleAuthProvider | OAuthProvider;
   customParameters: Record<string, string>;
@@ -48,6 +43,12 @@ export class SignIn implements SignInResource {
     public ternSecureConfig?: TernSecureConfig;
     private authStateUnsubscribe: (() => void) | null = null;
     private _resolveInitialAuthState!: () => void;
+    private auth: Auth;
+
+    constructor(auth: Auth, config?: TernSecureConfig) {
+        this.auth = auth;
+        this.ternSecureConfig = config;
+    }
     
     async withEmailAndPassword(params: SignInFormValuesTree): Promise<SignInResponseTree> {
     try {
@@ -84,8 +85,8 @@ export class SignIn implements SignInResource {
         
         if (redirectResult) {
           if (redirectResult.success) {
-            TernSecureBase.ternsecure.redirectAfterSignIn();
-          }
+          console.log('Redirect after sign in');
+        }
           return redirectResult;
         }
 
@@ -108,8 +109,7 @@ export class SignIn implements SignInResource {
     }
   }
 
-async completeMfaSignIn(): Promise<SignInResponseTree> {
-    // Implement MFA completion logic
+async completeMfaSignIn(mfaToken: string, mfaContext?: any): Promise<SignInResponseTree> {
     throw new Error('Method not implemented.');
   }
 
@@ -134,7 +134,7 @@ async sendPasswordResetEmail(email: string): Promise<void> {
     };
 
     const actionCodeSettings = {
-      url: TernSecureBase.ternsecure.constructSignInUrl(),
+      url: '/sign-in', // TODO: Make this configurable
       handleCodeInApp: true,
     };
 
