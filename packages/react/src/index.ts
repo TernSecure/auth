@@ -23,8 +23,8 @@ export {
 
 export type {
     IsomorphicTernSecureOptions,
+    IsoTernSecureAuthOptions,
     Browser,
     TernSecureProviderProps,
-    initialState
 } from './types'
 

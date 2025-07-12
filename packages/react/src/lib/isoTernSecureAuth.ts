@@ -79,7 +79,9 @@ export class IsoTernSecureAuth implements TernSecureAuth {
 
 
   static initialize(options: TernSecureAuthOptions): IsoTernSecureAuth {
-    if (!this.#instance) {
+    if (
+        !inBrowser() || 
+        !this.#instance) {
       this.#instance = new IsoTernSecureAuth(options);
     }
     return this.#instance;

@@ -13,7 +13,10 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useSignIn } from "@tern-secure/nextjs"
+import type { SignInResponseTree } from "@tern-secure/nextjs"
+
 
 
 export function LoginForm({
@@ -24,14 +27,22 @@ export function LoginForm({
   const [email, setEmail] =  useState('')
   const [password, setPassword] = useState('')
   const { withEmailAndPassword } = useSignIn();
+  const [formError, setFormError] = useState<SignInResponseTree | null>(null)
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
+    setFormError(null)
     try {
-      const res = await withEmailAndPassword({
-        email,
-        password,
-      })
+      const res = await withEmailAndPassword({email,password,})
+      if (!res.success) {
+        setFormError({
+          success: false,
+          message: res.message,
+          user: null,
+          error: res.error,
+        })
+        return
+      }
       
       if (res.success) {
         router.push('/dashboard')
@@ -51,6 +62,16 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
+          <Alert variant="destructive" className="animate-in fade-in-50">
+          <AlertDescription>
+              
+          {formError && (
+            <div className="text-red-500 text-sm mb-4">
+              {formError.message || "An error occurred during sign-in."}
+            </div>
+          )}
+          </AlertDescription>
+          </Alert>
           <form onSubmit={handleEmailSignIn}>
             <div className="grid gap-6">
               <div className="flex flex-col gap-4">

@@ -34,21 +34,21 @@ export function TernSecureCtxProvider(props: TernSecureCtxProviderProps) {
 
 
   const { isoTernSecureAuth: auth } = useInitTernSecureAuth(instanceOptions);
-  console.log('[TernSecureCtxProvider] Initialized auth:', auth);
 
-  const contextValue = useMemo(() => ({
+  const ternAuthCtx = useMemo(() => ({
     value: auth
   }), [auth]);
 
-  if (!auth?.isReady) {
-    return (
-      <TernSecureAuthCtx.Provider value={contextValue}>
-      </TernSecureAuthCtx.Provider>
-    );
-  }
+  const loadingComponent = useMemo(() => (
+    <TernSecureAuthCtx.Provider value={ternAuthCtx}>
+    </TernSecureAuthCtx.Provider>
+  ), [ternAuthCtx])
+
+  
+  console.log('[TernSecureCtxProvider] Rendering with auth:', auth);
 
   return (
-    <TernSecureAuthCtx.Provider value={contextValue}>
+    <TernSecureAuthCtx.Provider value={ternAuthCtx}>
       {children}
     </TernSecureAuthCtx.Provider>
   )

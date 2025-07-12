@@ -1,7 +1,7 @@
 import type { TernSecureNextProps } from "../types";
 import type { 
   TernSecureProviderProps, 
-  IsomorphicTernSecureOptions 
+  IsoTernSecureAuthOptions
 } from "@tern-secure/react";
 
 // Helper type for the return value, as children are handled by the consuming component
@@ -13,12 +13,7 @@ export const allNextProviderPropsWithEnv = (
   const {
     signInUrl,
     signUpUrl,
-    signInForceRedirectUrl: propsSignInForceRedirectUrl,
-    signUpForceRedirectUrl: propsSignUpForceRedirectUrl,
     apiKey: propsApiKey,
-    projectId: propsProjectId,
-    customDomain: propsCustomDomain,
-    proxyUrl: propsProxyUrl,
     requiresVerification: propsRequiresVerification,
     isTernSecureDev: propsIsTernSecureDev,
     enableServiceWorker: propsEnableServiceWorker,
@@ -34,8 +29,6 @@ export const allNextProviderPropsWithEnv = (
     environment: process.env.NEXT_PUBLIC_TERN_ENVIRONMENT,
     signInUrl: process.env.NEXT_PUBLIC_SIGN_IN_URL,
     signUpUrl: process.env.NEXT_PUBLIC_SIGN_UP_URL,
-    signInForceRedirectUrl: process.env.NEXT_PUBLIC_SIGN_IN_FORCE_REDIRECT_URL,
-    signUpForceRedirectUrl: process.env.NEXT_PUBLIC_SIGN_UP_FORCE_REDIRECT_URL,
     projectIdAdmin: process.env.FIREBASE_PROJECT_ID,
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
     privateKey: process.env.FIREBASE_PRIVATE_KEY,
@@ -54,25 +47,14 @@ export const allNextProviderPropsWithEnv = (
 
   // Merge config values: props take precedence over environment variables
   const finalApiKey = propsApiKey ?? envConfig.apiKey;
-  const finalProjectId = propsProjectId ?? envConfig.projectId;
-  const finalCustomDomain = propsCustomDomain ?? envConfig.customDomain;
-  const finalProxyUrl = propsProxyUrl ?? envConfig.proxyUrl;
   const finalSignInUrl = signInUrl ?? envConfig.signInUrl;
   const finalSignUpUrl = signUpUrl ?? envConfig.signUpUrl;
-  const finalSignInForceRedirectUrl = propsSignInForceRedirectUrl ?? envConfig.signInForceRedirectUrl;
-  const finalSignUpForceRedirectUrl = propsSignUpForceRedirectUrl ?? envConfig.signUpForceRedirectUrl
 
   // Construct the result, ensuring it conforms to NextProviderProcessedProps
   // (Omit<TernSecureProviderProps, 'children'>)
   const result: NextProviderProcessedProps = {
-    ...(baseProps as Omit<TernSecureProviderProps, 'children' | keyof IsomorphicTernSecureOptions | 'requiresVerification' | 'loadingComponent'>),
-    
-    // Set the merged/prioritized instance configuration properties
-    apiKey: finalApiKey,
-    projectId: finalProjectId,
-    customDomain: finalCustomDomain,
-    proxyUrl: finalProxyUrl,
-
+    ...(baseProps as Omit<TernSecureProviderProps, 'children' | keyof IsoTernSecureAuthOptions | 'requiresVerification' | 'loadingComponent'>),
+  
     // Set the Firebase configuration properties
     ternSecureConfig,
     
@@ -86,15 +68,9 @@ export const allNextProviderPropsWithEnv = (
     //TernSecure: baseProps.Instance,
     initialState: baseProps.initialState,
     bypassApiKey: baseProps.bypassApiKey,
-    initialSession: baseProps.initialSession,
-    defaultAppearance: baseProps.defaultAppearance,
     signInUrl: finalSignInUrl,
     signUpUrl: finalSignUpUrl,
-    signInForceRedirectUrl: finalSignInForceRedirectUrl,
-    signUpForceRedirectUrl: finalSignUpForceRedirectUrl,
     mode: baseProps.mode,
-    onAuthStateChanged: baseProps.onAuthStateChanged,
-    onError: baseProps.onError,
   };
 
   // Clean up undefined keys that might have resulted from spreading if not present in baseProps

@@ -24,7 +24,7 @@ export {
     //SignUp,
 } from './boundary/components'
 
-export type { TernSecureUser, TernSecureUserData } from '@tern-secure/types'
+export type { TernSecureUser, TernSecureUserData, SignInResponseTree } from '@tern-secure/types'
 
 //export const TernSecureProvider = TernSecureServerProvider
 export type {

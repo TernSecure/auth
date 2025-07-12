@@ -30,7 +30,6 @@ export default async function RootLayout({
       >
         <TernSecureProvider 
           requiresVerification={true}
-          customDomain="http://localhost:4000"
           isTernSecureDev={true}
         > 
         {children}
