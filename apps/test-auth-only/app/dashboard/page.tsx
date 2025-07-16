@@ -1,30 +1,30 @@
 "use client"
 
-import { useAuth } from "@tern-secure/nextjs"
+import { useAuth } from "@/lib/auth"
 import { useRouter } from "next/navigation"
-
 
 export default function Dashboard() {
  const router = useRouter();
  const { user } = useAuth();
- 
+
  console.log('Dashboard user:', user);
- 
- if (!user) return null;
- 
- const redirectToHome = () => {
-  router.push('/');
-};
 
-const redirectToMoPage = () => {
-  router.push('/mo');
-};
+   if (!user) return null;
+   
+    const redirectToHome = () => {
+      router.push('/');
+    };
 
-const redirectToProtected = () => {
-  router.push('/protected');
-};
+    const redirectToMoPage = () => {
+      router.push('/mo');
+    };
+    
+    const redirectToProtected = () => {
+      router.push('/protected');
+    };
 
-return (
+
+    return (
       <div>
         <h1>Dashboard</h1>
         <p>Welcome, {user?.displayName || user?.email}!</p>

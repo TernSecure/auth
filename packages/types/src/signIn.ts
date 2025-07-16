@@ -1,6 +1,4 @@
-import type { 
-  SignInResponseTree
-} from './errors';
+import { ErrorCode} from "./errors";
 
 export type SignInStatus =
   | 'idle'
@@ -12,12 +10,32 @@ export type SignInStatus =
   | 'error';
 
 
-
 export type SignInFormValuesTree = {
   email: string;
   password: string;
   phoneNumber?: string;
 };
+
+export interface AuthErrorResponse {
+  success: false
+  message: string
+  code: ErrorCode
+}
+
+export interface AuthErrorTree extends Error {
+  code?: any | string;
+  message: string;
+  response?: any | string;
+}
+
+
+
+export interface SignInResponseTree {
+  success: boolean;
+  message?: string;
+  error?: any | undefined;
+  user?: any;
+}
 
 
 export type SignInInitialValueTree = Partial<SignInFormValuesTree>;

@@ -2,11 +2,13 @@
 
 import { adminTernSecureAuth as adminAuth } from '../utils/admin-init';
 import {
-  handleFirebaseAuthError, 
   type SessionParams, 
   type SessionResult,
   type CookieStore,
 } from '@tern-secure/types';
+import { 
+    handleFirebaseAuthError
+} from '@tern-secure/shared/errors';
 
 
 

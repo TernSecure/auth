@@ -14,9 +14,8 @@ export class SignUp implements SignUpResource {
     private auth: Auth;
     private ternSecureConfig?: TernSecureConfig;
 
-    constructor(auth: Auth, config?: TernSecureConfig) {
+    constructor(auth: Auth) {
         this.auth = auth;
-        this.ternSecureConfig = config;
     }
 
   withSocialProvider(): Promise<void> {

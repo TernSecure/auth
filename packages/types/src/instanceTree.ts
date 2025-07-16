@@ -16,16 +16,14 @@ import type {
   SignedInSession 
 } from './session';
 import type {
-  AuthErrorTree
-} from './errors';
-import type {
   AfterSignOutUrl,
   RedirectOptions,
   SignInRedirectUrl,
   SignUpRedirectUrl
 } from './redirect';
 import type { 
-  SignInInitialValueTree 
+  SignInInitialValueTree,
+  AuthErrorTree
 } from './signIn';
 
 
