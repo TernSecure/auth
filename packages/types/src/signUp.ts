@@ -1,7 +1,4 @@
-import type { 
-    SignInResponseTree
-} from './errors';
-
+import type { SignInResponseTree } from './signIn';
 
 export interface SignUpResource {
     status?: SignUpStatus | null;

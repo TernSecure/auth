@@ -27,6 +27,7 @@
   },
   "dependencies": {
     "@tern-secure/types": "workspace:*",
+    "@tern-secure/shared": "workspace:*",
     "tslib": "2.4.1"
   },
   "devDependencies": {

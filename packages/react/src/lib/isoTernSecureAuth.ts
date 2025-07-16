@@ -1,16 +1,18 @@
-import type { 
-  TernSecureAuth,
-  SignOutOptions,
-  TernSecureAuthOptions,
-  TernSecureUser,
-  TernSecureState,
-  SignInResponseTree,
-  SignedInSession,
-  SignInResource,
-  SignUpResource
+import {
+  DEFAULT_TERN_SECURE_STATE,
+  type TernSecureAuth,
+  type SignOutOptions,
+  type TernSecureAuthOptions,
+  type TernSecureUser,
+  type TernSecureState,
+  type SignedInSession,
+  type SignInResource,
+  type SignUpResource,
+  type TernSecureAuthStatus
 } from '@tern-secure/types';
-import { EventEmitter } from '@tern-secure/shared/eventBus';
-import { TernSecureAuth as BaseTernSecureAuth } from '@tern-secure/auth';
+import { createTernAuthEventBus, ternEvents } from '@tern-secure/shared/eventBus';
+import {  TernSecureAuth as TernSecureAuthImpl } from '@tern-secure/auth';
+
 
 const SDK_METADATA = {
   name: __PACKAGE_NAME__,
@@ -18,21 +20,18 @@ const SDK_METADATA = {
   environment: process.env.NODE_ENV,
 };
 
-const DEFAULT_TERN_SECURE_STATE: TernSecureState = {
-  isLoaded: false,
-  error: null,
-  status: "unauthenticated",
-  isValid: false,
-  isVerified: false,
-  isAuthenticated: false,
-  user: null,
-  userId: null,
-  email: null,
-  token: null
-};
-
 export function inBrowser(): boolean {
   return typeof window !== 'undefined';
+}
+
+export type TernSecureAuthPropsimport = TernSecureAuthImpl | undefined | null;
+
+
+export type TernSecureAuthProps = TernSecureAuth | undefined | null;
+
+
+export type IsoTernSecureAuthOptions = TernSecureAuthOptions & {
+  TernSecureAuth?: TernSecureAuthProps;
 }
 
 /**
@@ -42,46 +41,55 @@ export function inBrowser(): boolean {
 export class IsoTernSecureAuth implements TernSecureAuth {
   private readonly _mode: 'browser' | 'server';
   private readonly options: TernSecureAuthOptions;
-  private _ternSecureAuth: BaseTernSecureAuth | null = null;
+  private ternauth: TernSecureAuthProps | null = null;
+  #status: TernSecureAuthStatus = 'loading';
 
   static #instance: IsoTernSecureAuth | null | undefined;
-  #eventBus = new EventEmitter();
+  #eventBus = createTernAuthEventBus();
+
+  get status(): TernSecureAuthStatus {
+    if (!this.ternauth) {
+      return this.#status;
+    }
+    return (
+      this.ternauth.status ||
+      (this.ternauth.isReady ? 'ready' : 'loading')
+    )
+  }
+
 
   get isReady(): boolean {
-    return this._ternSecureAuth?.internalAuthState.isLoaded ?? false;
+    return this.ternauth?.isReady || false;
   }
 
   get isLoading(): boolean {
-    return !this._ternSecureAuth?.internalAuthState.isLoaded;
-  }
-
-  get error(): Error | null {
-    return this._ternSecureAuth?.internalAuthState.error || null;
+    return this.ternauth?.isLoading || false;
   }
 
   get requiresVerification(): boolean {
     return this.options.requiresVerification ?? true;
   }
 
-  get signIn(): SignInResource {
-    if (!this._ternSecureAuth) {
-      throw new Error('TernSecureAuth not initialized');
+  get signIn(): SignInResource | undefined | null {
+    if (this.ternauth) {
+      return this.ternauth.signIn;
     }
-    return this._ternSecureAuth.signIn;
+    return undefined
   }
 
-  get signUp(): SignUpResource {
-    if (!this._ternSecureAuth) {
-      throw new Error('TernSecureAuth not initialized');
+  get signUp(): SignUpResource | undefined | null {
+    if (this.ternauth) {
+      return this.ternauth.signUp;
     }
-    return this._ternSecureAuth.signUp;
+    return undefined
   }
 
+  get internalAuthState(): TernSecureState {
+    return this.ternauth?.internalAuthState || DEFAULT_TERN_SECURE_STATE;
+  }
 
-  static initialize(options: TernSecureAuthOptions): IsoTernSecureAuth {
-    if (
-        !inBrowser() || 
-        !this.#instance) {
+  static getOrCreateInstance(options: IsoTernSecureAuthOptions) {
+    if (!inBrowser() || !this.#instance) {
       this.#instance = new IsoTernSecureAuth(options);
     }
     return this.#instance;
@@ -89,7 +97,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
   
   static clearInstance() {
     if (this.#instance) {
-      this.#instance._ternSecureAuth = null;
+      this.#instance.ternauth = null;
       this.#instance = null;
     }
   }
@@ -98,66 +106,131 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     return this._mode;
   }
 
-  constructor(options: TernSecureAuthOptions) {
+  constructor(options: IsoTernSecureAuthOptions) {
     this.options = { ...options };
     this._mode = inBrowser() ? 'browser' : 'server';
-
-    if (inBrowser()) {
-      this._initTernSecureAuth();
-    }
 
     if (!this.options.sdkMetadata) {
       this.options.sdkMetadata = SDK_METADATA;
     }
+    
+    this.initTernSecureAuth();
 
-    console.log('[IsoTernSecureAuth] Initialized with options:', this.options);
-
-    this.#eventBus.on('statusChange', (status) => {
-      console.log('Auth status changed:', status);
-    });
   }
-
-  private async _initTernSecureAuth() {
-    if (!this._ternSecureAuth && inBrowser()) {
-      this._ternSecureAuth = await BaseTernSecureAuth.initialize(this.options);
+  
+  async initTernSecureAuth() {
+    if (this.isReady) {
+      return
     }
+    
+    const tern = TernSecureAuthImpl.initialize(this.options);
+    this.loadTernSecureAuth(tern);
   }
+
+  private loadTernSecureAuth = (ternauth: TernSecureAuthProps |  undefined) => {
+    if (!ternauth) {
+      throw new Error('TernAuth instance is not initialized');
+    }
+
+    this.ternauth = ternauth;
+    console.log('[IsoTernSecureAuth] - loadTernSecureAuth - TernSecureAuth loaded:', this.ternauth);
+
+    console.log('[IsoTernSecureAuth] - TernSecureAuth initialized with authstate:', this.ternauth?.internalAuthState);
+
+    this.subscribeToTernAuthEvents();
+
+    this.#eventBus.getListeners('status').forEach(listener => {
+      listener('ready');
+    });
+
+    if (typeof this.ternauth.status === 'undefined') {
+      console.log('[IsoTernSecureAuth] TernSecureAuth has no status, setting internal status to ready');
+      this.#status = 'ready';
+      this.#eventBus.emit(ternEvents.Status, 'ready');
+      console.log('[IsoTernSecureAuth] Set internal status to ready (ternui has no status)');
+    }
+
+    return this.ternauth;
+    
+  };
+
+  private subscribeToTernAuthEvents = () => {
+    if (!this.ternauth?.events) {
+      console.warn('[IsoTernSecureAuth] TernAuth instance has no events system');
+      return;
+    }
+
+    const { events } = this.ternauth;
+
+  
+    events.onStatusChanged((newStatus: TernSecureAuthStatus) => {
+      this.#status = newStatus;
+      this.#eventBus.emit(ternEvents.Status, newStatus);
+    });
+
+    console.log('[IsoTernSecureAuth] Subscribed to TernSecureAuth events');
+  };
 
   signOut = async (options?: SignOutOptions): Promise<void> => {
-    if (!this._ternSecureAuth) {
+    if (!this.ternauth) {
       throw new Error('TernSecureAuth not initialized');
     }
-    await this._ternSecureAuth.signOut();
+    await this.ternauth.signOut();
   };
 
   currentSession = async (): Promise<SignedInSession | null> => {
-    if (!this._ternSecureAuth) {
+    if (!this.ternauth) {
       return null;
     }
-    return this._ternSecureAuth.currentSession();
+    return this.ternauth.currentSession();
   };
 
-  get internalAuthState(): TernSecureState {
-    return this._ternSecureAuth?.internalAuthState || {
-      ...DEFAULT_TERN_SECURE_STATE,
-      isLoaded: true,
-      status: "unauthenticated"
+
+  ternSecureUser(): TernSecureUser | null {
+    return this.ternauth?.ternSecureUser() || null;
+  }
+
+  onAuthStateChanged(callback: (user: TernSecureUser | null) => void): () => void {
+    if (!this.ternauth) {
+      console.warn('[IsoTernSecureAuth] TernAuth not initialized, cannot set up auth state listener');
+      return () => {};
+    }
+    return this.ternauth.onAuthStateChanged(callback);
+  }
+
+
+  authCookieManager(): void {
+    this.ternauth?.authCookieManager();
+  }
+
+  #awaitForTernSecureAuth(): Promise<TernSecureAuthProps> {
+    return new Promise<TernSecureAuthProps>(resolve => {
+      resolve(this.ternauth!);
+    });
+  }
+  
+  initialize = async (): Promise<void> => {
+    try {
+      await this.#awaitForTernSecureAuth();
+    } catch (error) {
+      console.error('[IsomorphicTernSecure] Failed to initialize TernSecureAuth:', error);
+      throw error;
+    }
+  }
+  
+  get events(): TernSecureAuth['events'] {
+    return {
+      onStatusChanged: (callback: (status: TernSecureAuthStatus) => void) => {
+        if (this.ternauth?.events?.onStatusChanged) {
+          return this.ternauth.events.onStatusChanged(callback);
+        }
+        this.#eventBus.on(ternEvents.Status, callback);
+        return () => {
+          this.#eventBus.off(ternEvents.Status, callback);
+        };
+      }
     };
   }
 
-  ternSecureUser(): TernSecureUser | null {
-    return this._ternSecureAuth?.ternSecureUser() || null;
-  }
-
-  async checkRedirectResult(): Promise<SignInResponseTree | null> {
-    if (!this._ternSecureAuth) {
-      return null;
-    }
-    return this._ternSecureAuth.checkRedirectResult();
-  }
-
-  authCookieManager(): void {
-    this._ternSecureAuth?.authCookieManager();
-  }
 }
 

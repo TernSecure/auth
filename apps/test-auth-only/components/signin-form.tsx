@@ -14,7 +14,7 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { useSignIn } from "@tern-secure/nextjs"
+import { signIn } from "@/lib/auth"
 import type { SignInResponseTree } from "@tern-secure/nextjs"
 
 
@@ -26,12 +26,9 @@ export function LoginForm({
   const router  = useRouter()
   const [email, setEmail] =  useState('')
   const [password, setPassword] = useState('')
-  const { signIn, isLoaded } = useSignIn();
   const [formError, setFormError] = useState<SignInResponseTree | null>(null)
 
-  if (!isLoaded) {
-    return null
-  }
+  
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,7 +46,7 @@ export function LoginForm({
       }
       
       if (res.success) {
-        router.push('/')
+        router.push('/dashboard')
       }
     } catch (error) {
       console.error("Sign-in error:", error)

@@ -18,7 +18,7 @@ export const useAuth = (): AuthState => {
   useAssertWrappedByTernSecureAuthProvider('useAuth')
   
   const ctx  = useAuthProviderCtx()
-  const instance = useIsoTernSecureAuthCtx()
+  //const instance = useIsoTernSecureAuthCtx()
 
   //const signOut = useCallback(handleSignOut(instance), [instance])
 

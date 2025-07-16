@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { adminTernSecureAuth as adminAuth } from '../utils/admin-init';
 import { 
     handleFirebaseAuthError
-} from '@tern-secure/types';
+} from '@tern-secure/shared/errors';
 
 export interface User {
     uid: string | null;

@@ -52,10 +52,10 @@ export interface TernSecureAuthProvider {
   currentSession: SignedInSession | null;
 
   /** Sign in resource for authentication operations */
-  signIn: SignInResource;
+  signIn: SignInResource | undefined;
 
   /** SignUp resource for authentication operations */
-  signUp: SignUpResource;
+  signUp: SignUpResource | undefined;
 
   /** The Firebase configuration used by this TernAuth instance. */
   ternSecureConfig?: TernSecureConfig;
@@ -101,14 +101,31 @@ export type TernSecureAuthOptions = {
   enableServiceWorker?: boolean;
 };
 
+type EventHandler<Events extends Record<string, unknown>, Event extends keyof Events> = (payload: Events[Event]) => void;
+export type TernAuthEventPayload = {
+  status: TernSecureAuthStatus;
+};
 
+export type TernSecureAuthStatus = 'error' | 'loading' | 'ready';
 
 export interface TernSecureAuth {
+  /** Indicates if the TernSecureAuth instance is ready for use */
+  isReady: boolean;
+
+  /** Indicates if the TernSecureAuth instance is currently loading */
+  isLoading: boolean;
+
+  /** The current status of the TernSecureAuth instance */
+  status: TernSecureAuthStatus; 
+  
   /** Requires Verificatipn */
   requiresVerification: boolean;
   
   /** Current auth state */
   internalAuthState: TernSecureState;
+
+  /** Initialize TernSecureAuth */
+  initialize(options?: TernSecureAuthOptions): Promise<void>
 
   /** Current user*/
   ternSecureUser(): TernSecureUser | null;
@@ -120,14 +137,28 @@ export interface TernSecureAuth {
   currentSession: SignedInSession | null;
 
   /** Sign in resource for authentication operations */
-  signIn: SignInResource;
+  signIn: SignInResource | undefined | null;
 
   /** SignUp resource for authentication operations */
-  signUp: SignUpResource;
+  signUp: SignUpResource | undefined | null;
 
   /** The Firebase configuration used by this TernAuth instance. */
   ternSecureConfig?: TernSecureConfig;
 
+  /** Subscribe to auth state changes */
+  onAuthStateChanged(callback: (user: TernSecureUser | null) => void): () => void;
+
   /** Sign out the current user */
   signOut(): Promise<void>;
+  
+  events: {
+    /** Subscribe to TernSecureAuth status */
+    onStatusChanged: (callback: (status: TernSecureAuthStatus) => void) => () => void;
+    /** Subscribe to auth state changes */
+    //onAuthStateChanged: (callback: (authState: TernSecureState) => void) => () => void;
+  };
+}
+
+export interface TernSecureAuthFactory {
+  create(options?: TernSecureAuthOptions): TernSecureAuth;
 }

@@ -1,13 +1,18 @@
-import { EventEmitter } from '@tern-secure/shared/eventBus';
-import type {
-  TernSecureAuth as TernSecureAuthInterface,
-  TernSecureAuthOptions,
-  TernSecureUser,
-  TernSecureState,
-  SignInResponseTree,
-  SignedInSession,
-  TernSecureConfig
+import { createTernAuthEventBus, ternEvents } from '@tern-secure/shared/eventBus';
+import {
+  type TernSecureAuth as TernSecureAuthInterface,
+  type TernSecureAuthOptions,
+  type TernSecureUser,
+  type TernSecureState,
+  type SignInResponseTree,
+  type SignedInSession,
+  type TernSecureConfig,
+  type TernSecureAuthStatus,
+  type SignInResource,
+  type SignUpResource,
+  DEFAULT_TERN_SECURE_STATE,
 } from '@tern-secure/types';
+import { handleFirebaseAuthError } from '@tern-secure/shared/errors';
 import {
   Auth,
   getAuth,
@@ -21,38 +26,17 @@ import {
   browserLocalPersistence,
   setPersistence
 } from 'firebase/auth';
-import { initializeApp } from 'firebase/app';
 import { 
+  FirebaseApp,
+  initializeApp,
+  getApps
+} from 'firebase/app';
+import {
+  TernSecureBase,
   SignIn, 
   SignUp 
 } from './resources/internal';
-import { FirebaseError } from 'firebase/app';
 
-const DEFAULT_TERN_SECURE_STATE: TernSecureState = {
-  isLoaded: false,
-  error: null,
-  status: "unauthenticated",
-  isValid: false,
-  isVerified: false,
-  isAuthenticated: false,
-  user: null,
-  userId: null,
-  email: null,
-  token: null
-};
-
-function handleFirebaseAuthError(error: unknown) {
-  if (error instanceof FirebaseError) {
-    return {
-      code: error.code,
-      message: error.message
-    };
-  }
-  return {
-    code: 'auth/unknown',
-    message: 'An unknown error occurred'
-  };
-}
 
 /**
  * Firebase implementation of the TernSecureAuth interface
@@ -61,18 +45,20 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   private static instance: TernSecureAuth | null = null;
   private _currentUser: TernSecureUser | null = null;
   private signedInSession: SignedInSession | null = null;
-  private firebaseClientApp;
+  private firebaseClientApp: FirebaseApp | undefined;
   private _authState: TernSecureState = { ...DEFAULT_TERN_SECURE_STATE };
-  private auth: Auth;
-  public ternSecureConfig?: TernSecureConfig;
+  private auth!: Auth;
   private authStateUnsubscribe: (() => void) | null = null;
   private tokenRefreshUnsubscribe: (() => void) | null = null;
-  private isInitialized = false;
+  public isLoading = false;
+  public error: Error | null = null;
+  #status: TernSecureAuthInterface['status'] = 'loading';
   #options: TernSecureAuthOptions = {};
-  #eventBus = new EventEmitter();
+  #eventBus = createTernAuthEventBus();
 
-  signIn: SignIn;
-  signUp: SignUp;
+  signIn!: SignInResource;
+  signUp!: SignUpResource;
+
 
   private constructor(options: TernSecureAuthOptions) {
     this.#options = options;
@@ -82,72 +68,96 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       throw new Error('TernSecureConfig is required to initialize TernSecureAuth');
     }
 
-    const appName = config.appName || '[DEFAULT]';
-    this.firebaseClientApp = initializeApp(config, appName);
+    this.#eventBus.emit(ternEvents.Status, 'loading');
 
-    this.ternSecureConfig = config;
-    this.auth = initializeAuth(this.firebaseClientApp);
+  }
 
-    setPersistence(this.auth, browserLocalPersistence)
-      .catch(error => console.error("TernAuth: Error setting auth persistence:", error));
-
-    this.authStateUnsubscribe = this.initAuthStateListener();
-    this.tokenRefreshUnsubscribe = this.setupTokenRefreshListener();
-
-    this.signIn = new SignIn(this.auth, this.ternSecureConfig);
-    this.signUp = new SignUp(this.auth, this.ternSecureConfig);
+  get isReady(): boolean {
+    return this.status === 'ready';
+  }
+  
+  get status(): TernSecureAuthInterface['status'] {
+    return this.#status;
   }
 
   get requiresVerification(): boolean {
     return this.#options.requiresVerification ?? true;
   }
-
-  static async initialize(options: TernSecureAuthOptions): Promise<TernSecureAuth> {
-    if (!options?.ternSecureConfig) {
-      throw new Error('TernSecureConfig is required to initialize TernSecureAuth');
-    }
-    
-    if (!this.instance) {
-      console.log('[TernSecureAuth] Initialize - Initializing TernSecureAuth instance');
-      this.instance = new TernSecureAuth(options);
-      await this.instance.waitForInitialization();
-    }
-    console.log('[TernSecureAuth] Initialize - Returning existing instance');
-    return this.instance;
+  
+  public setLoading(isLoading: boolean): void {
+    this.isLoading = isLoading;
   }
 
+  static getorCreateInstance(options: TernSecureAuthOptions): TernSecureAuth {
+    if (!this.instance) {
+      console.log('[TernSecureAuth] - getorCreateInstance - Creating new instance');
+      this.instance = new TernSecureAuth(options);
+    }
+    return this.instance;
+  }
+  
+  public static initialize(options: TernSecureAuthOptions): TernSecureAuth {
+    const instance = this.getorCreateInstance(options);
+    instance.#initialize(options);
+    return instance;
+  }
+
+  #initialize = (options?: TernSecureAuthOptions): TernSecureAuth => {
+    this.#options = this.#initOptions(options);
+
+    try {
+
+      if (!this.#options.ternSecureConfig) {
+        throw new Error('TernSecureConfig is required to initialize TernSecureAuth');
+      }
+
+      this.initializeFirebaseApp(this.#options.ternSecureConfig);
+      this.authStateUnsubscribe = this.initAuthStateListener();
+
+      this.signIn = new SignIn(this.auth);
+      this.signUp = new SignUp(this.auth);
+
+      this.waitForInitialization()
+
+      this.#setStatus('ready');
+      this.#eventBus.emit(ternEvents.Status, 'ready');
+
+      return this;
+
+    } catch (error) {
+      this.error = error as Error;
+      this.#setStatus('error');
+      this.#eventBus.emit(ternEvents.Status, 'error');
+      throw error;
+    }
+  }
+
+
   private async waitForInitialization(): Promise<void> {
-    console.log('[TernSecureAuth] waitforInitialization - Waiting for initialization');
-    if (this.isInitialized) return;
-    console.log('[TernSecureAuth] waitforInitialization - Initializing auth state');
-    
     try {
       await this.auth.authStateReady();
-      await this.updateInternalAuthState(this.auth.currentUser as TernSecureUser);
-      this.isInitialized = true;
     } catch (error) {
       console.error("TernAuth: Error initializing auth state:", error);
       this._authState = {
         ...DEFAULT_TERN_SECURE_STATE,
         isLoaded: true,
         error: error as Error,
-        status: "unauthenticated",
-        user: null
+        status: "unauthenticated"
       };
-      this.isInitialized = true;
     }
   }
 
-  static clearInstance() {
-    if (TernSecureAuth.instance) {
-      if (TernSecureAuth.instance.authStateUnsubscribe) {
-        TernSecureAuth.instance.authStateUnsubscribe();
-      }
-      if (TernSecureAuth.instance.tokenRefreshUnsubscribe) {
-        TernSecureAuth.instance.tokenRefreshUnsubscribe();
-      }
-      TernSecureAuth.instance = null;
-    }
+  private initializeFirebaseApp(config: TernSecureConfig) {
+    const appName = config.appName || '[DEFAULT]';
+      this.firebaseClientApp = getApps().length === 0 
+      ? initializeApp(config, appName) 
+      : getApps()[0];
+      
+      this.auth = getAuth(this.firebaseClientApp);
+
+    setPersistence(this.auth, browserLocalPersistence)
+      .catch(error => console.error("TernAuth: Error setting auth persistence:", error));
+      
   }
 
   signOut = async(): Promise<void> => {
@@ -155,7 +165,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       this.auth.signOut(),
       this.updateInternalAuthState(null)
     ]);
-    this.#eventBus.emit('signOut');
+    this.#eventBus.emit(ternEvents.Status, 'error');
   }
 
   currentSession = async(): Promise<SignedInSession | null> => {
@@ -207,7 +217,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
           isValid,
           isVerified,
           isAuthenticated,
-          token: await user.getIdToken(),
+          token: user.getIdToken(),
           email: user.email || null,
           status: this.determineAuthStatus(user, requiresVerification),
           user
@@ -222,7 +232,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       }
 
       if (this.hasAuthStateChanged(previousState, this._authState)) {
-        this.#eventBus.emit('authStateChange', this._authState);
+        //this.#eventBus.emit('statusChanged', this._authState);
       }
     } catch (error) {
       console.error("TernAuth: Error updating internal auth state:", error);
@@ -243,6 +253,10 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   
   public get internalAuthState(): TernSecureState {
     return this._authState;
+  }
+
+  public onAuthStateChanged(callback: (user: TernSecureUser | null) => void): () => void {
+    return onAuthStateChanged(this.auth, callback);
   }
 
   public async checkRedirectResult(): Promise<SignInResponseTree | null> {
@@ -289,5 +303,67 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
   public authCookieManager(): void {
     console.warn('AuthCookieManager is not implemented in this version.');
+  }
+  
+  public get events(): TernSecureAuthInterface['events'] {
+    return {
+      onStatusChanged: (callback) => {
+        this.#eventBus.on(ternEvents.Status, callback);
+        return () => {
+          this.#eventBus.off(ternEvents.Status, callback);
+        };
+      }
+    };
+  }
+
+  public initialize(options: TernSecureAuthOptions): Promise<void> {
+    this._initialize(options);
+    return Promise.resolve();
+  }
+
+  public static create(options: TernSecureAuthOptions): TernSecureAuth {
+    const instance = this.getorCreateInstance(options);
+    instance.initialize(options);
+    return instance;
+  }
+
+  _initialize = (options: TernSecureAuthOptions): void => {
+    this.#options = this.#initOptions(options);
+
+    try {
+
+      if (!this.#options.ternSecureConfig) {
+        throw new Error('TernSecureConfig is required to initialize TernSecureAuth');
+      }
+
+      this.initializeFirebaseApp(this.#options.ternSecureConfig);
+
+      this.signIn = new SignIn(this.auth);
+      this.signUp = new SignUp(this.auth);
+
+      this.#setStatus('ready');
+
+    } catch (error) {
+      this.error = error as Error;
+      this.#setStatus('error');
+      throw error;
+    }
+  }
+  
+  #initOptions = (options?: TernSecureAuthOptions): TernSecureAuthOptions => {
+    return {
+      ...options,
+    }
+  }
+  
+  #setStatus(newStatus: TernSecureAuthStatus): void {
+    if (this.#status !== newStatus) {
+      this.#status = newStatus;
+      this.#eventBus.emit(ternEvents.Status, this.#status);
+
+      if (newStatus === 'ready') {
+        this.#eventBus.emit(ternEvents.Status, 'ready');
+      }
+    }
   }
 }

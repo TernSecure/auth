@@ -4,12 +4,12 @@ import {
     SignInFormValuesTree,
     SignInResponseTree,
     ResendEmailVerification,
-    handleFirebaseAuthError,
     TernSecureUser,
     TernSecureConfig,
     TernSecureState,
     DEFAULT_TERN_SECURE_STATE,
 } from '@tern-secure/types';
+import { handleFirebaseAuthError } from '@tern-secure/shared/errors';
 import {
   Auth,
   getAuth, 
@@ -39,21 +39,16 @@ type AuthMethodFunction = (
 export class SignIn implements SignInResource {
     status?: SignInStatus | undefined;
     private _currentUser: TernSecureUser | null = null;
-    private _authState: TernSecureState = {...DEFAULT_TERN_SECURE_STATE}
-    public ternSecureConfig?: TernSecureConfig;
-    private authStateUnsubscribe: (() => void) | null = null;
-    private _resolveInitialAuthState!: () => void;
     private auth: Auth;
 
-    constructor(auth: Auth, config?: TernSecureConfig) {
+    constructor(auth: Auth) {
         this.auth = auth;
-        this.ternSecureConfig = config;
     }
     
     async withEmailAndPassword(params: SignInFormValuesTree): Promise<SignInResponseTree> {
     try {
       const { email, password } = params;
-      const userCredential = await signInWithEmailAndPassword(this.auth,email, password);
+      const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
       const user = userCredential.user
       
       return {

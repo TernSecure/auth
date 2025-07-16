@@ -10,7 +10,7 @@ import type {
 } from "@tern-secure/types"
 
 
-export function useAuthSignInCtx(): SignInResource {
+export function useAuthSignInCtx(): SignInResource | undefined | null {
     const ctx = useTernSecureAuthCtx();
     assertContextExists(ctx, TernSecureAuthCtx)
     return ctx.signIn;

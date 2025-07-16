@@ -1,13 +1,13 @@
 'use client'
 
-import { useAuth } from "@tern-secure/nextjs"
+import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation"
 
 export default function Home() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, error } = useAuth();
+  console.log('[Home] - User:', user);
 
-  console.log('isAuthenticated:', isAuthenticated);
 
   if (!user) return null;
 
