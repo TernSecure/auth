@@ -119,7 +119,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
   }
   
   async initTernSecureAuth() {
-    if (this.isReady) {
+    if (this._mode !== 'browser' && this.isReady) {
       return
     }
     
@@ -133,9 +133,6 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     }
 
     this.ternauth = ternauth;
-    console.log('[IsoTernSecureAuth] - loadTernSecureAuth - TernSecureAuth loaded:', this.ternauth);
-
-    console.log('[IsoTernSecureAuth] - TernSecureAuth initialized with authstate:', this.ternauth?.internalAuthState);
 
     this.subscribeToTernAuthEvents();
 
@@ -147,7 +144,6 @@ export class IsoTernSecureAuth implements TernSecureAuth {
       console.log('[IsoTernSecureAuth] TernSecureAuth has no status, setting internal status to ready');
       this.#status = 'ready';
       this.#eventBus.emit(ternEvents.Status, 'ready');
-      console.log('[IsoTernSecureAuth] Set internal status to ready (ternui has no status)');
     }
 
     return this.ternauth;

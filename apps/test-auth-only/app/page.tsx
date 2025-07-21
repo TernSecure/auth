@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 
 export default function Home() {
   const router = useRouter();
-  const { user, isAuthenticated, error } = useAuth();
+  const { user, signOut } = useAuth();
   console.log('[Home] - User:', user);
 
 

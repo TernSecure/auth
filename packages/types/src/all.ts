@@ -112,10 +112,26 @@ export interface TernSecureAdminConfig {
 }
 
 /**
+ * Firebase Server configuration interface
+ */
+export interface TernSecureServerConfig {
+  apiKey: string
+}
+
+/**
  * Firebase Admin configuration validation result
  */
 export interface AdminConfigValidationResult {
   isValid: boolean
   errors: string[]
   config: TernSecureAdminConfig
+}
+
+/**
+ * Firebase Server configuration validation result
+ */
+export interface ServerConfigValidationResult {
+  isValid: boolean
+  errors: string[]
+  config: TernSecureServerConfig
 }

@@ -7,6 +7,7 @@ import {
 import type {
     SignInResource,
     SignUpResource,
+    TernSecureUser
 } from "@tern-secure/types"
 
 
@@ -20,5 +21,11 @@ export function useAuthSignUpCtx(): SignUpResource {
     const ctx = useTernSecureAuthCtx();
     assertContextExists(ctx, TernSecureAuthCtx)
     return ctx.signUp;
+}
+
+export function useAuthUser(): TernSecureUser | null {
+    const ctx = useTernSecureAuthCtx();
+    assertContextExists(ctx, TernSecureAuthCtx)
+    return ctx.internalAuthState.user || null;
 }
 

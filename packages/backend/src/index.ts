@@ -14,6 +14,7 @@ export {
     GetNextServerSessionCookie,
     GetNextIdToken,
     SetNextServerSession,
+    SetNextServerToken,
     VerifyNextTernIdToken,
     VerifyNextTernSessionCookie,
     ClearNextSessionCookie

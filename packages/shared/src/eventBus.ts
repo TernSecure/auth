@@ -7,7 +7,7 @@ type EventBus<Events extends Record<string, unknown>> = {
         event: Event, 
         handler: EventHandler<Events, Event>, 
         opts?: { notify?: boolean }
-    ) => () => void; // Return unsubscribe function
+    ) => () => void;
     emit: <Event extends keyof Events>(event: Event, payload: Events[Event]) => void;
     off: <Event extends keyof Events>(event: Event, handler: EventHandler<Events, Event>) => void;
     getListeners: <Event extends keyof Events>(event: Event) => Array<(...args: any[]) => void>;
@@ -28,7 +28,6 @@ export function createEventBus<Events extends Record<string, unknown>>(): EventB
             }
             listeners.get(event)!.add(handler);
             
-            // Return unsubscribe function
             return () => {
                 const eventListeners = listeners.get(event);
                 if (eventListeners) {

@@ -15,7 +15,6 @@ export interface AuthResult {
    */
 export const auth = cache(async (): Promise<AuthResult> => {
   try {
-   console.log("auth: Starting auth check...")
    const cookieStore = await cookies()
 
     const sessionCookie = cookieStore.get("_session_cookie")?.value
@@ -28,7 +27,6 @@ export const auth = cache(async (): Promise<AuthResult> => {
           tenantId: result.tenant || 'default',
           authTime: (result.authTime && typeof result.authTime === 'number') ? result.authTime : undefined
         }
-        console.log("[useAuth nodejs] User found in session cookie:", user)
         return { user, error: null }
       }
     }
@@ -44,7 +42,6 @@ export const auth = cache(async (): Promise<AuthResult> => {
           tenantId: result.tenant || 'default',
           authTime: (result.authTime && typeof result.authTime === 'number') ? result.authTime : undefined
         }
-        console.log("[useAuth nodejs] User found in ID token:", user)
         return { user, error: null }
       }
     }

@@ -8,6 +8,7 @@ export const runtime = "edge"
 interface Auth {
   user: BaseUser | null
   token: string | null
+  session: string | null
   protect: () => Promise<void>
 }
 
@@ -49,7 +50,8 @@ async function edgeAuth(request: NextRequest): Promise<Auth> {
     if (sessionResult.isAuthenticated && sessionResult.user) {
       return {
         user: sessionResult.user,
-        token: request.cookies.get("_session_cookie")?.value || request.cookies.get("_session_token")?.value || null,
+        token: request.cookies.get("_tern")?.value || null,
+        session: request.cookies.get("_session_cookie")?.value || request.cookies.get("_session_token")?.value || null,
         protect: async () => {},
       }
     }
@@ -57,6 +59,7 @@ async function edgeAuth(request: NextRequest): Promise<Auth> {
     return {
       user: null,
       token: null,
+      session: null,
       protect,
     }
   } catch (error) {
@@ -65,6 +68,7 @@ async function edgeAuth(request: NextRequest): Promise<Auth> {
     return {
       user: null,
       token: null,
+      session: null,
       protect,
     }
   }
@@ -79,6 +83,13 @@ async function edgeAuth(request: NextRequest): Promise<Auth> {
 
 export function ternSecureMiddleware(callback: MiddlewareCallback) {
   return async function middleware(request: NextRequest) {
+    const requestHeaders = new Headers(request.headers);
+    requestHeaders.set('x-tern-secure', 'true');
+        const referer = requestHeaders.get('referer') || requestHeaders.get('Referer') ||
+                   `http://${requestHeaders.get('host') || 'localhost:3000'}`;
+        
+      //requestHeaders.append('Authorization', `Bearer ${auth.token}`);
+        requestHeaders.set('Referer', referer);
     try {
       const auth = await edgeAuth(request)
 
@@ -86,12 +97,21 @@ export function ternSecureMiddleware(callback: MiddlewareCallback) {
         
         await callback(auth, request)
 
-        const response = NextResponse.next()
+        const response = NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        })
+
+
+
+
+        response.headers.append('Referer', referer);
+        response.headers.set('Authorization', `Bearer ${auth.token}`);
 
 
         return response
       } catch (error) {
-        // Handle unauthorized access
         if (error instanceof Error && error.message === 'Unauthorized access') {
           const redirectUrl = new URL("/sign-in", request.url)
           redirectUrl.searchParams.set("redirect", request.nextUrl.pathname)

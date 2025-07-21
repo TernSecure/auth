@@ -4,12 +4,11 @@ import { useState, useEffect, useCallback, useMemo } from 'react'
 import { 
   useTernSecureAuthCtx
 } from '@tern-secure/shared/react'
-//import { useAuthProviderCtx } from '../ctx/AuthProvider'
 import { useAssertWrappedByTernSecureAuthProvider } from './useAssertWrappedTernSecureProvider'
 
 interface SessionData {
   accessToken: string | null
-  expirationTime: string | null // Use string to handle potential null values
+  expirationTime: string | null
   error: Error | null
   isLoading: boolean
 }

@@ -16,6 +16,7 @@ import { handleFirebaseAuthError } from '@tern-secure/shared/errors';
 import {
   Auth,
   getAuth,
+  getIdToken,
   initializeAuth,
   onAuthStateChanged,
   signInWithRedirect,
@@ -26,10 +27,11 @@ import {
   browserLocalPersistence,
   setPersistence
 } from 'firebase/auth';
+import { getInstallations } from "firebase/installations";
 import { 
   FirebaseApp,
   initializeApp,
-  getApps
+  getApps,
 } from 'firebase/app';
 import {
   TernSecureBase,
@@ -60,16 +62,9 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   signUp!: SignUpResource;
 
 
-  private constructor(options: TernSecureAuthOptions) {
-    this.#options = options;
-    const config = options.ternSecureConfig;
-    
-    if (!config) {
-      throw new Error('TernSecureConfig is required to initialize TernSecureAuth');
-    }
-
+  private constructor() {
     this.#eventBus.emit(ternEvents.Status, 'loading');
-
+    TernSecureBase.ternsecure = this;
   }
 
   get isReady(): boolean {
@@ -88,16 +83,26 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     this.isLoading = isLoading;
   }
 
-  static getorCreateInstance(options: TernSecureAuthOptions): TernSecureAuth {
+  static getorCreateInstance(): TernSecureAuth {
     if (!this.instance) {
-      console.log('[TernSecureAuth] - getorCreateInstance - Creating new instance');
-      this.instance = new TernSecureAuth(options);
+      console.log('[TernSecureAuth] - Creating new TernSecureAuth instance');
+      this.instance = new TernSecureAuth();
     }
     return this.instance;
   }
+
+  static clearInstance() {
+    if (TernSecureAuth.instance) {
+      if (TernSecureAuth.instance.authStateUnsubscribe) {
+        TernSecureAuth.instance.authStateUnsubscribe();
+        TernSecureAuth.instance.authStateUnsubscribe = null;
+      }
+      TernSecureAuth.instance = null;
+    }
+  }
   
   public static initialize(options: TernSecureAuthOptions): TernSecureAuth {
-    const instance = this.getorCreateInstance(options);
+    const instance = this.getorCreateInstance();
     instance.#initialize(options);
     return instance;
   }
@@ -116,8 +121,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
       this.signIn = new SignIn(this.auth);
       this.signUp = new SignUp(this.auth);
-
-      this.waitForInitialization()
 
       this.#setStatus('ready');
       this.#eventBus.emit(ternEvents.Status, 'ready');
@@ -154,6 +157,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       : getApps()[0];
       
       this.auth = getAuth(this.firebaseClientApp);
+      getInstallations(this.firebaseClientApp);
 
     setPersistence(this.auth, browserLocalPersistence)
       .catch(error => console.error("TernAuth: Error setting auth persistence:", error));
@@ -236,6 +240,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       }
     } catch (error) {
       console.error("TernAuth: Error updating internal auth state:", error);
+      this.#status = 'error';
       this._authState = {
         ...DEFAULT_TERN_SECURE_STATE,
         isLoaded: true,
@@ -322,7 +327,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   }
 
   public static create(options: TernSecureAuthOptions): TernSecureAuth {
-    const instance = this.getorCreateInstance(options);
+    const instance = this.getorCreateInstance();
     instance.initialize(options);
     return instance;
   }

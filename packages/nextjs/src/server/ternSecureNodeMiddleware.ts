@@ -1,4 +1,5 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import type { NextRequest} from 'next/server';
+import { NextResponse, NextMiddleware} from 'next/server';
 import { verifySession } from './node-session'
 import type { BaseUser } from "./types"
 
@@ -6,6 +7,7 @@ import type { BaseUser } from "./types"
 interface Auth {
   user: BaseUser | null
   token: string | null
+  session: string | null
   protect: () => Promise<void>
 }
 
@@ -22,7 +24,6 @@ export function createRouteMatcher(patterns: string[]) {
   return (request: NextRequest): boolean => {
     const { pathname } = request.nextUrl
     return patterns.some((pattern) => {
-      // Convert glob pattern to regex safely without dynamic evaluation
       const regexPattern = pattern
       .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
       .replace(/\\\*/g, ".*")
@@ -34,7 +35,7 @@ export function createRouteMatcher(patterns: string[]) {
 
 
 /**
- * Edge-compatible auth check
+ * Node-compatible auth check
  */
 async function nodeAuth(request: NextRequest): Promise<Auth> {
   async function protect() {
@@ -47,7 +48,8 @@ async function nodeAuth(request: NextRequest): Promise<Auth> {
     if (sessionResult.isAuthenticated && sessionResult.user) {
       return {
         user: sessionResult.user,
-        token: request.cookies.get("_session_cookie")?.value || request.cookies.get("_session_token")?.value || null,
+        token: request.cookies.get("_tern")?.value || null,
+        session: request.cookies.get("_session_cookie")?.value || request.cookies.get("_session_token")?.value || null,
         protect: async () => {},
       }
     }
@@ -55,6 +57,7 @@ async function nodeAuth(request: NextRequest): Promise<Auth> {
     return {
       user: null,
       token: null,
+      session: null,
       protect,
     }
   } catch (error) {
@@ -63,20 +66,16 @@ async function nodeAuth(request: NextRequest): Promise<Auth> {
     return {
       user: null,
       token: null,
+      session: null,
       protect,
     }
   }
 }
 
 
-
-/**
- * Middleware factory that handles authentication and custom logic
- * @param customHandler Optional function for additional custom logic
- */
-
 export function ternSecureMiddleware(callback: MiddlewareCallback) {
   return async function middleware(request: NextRequest) {
+    const requestHeaders = new Headers(request.headers);
     try {
       const auth = await nodeAuth(request)
 
@@ -84,12 +83,17 @@ export function ternSecureMiddleware(callback: MiddlewareCallback) {
         
         await callback(auth, request)
 
-        const response = NextResponse.next()
-
-
+        const response = NextResponse.next({
+          request: {
+            headers: requestHeaders,
+          },
+        })
+        
+        //requestHeaders.append('Authorization', `Bearer ${auth.token}`);
+        response.headers.set('Authorization', `Bearer ${auth.token}`);
+        
         return response
       } catch (error) {
-        // Handle unauthorized access
         if (error instanceof Error && error.message === 'Unauthorized access') {
           const redirectUrl = new URL("/sign-in", request.url)
           redirectUrl.searchParams.set("redirect", request.nextUrl.pathname)

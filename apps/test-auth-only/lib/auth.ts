@@ -1,5 +1,5 @@
 import { TernSecureAuth } from "@tern-secure/auth";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 
 const tern = TernSecureAuth.initialize({
     ternSecureConfig: {
@@ -26,7 +26,6 @@ export const useSignIn = () => {
 
 
 export const useAuth = () => {
-    
     useEffect(() => {
         const unsubscribe = tern.onAuthStateChanged((user) => {
             console.log('[useAuth] - Auth state changed:', user);
@@ -41,6 +40,7 @@ export const useAuth = () => {
         isLoading: tern.isLoading,
         isReady: tern.isReady,
         error: t.error,
-        status: tern.status
+        status: tern.status,
+        signOut: tern.signOut,
     }
 }

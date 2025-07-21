@@ -15,7 +15,11 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { signIn } from "@/lib/auth"
-import type { SignInResponseTree } from "@tern-secure/nextjs"
+import {
+  createSessionCookieServer,
+  type SignInResponseTree,
+  type TernSecureUser
+} from "@tern-secure/nextjs"
 
 
 
@@ -28,6 +32,34 @@ export function LoginForm({
   const [password, setPassword] = useState('')
   const [formError, setFormError] = useState<SignInResponseTree | null>(null)
 
+
+  const handleSuccessfulAuth = async (user: TernSecureUser) => {
+    try {
+       const idToken = await user.getIdToken()
+        const sessionResult = await createSessionCookieServer(idToken)
+
+        if (!sessionResult.success) {
+          setFormError({
+            success: false, 
+            message: sessionResult.message || "Failed to create session", 
+            error: 'INTERNAL_ERROR', 
+            user: null
+          })
+        }
+        if (process.env.NODE_ENV === "production") {
+          window.location.href = '/'
+        } else {
+          router.push('/')
+        }
+      } catch (err) {
+        setFormError({
+          success: false, 
+          message: "Failed to complete authentication", 
+          error: 'INTERNAL_ERROR', 
+          user: null
+        })
+      }
+    }
   
 
   const handleEmailSignIn = async (e: React.FormEvent) => {
@@ -46,7 +78,7 @@ export function LoginForm({
       }
       
       if (res.success) {
-        router.push('/dashboard')
+        await handleSuccessfulAuth(res.user)
       }
     } catch (error) {
       console.error("Sign-in error:", error)

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 
 export default function Home() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, signOut } = useAuth();
 
   console.log('isAuthenticated:', isAuthenticated);
 
@@ -22,6 +22,12 @@ export default function Home() {
   const redirectToProtected = () => {
     router.push('/protected');
   };
+
+  const createSignOut = async () => {
+    await signOut({
+      redirectUrl: '/dashboard',
+    });
+  }
 
 
   return (
@@ -42,6 +48,13 @@ export default function Home() {
         className="ml-4 bg-blue-500 text-white px-4 py-2 rounded"
       >
         Server Side Page
+      </button>
+
+      <button
+        onClick={createSignOut}
+        className="ml-4 bg-red-500 text-white px-4 py-2 rounded"
+      >
+        Sign Out
       </button>
     </div>
   );

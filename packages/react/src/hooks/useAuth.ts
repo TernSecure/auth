@@ -8,9 +8,29 @@ import {
 } from '@tern-secure/types'
 import { useAuthProviderCtx } from '../ctx/AuthProvider'
 import { useIsoTernSecureAuthCtx } from '../ctx/IsomorphicTernSecureCtx'
+import { IsoTernSecureAuth } from '../lib/isoTernSecureAuth'
 
 type AuthState = TernSecureState & {
-  signOut?: (options?: SignOutOptions) => Promise<void>
+  signOut: (options?: SignOutOptions) => Promise<void>
+}
+
+const handleSignOut = (instance: IsoTernSecureAuth) => {
+  return async (options?: SignOutOptions) => {
+    try {
+      if (options?.onBeforeSignOut) {
+        await options.onBeforeSignOut();
+      }
+
+      await instance.signOut(options);
+
+      if (options?.onAfterSignOut) {
+        await options.onAfterSignOut();
+      }
+    } catch (error) {
+      console.error('[useAuth] Sign out failed:', error)
+      throw error
+    }
+  }
 }
 
 
@@ -18,16 +38,16 @@ export const useAuth = (): AuthState => {
   useAssertWrappedByTernSecureAuthProvider('useAuth')
   
   const ctx  = useAuthProviderCtx()
-  //const instance = useIsoTernSecureAuthCtx()
+  const instance = useIsoTernSecureAuthCtx()
 
-  //const signOut = useCallback(handleSignOut(instance), [instance])
+  const signOut = useCallback(handleSignOut(instance), [instance])
 
   if (!ctx.isLoaded) {
     console.warn('[useAuth] TernSecure is not loaded yet. Returning default state.')
     return {
       ...DEFAULT_TERN_SECURE_STATE,
       isLoaded: false,
-      //signOut,
+      signOut,
     }
   }
   
@@ -42,6 +62,6 @@ export const useAuth = (): AuthState => {
     email: ctx.email,
     status: ctx.status,
     user: ctx.user,
-    //signOut
+    signOut
   }
 }

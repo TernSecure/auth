@@ -1,27 +1,9 @@
 import { 
     TernSecureState,
-    TernSecureUser
-    //DEFAULT_TERN_SECURE_STATE
+    TernSecureUser,
+    DEFAULT_TERN_SECURE_STATE
 } from "@tern-secure/types";
 
-
-/**
- * Default state for derived auth state
- */
-//export const DEFAULT_DERIVED_AUTH_STATE = DEFAULT_TERN_SECURE_STATE
-
-export const DEFAULT_TERN_SECURE_STATE: TernSecureState = {
-  userId: null,
-  isLoaded: false,
-  error: null,
-  isValid: false,
-  isVerified: false,
-  isAuthenticated: false,
-  token: null,
-  email: null,
-  status: "loading",
-  user: null
-};
 
 
 export const deriveAuthState = (internalState: TernSecureState | undefined ): TernSecureState => {
