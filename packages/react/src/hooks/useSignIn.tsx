@@ -6,17 +6,18 @@ import type {
   SignInResource,
   SignInFormValuesTree,
   SignInResponseTree,
-  ResendEmailVerification
+  ResendEmailVerification,
+  UseSignInReturn
 } from '@tern-secure/types'
 import { useAuthSignInCtx} from '../ctx/TernSecureAuthResourcesCtx'
 
-type UseSignInReturnType = | {isLoaded: false; signIn: undefined;} | {isLoaded: true; signIn: SignInResource;}
+
 
 /**
  * Hook to access the SignInResource methods from TernSecureAuth
  * Provides type-safe access to all sign-in related functionality
  */
-export const useSignIn = (): UseSignInReturnType => {
+export const useSignIn = (): UseSignInReturn => {
   useAssertWrappedByTernSecureAuthProvider('useSignIn');
   const auth = useAuthSignInCtx();
 

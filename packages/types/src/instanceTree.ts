@@ -48,7 +48,7 @@ export type TernSecureSDK = {
   };
 }
 
-export type SignOutOptions = {
+export type SignOutOptionsTree = {
   /** URL to redirect to after sign out */
   redirectUrl?: string;
   /** Callback to perform consumer-specific cleanup (e.g., delete session cookies) */
@@ -104,7 +104,7 @@ export interface TernSecureInstanceTree {
   /** Core Authentication Methods */
   ternAuth: TernSecureAuthProvider | undefined;
   /** Sign out current user with optional cleanup */
-  signOut: (options?: SignOutOptions) => Promise<void>;
+  signOut: (options?: SignOutOptionsTree) => Promise<void>;
   
   showSignIn: (targetNode: HTMLDivElement, config?: SignInPropsTree) => void;
   hideSignIn: (targetNode: HTMLDivElement) => void;
@@ -159,8 +159,8 @@ export interface TernSecureInstance {
   requiresVerification: boolean;
 
   /** Sign out current user with optional cleanup */
-  signOut: (options?: SignOutOptions) => Promise<void>;
-  
+  signOut: (options?: SignOutOptionsTree) => Promise<void>;
+
 
 }
 

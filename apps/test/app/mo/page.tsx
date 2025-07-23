@@ -13,7 +13,7 @@ export default function MoPage() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isUserDataExpanded, setIsUserDataExpanded] = useState(false);
   const [isTokenDataExpanded, setIsTokenDataExpanded] = useState(false);
-  const {  user, userId } = useAuth()
+  const {  user, userId, isLoaded } = useAuth()
   const { accessToken, expirationTime, status } = useSession()
   const { tokenResult, loading: tokenLoading, error, refreshToken } = useIdToken()
 

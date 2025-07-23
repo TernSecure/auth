@@ -8,6 +8,14 @@ import type {
 } from './signIn';
 import { SignUpResource } from 'signUp';
 
+export interface InitialState {
+  userId: string | null
+  token: any | null
+  email: string | null
+  user?: TernSecureUser | null
+}
+
+
 export interface TernSecureState {
   userId: string | null
   isLoaded: boolean
@@ -88,6 +96,11 @@ export type TernAuthSDK = {
   };
 }
 
+export interface TernSecureResources {
+  user?: TernSecureUser | null;
+  session?: SignedInSession | null;
+}
+
 
 export type TernSecureAuthOptions = {
   sdkMetadata?: TernAuthSDK;
@@ -101,12 +114,41 @@ export type TernSecureAuthOptions = {
   enableServiceWorker?: boolean;
 };
 
-type EventHandler<Events extends Record<string, unknown>, Event extends keyof Events> = (payload: Events[Event]) => void;
+export type TernAuthListenerEventPayload = {
+  authStateChanged: TernSecureState;
+  userChanged: TernSecureUser;
+  sessionChanged: SignedInSession | null;
+  tokenRefreshed: string | null;
+};
+
+export type TernAuthListenerEvent = keyof TernAuthListenerEventPayload;
+
+export type ListenerCallback = (emission: TernSecureResources)=> void;
+type TernSecureEvent = keyof TernAuthEventPayload;
+type EventHandler<Events extends TernSecureEvent> = (payload: TernAuthEventPayload[Events]) => void;
 export type TernAuthEventPayload = {
   status: TernSecureAuthStatus;
 };
 
+export type UnsubscribeCallback = () => void;
+
 export type TernSecureAuthStatus = 'error' | 'loading' | 'ready';
+
+type onEventListener = <E extends TernSecureEvent>(event: E, handler: EventHandler<E>) => void;
+type OffEventListener = <E extends TernSecureEvent>(event: E, handler: EventHandler<E>) => void;
+
+export type SignOutOptions = {
+  /** URL to redirect to after sign out */
+  redirectUrl?: string;
+  /** Callback to perform consumer-specific cleanup (e.g., delete session cookies) */
+  onBeforeSignOut?: () => Promise<void> | void;
+  /** Callback executed after successful sign out */
+  onAfterSignOut?: () => Promise<void> | void;
+};
+
+export interface SignOut {
+  (options?: SignOutOptions): Promise<void>
+}
 
 export interface TernSecureAuth {
   /** Indicates if the TernSecureAuth instance is ready for use */
@@ -121,14 +163,11 @@ export interface TernSecureAuth {
   /** Requires Verificatipn */
   requiresVerification: boolean;
   
-  /** Current auth state */
-  internalAuthState: TernSecureState;
-
   /** Initialize TernSecureAuth */
   initialize(options?: TernSecureAuthOptions): Promise<void>
 
   /** Current user*/
-  ternSecureUser(): TernSecureUser | null;
+  user: TernSecureUser | null | undefined;
 
   /** AuthCookie Manager */
   authCookieManager(): void;
@@ -146,16 +185,22 @@ export interface TernSecureAuth {
   ternSecureConfig?: TernSecureConfig;
 
   /** Subscribe to auth state changes */
-  onAuthStateChanged(callback: (user: TernSecureUser | null) => void): () => void;
+  onAuthStateChanged(callback: (user: TernSecureUser | null | undefined) => void): () => void;
 
   /** Sign out the current user */
-  signOut(): Promise<void>;
+  signOut: SignOut;
+  
+  /** Subscribe to a single event */
+  on: onEventListener;
+  
+  /** Remove event listener */
+  off: OffEventListener;
   
   events: {
     /** Subscribe to TernSecureAuth status */
     onStatusChanged: (callback: (status: TernSecureAuthStatus) => void) => () => void;
-    /** Subscribe to auth state changes */
-    //onAuthStateChanged: (callback: (authState: TernSecureState) => void) => () => void;
+    /** Subscribe to multiple events at once */
+    addListener: (callback: ListenerCallback ) => UnsubscribeCallback;
   };
 }
 

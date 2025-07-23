@@ -1,39 +1,43 @@
 import { 
     TernSecureState,
     TernSecureUser,
-    DEFAULT_TERN_SECURE_STATE
+    TernSecureResources,
+    InitialState,
 } from "@tern-secure/types";
 
 
-
-export const deriveAuthState = (internalState: TernSecureState | undefined ): TernSecureState => {
-  
-  if (!internalState) {
-    console.warn('[deriveAuthState] internalState is undefined or null. Returning default state.');
-    return DEFAULT_TERN_SECURE_STATE
+export const deriveAuthState = (authState: TernSecureResources, initialState: InitialState | undefined ) => {
+  if (initialState) {
+    return fromInitialState(initialState);
   }
+  return fromClientSideState(authState);
+};
 
-  const userId = internalState.userId || null;
-  const isLoaded = internalState.isLoaded || false;
-  const isValid = internalState.isValid || false;
-  const isVerified = internalState.isVerified || false;
-  const isAuthenticated = internalState.isAuthenticated || false;
-  const token = internalState.token || null;
-  const email = internalState.email || null;
-  const error = internalState.error || null;
-  const status = internalState.status || "loading";
-  const user = internalState.user || null;
+const fromInitialState = (initialState: InitialState) => {
+  const userId = initialState.userId;
+  const token = initialState.token;
+  const email = initialState.email;
+  const user = initialState.user as TernSecureUser;
 
   return {
     userId,
-    isLoaded,
-    isValid,
-    isVerified,
-    isAuthenticated,
     token,
     email,
-    error,
-    status,
     user
   }
+}
+
+
+const fromClientSideState = (authState: TernSecureResources) => {
+  const userId: string | null | undefined = authState.user ? authState.user.uid : authState.user;
+  const token = authState.user ? authState.user.getIdToken() : null;
+  const email = authState.user ? authState.user.email : null;
+  const user = authState.user;
+
+  return {
+    userId,
+    token,
+    email,
+    user
+  };
 };

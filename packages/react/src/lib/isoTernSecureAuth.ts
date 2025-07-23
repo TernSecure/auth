@@ -8,9 +8,11 @@ import {
   type SignedInSession,
   type SignInResource,
   type SignUpResource,
-  type TernSecureAuthStatus
+  type TernSecureAuthStatus,
+  type ListenerCallback, 
+  type UnsubscribeCallback
 } from '@tern-secure/types';
-import { createTernAuthEventBus, ternEvents } from '@tern-secure/shared/eventBus';
+import { createTernAuthEventBus, ternEvents } from '@tern-secure/shared/ternStatusEvent';
 import {  TernSecureAuth as TernSecureAuthImpl } from '@tern-secure/auth';
 
 
@@ -45,6 +47,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
   #status: TernSecureAuthStatus = 'loading';
 
   static #instance: IsoTernSecureAuth | null | undefined;
+  #listeners: Array<ListenerCallback> = [];
   #eventBus = createTernAuthEventBus();
 
   get status(): TernSecureAuthStatus {
@@ -56,7 +59,6 @@ export class IsoTernSecureAuth implements TernSecureAuth {
       (this.ternauth.isReady ? 'ready' : 'loading')
     )
   }
-
 
   get isReady(): boolean {
     return this.ternauth?.isReady || false;
@@ -84,9 +86,14 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     return undefined
   }
 
-  get internalAuthState(): TernSecureState {
-    return this.ternauth?.internalAuthState || DEFAULT_TERN_SECURE_STATE;
+  get user() {
+    if (this.ternauth) {
+      return this.ternauth.user
+    } else {
+      undefined
+    }
   }
+
 
   static getOrCreateInstance(options: IsoTernSecureAuthOptions) {
     if (!inBrowser() || !this.#instance) {
@@ -164,7 +171,25 @@ export class IsoTernSecureAuth implements TernSecureAuth {
       this.#eventBus.emit(ternEvents.Status, newStatus);
     });
 
-    console.log('[IsoTernSecureAuth] Subscribed to TernSecureAuth events');
+    events.addListener((event) => {
+      this.#listeners.forEach(listener => listener(event));
+    });
+  };
+
+  public on: TernSecureAuth['on'] = (...args) => {
+    if (this.ternauth?.on) {
+      return this.ternauth.on(...args);
+    } else {
+      return this.#eventBus.on(...args);
+    }
+  };
+
+  public off: TernSecureAuth['off'] = (...args) => {
+    if (this.ternauth?.off) {
+      return this.ternauth.off(...args);
+    } else {
+      return this.#eventBus.off(...args);
+    }
   };
 
   signOut = async (options?: SignOutOptions): Promise<void> => {
@@ -182,11 +207,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
   };
 
 
-  ternSecureUser(): TernSecureUser | null {
-    return this.ternauth?.ternSecureUser() || null;
-  }
-
-  onAuthStateChanged(callback: (user: TernSecureUser | null) => void): () => void {
+  onAuthStateChanged(callback: (user: TernSecureUser | null | undefined) => void): () => void {
     if (!this.ternauth) {
       console.warn('[IsoTernSecureAuth] TernAuth not initialized, cannot set up auth state listener');
       return () => {};
@@ -224,6 +245,19 @@ export class IsoTernSecureAuth implements TernSecureAuth {
         return () => {
           this.#eventBus.off(ternEvents.Status, callback);
         };
+      }, 
+      addListener: (listener: ListenerCallback): UnsubscribeCallback  => {
+        if (this.ternauth?.events?.addListener) {
+          return this.ternauth.events.addListener(listener);
+        }
+        this.#listeners.push(listener);
+        const unsubscribe = () => {
+          const index = this.#listeners.indexOf(listener);
+          if (index > -1) {
+            this.#listeners.splice(index, 1);
+          }
+        };
+        return unsubscribe;
       }
     };
   }

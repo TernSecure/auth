@@ -5,6 +5,8 @@ import {
   useTernSecureAuthCtx
 } from '@tern-secure/shared/react'
 import { useAssertWrappedByTernSecureAuthProvider } from './useAssertWrappedTernSecureProvider'
+import { useAuthProviderCtx } from '../ctx/AuthProvider'
+import { useAuth } from './useAuth'
 
 interface SessionData {
   accessToken: string | null
@@ -16,17 +18,18 @@ interface SessionData {
 type SessionStatus = 'active' | 'expired' | 'refreshing' | 'inactive'
 
 export function useSession() {
-  const ternSecureAuthCtx = useTernSecureAuthCtx()
+  const ctx = useAuthProviderCtx()
+  const instanceCtx = useTernSecureAuthCtx()
 
   useAssertWrappedByTernSecureAuthProvider('useSession')
-
-  const instance = ternSecureAuthCtx
-  const user = instance.internalAuthState.user
+  
+  const { user, token, isAuthenticated } = useAuth()
+  const instance = instanceCtx
   const session = instance.currentSession
 
   const [sessionData, setSessionData] = useState<SessionData>({
-    accessToken: ternSecureAuthCtx.internalAuthState.token || null, // Use session token if available
-    expirationTime: session?.expirationTime || null, // Default to a future time for initial state
+    accessToken: token || null, // Use session token if available
+    expirationTime: session?.expirationTime|| null, // Default to a future time for initial state
     error: null,
     isLoading: true
   })
@@ -40,11 +43,9 @@ export function useSession() {
   }, [sessionData])
 
   const refreshSession = useCallback(async () => {
-
-
     try {
       setSessionData(prev => ({ ...prev, isLoading: true }))
-      if (!ternSecureAuthCtx.internalAuthState.isAuthenticated) throw new Error('No authenticated user')
+      //if (!isAuthenticated) throw new Error('No authenticated user')
 
       const token = await user?.getIdToken()
       if (!token) throw new Error('Failed to get ID token')

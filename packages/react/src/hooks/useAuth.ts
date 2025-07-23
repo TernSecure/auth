@@ -1,18 +1,17 @@
 "use client"
 import { useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { useAssertWrappedByTernSecureAuthProvider } from './useAssertWrappedTernSecureProvider'
 import { 
-  DEFAULT_TERN_SECURE_STATE, 
-  TernSecureState,
-  SignOutOptions
+  SignOut,
+  SignOutOptions,
+  UseAuthReturn
 } from '@tern-secure/types'
 import { useAuthProviderCtx } from '../ctx/AuthProvider'
 import { useIsoTernSecureAuthCtx } from '../ctx/IsomorphicTernSecureCtx'
 import { IsoTernSecureAuth } from '../lib/isoTernSecureAuth'
 
-type AuthState = TernSecureState & {
-  signOut: (options?: SignOutOptions) => Promise<void>
-}
+
 
 const handleSignOut = (instance: IsoTernSecureAuth) => {
   return async (options?: SignOutOptions) => {
@@ -34,34 +33,47 @@ const handleSignOut = (instance: IsoTernSecureAuth) => {
 }
 
 
-export const useAuth = (): AuthState => {
+export const useAuth = (): UseAuthReturn => {
   useAssertWrappedByTernSecureAuthProvider('useAuth')
   
   const ctx  = useAuthProviderCtx()
-  const instance = useIsoTernSecureAuthCtx()
+  let authCtx = ctx
 
-  const signOut = useCallback(handleSignOut(instance), [instance])
-
-  if (!ctx.isLoaded) {
-    console.warn('[useAuth] TernSecure is not loaded yet. Returning default state.')
-    return {
-      ...DEFAULT_TERN_SECURE_STATE,
-      isLoaded: false,
-      signOut,
-    }
+  if (authCtx.userId === null) {
+    console.warn('[useAuth] TernSecureAuth context is not initialized. Returning default state.')
   }
-  
+
+  const instance = useIsoTernSecureAuthCtx()
+  const signOut: SignOut = useCallback(handleSignOut(instance), [instance])
+
+  const isLoaded = !!ctx.user || ctx.userId !== undefined
+  const isValid = !!ctx.userId
+  const isVerified = !!ctx.user?.emailVerified
+  const isAuthenticated = isValid && isVerified
+  const status = deriveAuthStatus(isLoaded, isAuthenticated, isVerified)
+
   return {
     userId: ctx.userId,
-    isLoaded: ctx.isLoaded,
-    error: ctx.error,
-    isValid: ctx.isValid,
-    isVerified: ctx.isVerified,
-    isAuthenticated: ctx.isAuthenticated,
-    token: ctx.token,
     email: ctx.email,
-    status: ctx.status,
+    token: ctx.token,
     user: ctx.user,
+    isLoaded,
+    isValid,
+    isVerified,
+    isAuthenticated,
+    status,
     signOut
   }
+}
+
+
+const deriveAuthStatus = (
+  isLoaded: boolean, 
+  isAuthenticated: boolean,
+  isVerified: boolean
+): UseAuthReturn['status'] => {
+  if (!isLoaded) return 'loading'
+  if (!isAuthenticated) return 'unauthenticated'
+  if (!isVerified) return 'unverified'
+  return 'authenticated'
 }

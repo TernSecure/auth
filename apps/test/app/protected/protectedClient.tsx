@@ -7,7 +7,7 @@ interface ProtectedPageClientProps {
 }
 
 export function ProtectedPageClient({ user }: ProtectedPageClientProps) {
-        console.log('User in protected page:', user)
+    //console.log('User in protected page:', user)
     const router = useRouter();
 
     const redirectToHome = () => {

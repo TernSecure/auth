@@ -5,9 +5,12 @@ import { useRouter } from "next/navigation"
 
 export default function Home() {
   const router = useRouter();
-  const { user, isAuthenticated, signOut } = useAuth();
+  const { user, isLoaded, isAuthenticated, signOut } = useAuth();
 
-  console.log('isAuthenticated:', isAuthenticated);
+  //console.log('isAuthenticated:', isAuthenticated);
+  if (!isLoaded) {
+    return <div>Loading...</div>;
+  }
 
   if (!user) return null;
 

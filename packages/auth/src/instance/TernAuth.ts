@@ -1,4 +1,4 @@
-import { createTernAuthEventBus, ternEvents } from '@tern-secure/shared/eventBus';
+import { createTernAuthEventBus, ternEvents } from '@tern-secure/shared/ternStatusEvent';
 import {
   type TernSecureAuth as TernSecureAuthInterface,
   type TernSecureAuthOptions,
@@ -11,21 +11,19 @@ import {
   type SignInResource,
   type SignUpResource,
   DEFAULT_TERN_SECURE_STATE,
+  ListenerCallback,
+  UnsubscribeCallback,
+  SignOut,
+  type SignOutOptions
 } from '@tern-secure/types';
 import { handleFirebaseAuthError } from '@tern-secure/shared/errors';
 import {
   Auth,
   getAuth,
-  getIdToken,
-  initializeAuth,
   onAuthStateChanged,
-  signInWithRedirect,
-  signInWithPopup,
   getRedirectResult,
-  GoogleAuthProvider,
-  OAuthProvider,
   browserLocalPersistence,
-  setPersistence
+  setPersistence,
 } from 'firebase/auth';
 import { getInstallations } from "firebase/installations";
 import { 
@@ -38,7 +36,8 @@ import {
   SignIn, 
   SignUp 
 } from './resources/internal';
-
+import {eventBus, events } from './events'
+import { AuthCookieManager } from './resources/internal';
 
 /**
  * Firebase implementation of the TernSecureAuth interface
@@ -48,15 +47,17 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   private _currentUser: TernSecureUser | null = null;
   private signedInSession: SignedInSession | null = null;
   private firebaseClientApp: FirebaseApp | undefined;
-  private _authState: TernSecureState = { ...DEFAULT_TERN_SECURE_STATE };
   private auth!: Auth;
   private authStateUnsubscribe: (() => void) | null = null;
   private tokenRefreshUnsubscribe: (() => void) | null = null;
   public isLoading = false;
   public error: Error | null = null;
+  public user: TernSecureUser | null | undefined = null;
   #status: TernSecureAuthInterface['status'] = 'loading';
+  #listeners: Array<ListenerCallback> = [];
   #options: TernSecureAuthOptions = {};
   #eventBus = createTernAuthEventBus();
+  #authCookieManager: AuthCookieManager
 
   signIn!: SignInResource;
   signUp!: SignUpResource;
@@ -64,6 +65,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
   private constructor() {
     this.#eventBus.emit(ternEvents.Status, 'loading');
+    this.#authCookieManager = new AuthCookieManager();
     TernSecureBase.ternsecure = this;
   }
 
@@ -136,20 +138,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   }
 
 
-  private async waitForInitialization(): Promise<void> {
-    try {
-      await this.auth.authStateReady();
-    } catch (error) {
-      console.error("TernAuth: Error initializing auth state:", error);
-      this._authState = {
-        ...DEFAULT_TERN_SECURE_STATE,
-        isLoaded: true,
-        error: error as Error,
-        status: "unauthenticated"
-      };
-    }
-  }
-
   private initializeFirebaseApp(config: TernSecureConfig) {
     const appName = config.appName || '[DEFAULT]';
       this.firebaseClientApp = getApps().length === 0 
@@ -164,12 +152,11 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       
   }
 
-  signOut = async(): Promise<void> => {
+  signOut: SignOut = async(options?: SignOutOptions) => {
     await Promise.all([
       this.auth.signOut(),
-      this.updateInternalAuthState(null)
     ]);
-    this.#eventBus.emit(ternEvents.Status, 'error');
+    eventBus.emit(events.UserSignOut, null);
   }
 
   currentSession = async(): Promise<SignedInSession | null> => {
@@ -193,74 +180,11 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   private initAuthStateListener(): () => void {
     return onAuthStateChanged(this.auth, async (user: TernSecureUser | null) => {
       this._currentUser = user;
-      await this.updateInternalAuthState(user);
+      eventBus.emit(events.UserChanged, user);
     });
   }
-  
-  private setupTokenRefreshListener(): () => void {
-    return this.auth.onIdTokenChanged(async (user) => {
-      if (user) {
-        await this.updateInternalAuthState(user as TernSecureUser);
-      }
-    });
-  }
-
-  private async updateInternalAuthState(user: TernSecureUser | null): Promise<void> {
-    const previousState = { ...this._authState };
-    try {
-      if (user) {
-        const isValid = !!user.uid;
-        const isVerified = user.emailVerified;
-        const requiresVerification = this.requiresVerification;
-        const isAuthenticated = isValid && (!requiresVerification || isVerified);
-
-        this._authState = {
-          userId: user.uid,
-          isLoaded: true,
-          error: null,
-          isValid,
-          isVerified,
-          isAuthenticated,
-          token: user.getIdToken(),
-          email: user.email || null,
-          status: this.determineAuthStatus(user, requiresVerification),
-          user
-        };
-      } else {
-        this._authState = {
-          ...DEFAULT_TERN_SECURE_STATE,
-          isLoaded: true,
-          status: "unauthenticated",
-          user: null
-        };
-      }
-
-      if (this.hasAuthStateChanged(previousState, this._authState)) {
-        //this.#eventBus.emit('statusChanged', this._authState);
-      }
-    } catch (error) {
-      console.error("TernAuth: Error updating internal auth state:", error);
-      this.#status = 'error';
-      this._authState = {
-        ...DEFAULT_TERN_SECURE_STATE,
-        isLoaded: true,
-        error: error as Error,
-        status: "unauthenticated",
-        user: null
-      };
-      await this.signOut();
-    }
-  }
-
-  public ternSecureUser(): TernSecureUser | null {
-    return this._currentUser;
-  }
-  
-  public get internalAuthState(): TernSecureState {
-    return this._authState;
-  }
-
-  public onAuthStateChanged(callback: (user: TernSecureUser | null) => void): () => void {
+ 
+  public onAuthStateChanged(callback: (user: TernSecureUser | null | undefined) => void): () => void {
     return onAuthStateChanged(this.auth, callback);
   }
 
@@ -285,27 +209,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
   }
 
-  private determineAuthStatus(
-    user: TernSecureUser, 
-    requiresVerification: boolean
-  ): "authenticated" | "unauthenticated" | "unverified" {
-    if (!user.uid) return "unauthenticated";
-    if (requiresVerification && !user.emailVerified) {
-      return "unverified";
-    }
-    return "authenticated";
-  }
-
-  private hasAuthStateChanged(previous: TernSecureState, current: TernSecureState): boolean {
-    return (
-      previous.userId !== current.userId ||
-      previous.isAuthenticated !== current.isAuthenticated ||
-      previous.status !== current.status ||
-      previous.isLoaded !== current.isLoaded ||
-      previous.user?.uid !== current.user?.uid
-    );
-  }
-
   public authCookieManager(): void {
     console.warn('AuthCookieManager is not implemented in this version.');
   }
@@ -317,9 +220,29 @@ export class TernSecureAuth implements TernSecureAuthInterface {
         return () => {
           this.#eventBus.off(ternEvents.Status, callback);
         };
+      },
+      addListener: (listener: ListenerCallback): UnsubscribeCallback => {
+        this.#listeners.push(listener);
+          listener({
+            user: this._currentUser
+          });
+        const unsubscribe = () => {
+          this.#listeners = this.#listeners.filter(l => l !== listener);
+        }
+        return () => {
+          unsubscribe();
+        };
       }
     };
   }
+
+  public on: TernSecureAuthInterface['on'] = (...args) => {
+    this.#eventBus.on(...args);
+  };
+
+  public off: TernSecureAuthInterface['off'] = (...args) => {
+    this.#eventBus.off(...args);
+  };
 
   public initialize(options: TernSecureAuthOptions): Promise<void> {
     this._initialize(options);

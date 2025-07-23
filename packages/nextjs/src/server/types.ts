@@ -1,3 +1,4 @@
+import type { TernSecureUser } from "@tern-secure/types"
 export interface User {
     uid: string
     email: string | null
@@ -27,3 +28,5 @@ export interface BaseUser {
     user: BaseUser | null
     error?: string
   }
+
+  export type { TernSecureUser };

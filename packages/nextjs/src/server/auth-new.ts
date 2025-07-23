@@ -1,6 +1,7 @@
 import { cache } from "react"
 import { headers } from "next/headers";
 import type { BaseUser } from "../types"
+import type { TernSecureUser } from "@tern-secure/types";
 import { initializeConfig, initializeServerConfig} from "../utils/config";
 import { TernSecureServer, type AuthenticatedApp, type TernServerAuthOptions } from "@tern-secure/react"
 
@@ -12,10 +13,11 @@ export interface AuthResult {
 
 export async function getAuthenticatedApp(): Promise<AuthenticatedApp> {
   try {
-    const serverAuth = await TernSecureServer({
-      firebaseConfig: { ...initializeConfig() }
-    });
     const headersList = await headers();
+
+    const serverAuth = await TernSecureServer({
+      firebaseServerConfig: { ...initializeServerConfig() }
+    });
     return serverAuth.getAuthenticatedAppFromHeaders(headersList);
   } catch (error) {
     console.error('Failed to get authenticated app:', error);
@@ -34,9 +36,10 @@ export const auth = cache(async (): Promise<AuthResult> => {
       return {
         user: {
           uid: currentUser.uid,
-          email: currentUser.email || null,
-          tenantId: currentUser.tenantId || 'default',
-          authTime: currentUser.metadata.lastSignInTime ? new Date(currentUser.metadata.lastSignInTime).getTime() : undefined
+          email: currentUser.email,
+          emailVerified: currentUser.emailVerified || false,
+          tenantId: currentUser.tenantId || null,
+          authTime: currentUser.metadata.lastSignInTime ? new Date(currentUser.metadata.lastSignInTime).getTime() : undefined,
         },
         error: null
       };
@@ -44,7 +47,7 @@ export const auth = cache(async (): Promise<AuthResult> => {
     
     return {
       user: null,
-      error: null // No error, just no user
+      error: null
     };
   } catch (error) {
     console.error('Auth error:', error);
