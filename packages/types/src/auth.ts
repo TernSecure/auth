@@ -7,6 +7,12 @@ import type {
     SignInResource
 } from './signIn';
 import { SignUpResource } from 'signUp';
+import type {
+  AfterSignOutUrl,
+  RedirectOptions,
+  SignInRedirectUrl,
+  SignUpRedirectUrl
+} from './redirect';
 
 export interface InitialState {
   userId: string | null
@@ -112,7 +118,7 @@ export type TernSecureAuthOptions = {
   ternSecureConfig?: TernSecureConfig;
   persistence?: Persistence;
   enableServiceWorker?: boolean;
-};
+} & SignInRedirectUrl & SignUpRedirectUrl & AfterSignOutUrl;
 
 export type TernAuthListenerEventPayload = {
   authStateChanged: TernSecureState;
@@ -169,9 +175,6 @@ export interface TernSecureAuth {
   /** Current user*/
   user: TernSecureUser | null | undefined;
 
-  /** AuthCookie Manager */
-  authCookieManager(): void;
-
   /** Current session */
   currentSession: SignedInSession | null;
 
@@ -195,13 +198,8 @@ export interface TernSecureAuth {
   
   /** Remove event listener */
   off: OffEventListener;
-  
-  events: {
-    /** Subscribe to TernSecureAuth status */
-    onStatusChanged: (callback: (status: TernSecureAuthStatus) => void) => () => void;
-    /** Subscribe to multiple events at once */
-    addListener: (callback: ListenerCallback ) => UnsubscribeCallback;
-  };
+
+  addListener: (callback: ListenerCallback ) => UnsubscribeCallback;
 }
 
 export interface TernSecureAuthFactory {

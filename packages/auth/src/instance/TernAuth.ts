@@ -39,6 +39,11 @@ import {
 import {eventBus, events } from './events'
 import { AuthCookieManager } from './resources/internal';
 
+export function inBrowser(): boolean {
+  return typeof window !== 'undefined';
+}
+
+
 /**
  * Firebase implementation of the TernSecureAuth interface
  */
@@ -153,9 +158,19 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   }
 
   signOut: SignOut = async(options?: SignOutOptions) => {
-    await Promise.all([
-      this.auth.signOut(),
-    ]);
+    const redirectUrl = options?.redirectUrl || this.#constructAfterSignOutUrl();
+    if (options?.onBeforeSignOut) {
+      await options.onBeforeSignOut();
+    }
+
+    await this.auth.signOut()
+
+    if (options?.onAfterSignOut) {
+      await options.onAfterSignOut();
+    }
+    if (inBrowser()) {
+      window.location.href = redirectUrl;
+    }
     eventBus.emit(events.UserSignOut, null);
   }
 
@@ -208,31 +223,18 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       };
     }
   }
-
-  public authCookieManager(): void {
-    console.warn('AuthCookieManager is not implemented in this version.');
-  }
   
-  public get events(): TernSecureAuthInterface['events'] {
-    return {
-      onStatusChanged: (callback) => {
-        this.#eventBus.on(ternEvents.Status, callback);
-        return () => {
-          this.#eventBus.off(ternEvents.Status, callback);
-        };
-      },
-      addListener: (listener: ListenerCallback): UnsubscribeCallback => {
-        this.#listeners.push(listener);
-          listener({
-            user: this._currentUser
-          });
-        const unsubscribe = () => {
-          this.#listeners = this.#listeners.filter(l => l !== listener);
-        }
-        return () => {
-          unsubscribe();
-        };
-      }
+  public addListener = (listener: ListenerCallback): UnsubscribeCallback => {
+    this.#listeners.push(listener);
+    listener({
+      user: this._currentUser
+    });
+    
+    const unsubscribe = () => {
+      this.#listeners = this.#listeners.filter(l => l !== listener);
+    };
+    return () => {
+      unsubscribe();
     };
   }
 
@@ -277,6 +279,22 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       throw error;
     }
   }
+  
+  public constructUrlWithAuthRedirect = (to: string): string => {
+    const baseUrl = window.location.origin
+    const url = new URL(to, baseUrl)
+    if (url.origin === window.location.origin) {
+      return url.href;
+    }
+    return url.toString()
+  };
+   
+  #constructAfterSignOutUrl = (): string => {
+    if (!this.#options.afterSignOutUrl) {
+      return '/';
+    }
+    return this.constructUrlWithAuthRedirect(this.#options.afterSignOutUrl)
+    }
   
   #initOptions = (options?: TernSecureAuthOptions): TernSecureAuthOptions => {
     return {

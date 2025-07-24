@@ -1,6 +1,7 @@
 export { TernSecureProvider } from './app-router/client/TernSecureProvider'
 export { 
     clearSessionCookieServer,
+    clearNextSessionCookie,
     createSessionCookieServer,
     setNextServerSession,
     setNextServerToken

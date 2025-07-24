@@ -1,6 +1,6 @@
 'use client'
 
-import { useAuth } from "@tern-secure/nextjs"
+import { useAuth, clearNextSessionCookie } from "@tern-secure/nextjs"
 import { useRouter } from "next/navigation"
 
 export default function Home() {
@@ -29,6 +29,11 @@ export default function Home() {
   const createSignOut = async () => {
     await signOut({
       redirectUrl: '/dashboard',
+      async onBeforeSignOut() {
+        await clearNextSessionCookie().catch((error) => {
+          console.error('Error clearing session cookie:', error);
+        });
+      },
     });
   }
 

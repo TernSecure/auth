@@ -217,6 +217,9 @@ importers:
 
   packages/auth:
     dependencies:
+      '@tern-secure/backend':
+        specifier: workspace:*
+        version: link:../backend
       '@tern-secure/shared':
         specifier: workspace:*
         version: link:../shared
@@ -245,10 +248,16 @@ importers:
       '@tern-secure/types':
         specifier: workspace:*
         version: link:../types
+      js-cookie:
+        specifier: ^3.0.5
+        version: 3.0.5
       tslib:
         specifier: 2.4.1
         version: 2.4.1
     devDependencies:
+      '@types/js-cookie':
+        specifier: ^3.0.6
+        version: 3.0.6
       firebase-admin:
         specifier: ^12.7.0
         version: 12.7.0

@@ -103,7 +103,7 @@ const useInitTernSecureAuth = (options: IsoTernSecureAuthOptions) => {
   }, [isoTernSecureAuth]);
 
   useEffect(() => {
-    const un = isoTernSecureAuth.events.addListener((event) => {
+    const un = isoTernSecureAuth.addListener((event) => {
       console.warn('[useInitTernSecureAuth] Event received:', event);
     });
     return () => un();

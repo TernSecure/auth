@@ -25,6 +25,15 @@ interface TernVerificationResult extends User {
   error?: string
 }
 
+const SESSION_CONSTANTS = {
+  COOKIE_NAME: '_session_cookie',
+  TERN_NAME: '_tern',
+  DEFAULT_EXPIRES_IN_MS: 60 * 60 * 24 * 5 * 1000, // 5 days
+  DEFAULT_EXPIRES_IN_SECONDS: 60 * 60 * 24 * 5,
+  REVOKE_REFRESH_TOKENS_ON_SIGNOUT: false,
+} as const;
+
+
 export async function CreateNextSessionCookie(idToken: string) {
   try {
     const expiresIn = 60 * 60 * 24 * 5 * 1000;
@@ -169,27 +178,26 @@ export async function SetNextServerToken(token: string) {
 
 
   export async function ClearNextSessionCookie() {
-    const cookieStore = await cookies()
-    
-    cookieStore.delete('_session_cookie')
-    cookieStore.delete('_session_token')
-    cookieStore.delete('_session')
-  
     try {
-      // Verify if there's an active session before revoking
-      const sessionCookie = cookieStore.get('_session_cookie')?.value
-      if (sessionCookie) {
-        // Get the decoded claims to get the user's ID
-        const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie)
-        
-        // Revoke all sessions for the user
-        await adminAuth.revokeRefreshTokens(decodedClaims.uid)
-      }
+      const cookieStore = await cookies()
+      const sessionCookie = cookieStore.get(SESSION_CONSTANTS.COOKIE_NAME)
       
+      cookieStore.delete(SESSION_CONSTANTS.COOKIE_NAME)
+      cookieStore.delete(SESSION_CONSTANTS.TERN_NAME)
+      cookieStore.delete('_session_token')
+      cookieStore.delete('_session')
+      
+      if (SESSION_CONSTANTS.REVOKE_REFRESH_TOKENS_ON_SIGNOUT && sessionCookie?.value ) {
+        try {
+          const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie.value)
+          await adminAuth.revokeRefreshTokens(decodedClaims.uid)
+        } catch (revokeError) {
+          console.error('[ClearNextSessionCookie] Failed to revoke refresh tokens:', revokeError)
+        }
+      }
       return { success: true, message: 'Session cleared successfully' }
     } catch (error) {
       console.error('Error clearing session:', error)
-      // Still return success even if revoking fails, as cookies are cleared
-      return { success: true, message: 'Session cookies cleared' }
+      return { success: false, message: 'Failed to clear session cookies' }
     }
   }

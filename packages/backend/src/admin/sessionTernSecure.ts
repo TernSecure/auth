@@ -33,7 +33,6 @@ export async function createSessionCookie(params: SessionParams | string, cookie
     let decodedToken;
     let sessionCookie;
 
-    // Handle both old string format and new object format for backward compatibility
     const idToken = typeof params === 'string' ? params : params.idToken;
     
     if (!idToken) {
@@ -140,12 +139,11 @@ export async function clearSessionCookie(cookieStore: CookieStore): Promise<Sess
   try {
     const sessionCookie = await cookieStore.get(SESSION_CONSTANTS.COOKIE_NAME);
 
-    // Delete all session-related cookies
     await cookieStore.delete(SESSION_CONSTANTS.COOKIE_NAME);
     await cookieStore.delete('_session_token');
     await cookieStore.delete('_session');
 
-    // Try to revoke refresh tokens if we have a valid session
+
     if (SESSION_CONSTANTS.REVOKE_REFRESH_TOKENS_ON_SIGNOUT && sessionCookie?.value) {
       try {
         const decodedClaims = await adminAuth.verifySessionCookie(sessionCookie.value);

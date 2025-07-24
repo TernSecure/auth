@@ -4,6 +4,8 @@ import {
   type CookieAttributes
 } from '@tern-secure/shared/cookie';
 import type { SessionResult, CookieStore } from '@tern-secure/types';
+import { clearSessionCookieServer } from '../admin/sessionHandler';
+
 
 const SESSION_COOKIE_NAME = '_session_cookie';
 const CSRF_COOKIE_NAME = '_session_terncf';
@@ -78,7 +80,7 @@ export class AuthCookieManager {
 
   clearServerCookie = async(): Promise<SessionResult> => {
     try {
-      await this.serverCookie!.delete(SESSION_COOKIE_NAME);
+      await clearSessionCookieServer(this.serverCookie!);
       return {
         success: true,
         message: 'Session cookie cleared successfully',
