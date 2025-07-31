@@ -29,7 +29,6 @@ export interface AuthErrorTree extends Error {
 }
 
 
-
 export interface SignInResponseTree {
   success: boolean;
   message?: string;
@@ -52,7 +51,6 @@ export function isSignInResponseTree(value: any): value is SignInResponseTree {
     typeof value.success === 'boolean'
   );
 }
-
 
 
 export interface SignInResource {

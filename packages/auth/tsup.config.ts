@@ -13,7 +13,8 @@ const config: Options = {
   external: [
     'react',
     'react-dom',
-    'firebase-admin'
+    'firebase-admin',
+    'firebase'
   ],
   define: {
     PACKAGE_NAME: `"${name}"`,

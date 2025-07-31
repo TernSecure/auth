@@ -1,6 +1,11 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { 
+  useState,
+  useEffect,
+  useCallback,
+  useMemo 
+} from 'react'
 import { 
   useTernSecureAuthCtx
 } from '@tern-secure/shared/react'
@@ -28,8 +33,8 @@ export function useSession() {
   const session = instance.currentSession
 
   const [sessionData, setSessionData] = useState<SessionData>({
-    accessToken: token || null, // Use session token if available
-    expirationTime: session?.expirationTime|| null, // Default to a future time for initial state
+    accessToken: token || null,
+    expirationTime: session?.expirationTime|| null, 
     error: null,
     isLoading: true
   })

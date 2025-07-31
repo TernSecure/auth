@@ -10,9 +10,9 @@ export interface AuthResult {
   error: Error | null
 }
 
-  /**
-   * Get the current authenticated user from the session or token
-   */
+/**
+* Get the current authenticated user from the session or token
+*/
 export const auth = cache(async (): Promise<AuthResult> => {
   try {
    const cookieStore = await cookies()

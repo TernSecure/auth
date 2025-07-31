@@ -1,49 +1,41 @@
-'use client'
+"use client";
 
-import { useState } from "react"
-import { 
-  useAuth,
-  useIdToken,
-  useSession 
-} from "@tern-secure/nextjs"
-
-
+import { useState } from "react";
+import { useAuth, useIdToken, useSession } from "@tern-secure/nextjs";
 
 export default function MoPage() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isUserDataExpanded, setIsUserDataExpanded] = useState(false);
   const [isTokenDataExpanded, setIsTokenDataExpanded] = useState(false);
-  const {  user, userId, isLoaded } = useAuth()
-  const { accessToken, expirationTime, status } = useSession()
-  const { tokenResult, loading: tokenLoading, error, refreshToken } = useIdToken()
+  const { user, userId } = useAuth();
+  const { accessToken, expirationTime, status } = useSession();
+  const { tokenResult, refreshToken } = useIdToken();
 
-  const currentUser = user
+  const currentUser = user;
 
-  
+  const userDataToDisplay = currentUser
+    ? Object.fromEntries(
+        Object.entries(currentUser).filter(
+          ([_, value]) => value !== null && typeof value !== "function"
+        )
+      )
+    : null;
 
-  const userDataToDisplay = currentUser ? 
-  Object.fromEntries(
-    Object.entries(currentUser).filter(([_, value]) => 
-      value !== null && typeof value !== 'function'
-    )
-  ) : null
-  
-  if (!user) return null
-
+  if (!user) return null;
 
   return (
     <main className="container mx-auto p-4 space-y-4">
       <div>This is the home page</div>
-      
+
       <div className="bg-fuchsia-600 p-4 rounded shadow-lg">
-        <button 
+        <button
           onClick={() => setIsUserDataExpanded(!isUserDataExpanded)}
           className="w-full flex justify-between items-center text-white font-semibold"
         >
           <span>useCurrentUser hook: Current user: {currentUser?.email}</span>
-          <span>{isUserDataExpanded ? '▼' : '▶'}</span>
+          <span>{isUserDataExpanded ? "▼" : "▶"}</span>
         </button>
-        
+
         {isUserDataExpanded && userDataToDisplay && (
           <div className="mt-4 bg-fuchsia-700 p-4 rounded">
             <pre className="text-sm text-white whitespace-pre-wrap break-words overflow-auto max-h-96">
@@ -53,17 +45,19 @@ export default function MoPage() {
         )}
       </div>
 
-      <h1 className="text-sm font-semibold bg-green-600">useAuth hook: isSignedIn:, {user ? userId : 'not signed in'}! </h1>
-      
+      <h1 className="text-sm font-semibold bg-green-600">
+        useAuth hook: isSignedIn:, {user ? userId : "not signed in"}!{" "}
+      </h1>
+
       <div className="bg-sky-600 p-4 rounded shadow-lg">
-        <button 
+        <button
           onClick={() => setIsExpanded(!isExpanded)}
           className="w-full flex justify-between items-center text-white font-semibold"
         >
           <span>Session Details</span>
-          <span>{isExpanded ? '▼' : '▶'}</span>
+          <span>{isExpanded ? "▼" : "▶"}</span>
         </button>
-        
+
         {isExpanded && (
           <div className="mt-4 bg-sky-700 p-4 rounded">
             <ul className="space-y-2 text-white">
@@ -79,7 +73,9 @@ export default function MoPage() {
               <li className="flex flex-col">
                 <span className="font-semibold">Expiration time:</span>
                 <span className="text-sm">
-                  {expirationTime ? new Date(expirationTime).toLocaleString() : 'N/A'}
+                  {expirationTime
+                    ? new Date(expirationTime).toLocaleString()
+                    : "N/A"}
                 </span>
               </li>
               {userId && (
@@ -94,18 +90,18 @@ export default function MoPage() {
       </div>
 
       <div className="bg-purple-600 p-4 rounded shadow-lg">
-        <button 
+        <button
           onClick={() => setIsTokenDataExpanded(!isTokenDataExpanded)}
           className="w-full flex justify-between items-center text-white font-semibold"
         >
           <span>ID Token Details</span>
-          <span>{isTokenDataExpanded ? '▼' : '▶'}</span>
+          <span>{isTokenDataExpanded ? "▼" : "▶"}</span>
         </button>
-        
+
         {isTokenDataExpanded && tokenResult && (
           <div className="mt-4 bg-purple-700 p-4 rounded">
             <div className="flex justify-end mb-2">
-              <button 
+              <button
                 onClick={refreshToken}
                 className="bg-purple-500 text-white px-3 py-1 rounded text-sm hover:bg-purple-400"
               >
@@ -113,18 +109,22 @@ export default function MoPage() {
               </button>
             </div>
             <pre className="text-sm text-white whitespace-pre-wrap break-words overflow-auto max-h-96">
-              {JSON.stringify({
-                token: tokenResult.token,
-                claims: tokenResult.claims,
-                issuedAt: tokenResult.issuedAtTime,
-                expiration: tokenResult.expirationTime,
-                authTime: tokenResult.authTime,
-                provider: tokenResult.signInProvider
-              }, null, 2)}
+              {JSON.stringify(
+                {
+                  token: tokenResult.token,
+                  claims: tokenResult.claims,
+                  issuedAt: tokenResult.issuedAtTime,
+                  expiration: tokenResult.expirationTime,
+                  authTime: tokenResult.authTime,
+                  provider: tokenResult.signInProvider,
+                },
+                null,
+                2
+              )}
             </pre>
           </div>
         )}
       </div>
     </main>
-  )
+  );
 }

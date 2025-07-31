@@ -19,7 +19,7 @@ function useAssertWrappedByTernSecureAuthProvider(displayNameOrFn: string | (() 
       displayNameOrFn();
       return;
     }
-
+    
     throw new Error(
       `${displayNameOrFn} can only be used within the <TernSecureProvider /> component.
       

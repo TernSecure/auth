@@ -38,6 +38,9 @@
     "jose": "^5.0.0",
     "next": "15.3.2"
   },
+  "peerDependencies": {
+    "firebase": "^11.0.0"
+  },
   "engines": {
     "node": ">=20"
   }

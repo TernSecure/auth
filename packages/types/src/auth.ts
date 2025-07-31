@@ -9,7 +9,6 @@ import type {
 import { SignUpResource } from 'signUp';
 import type {
   AfterSignOutUrl,
-  RedirectOptions,
   SignInRedirectUrl,
   SignUpRedirectUrl
 } from './redirect';

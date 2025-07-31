@@ -1,5 +1,4 @@
 import { 
-    TernSecureState,
     TernSecureUser,
     TernSecureResources,
     InitialState,
@@ -18,7 +17,7 @@ const fromInitialState = (initialState: InitialState) => {
   const token = initialState.token;
   const email = initialState.email;
   const user = initialState.user as TernSecureUser;
-
+  
   return {
     userId,
     token,

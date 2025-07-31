@@ -68,6 +68,7 @@
     "@tern-secure/react": "workspace:*",
     "@tern-secure/shared": "workspace:*",
     "@tern-secure/types": "workspace:*",
+    "@upstash/redis": "^1.35.2",
     "jose": "^5.9.6",
     "tslib": "2.4.1"
   },

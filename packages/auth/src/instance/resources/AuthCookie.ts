@@ -1,39 +1,36 @@
-import { 
-  cookieHandler, 
+import {
+  cookieHandler,
   serverCookieHandler,
-  type CookieAttributes
-} from '@tern-secure/shared/cookie';
-import type { SessionResult, CookieStore } from '@tern-secure/types';
-import { clearSessionCookieServer } from '../admin/sessionHandler';
+  type CookieAttributes,
+} from "@tern-secure/shared/cookie";
+import type { SessionResult, CookieStore } from "@tern-secure/types";
+import { clearSessionCookieServer } from "../admin/sessionHandler";
 
-
-const SESSION_COOKIE_NAME = '_session_cookie';
-const CSRF_COOKIE_NAME = '_session_terncf';
-
+const SESSION_COOKIE_NAME = "_session_cookie";
+const CSRF_COOKIE_NAME = "_session_terncf";
 
 type AuthToken = {
   idToken: string | null;
-}
+};
 
 type CSRFToken = {
   token: string | null;
-}
+};
 
 const cookieOptions = {
   maxAge: 60 * 60, // 1 hour in seconds
   httpOnly: true,
   secure: true,
-  sameSite: 'strict' as const,
-  path: '/'
+  sameSite: "strict" as const,
+  path: "/",
 };
 
-type CookieOptions = CookieAttributes
-
+type CookieOptions = CookieAttributes;
 
 const CSRF_COOKIE_OPTIONS: CookieOptions = {
   secure: true,
-  sameSite: 'strict',
-  expires: 1 / 24 //1 hour
+  sameSite: "strict",
+  expires: 1 / 24, //1 hour
 };
 
 /**
@@ -47,11 +44,13 @@ export class AuthCookieManager {
   constructor() {
     this.ensureCSRFToken();
   }
-  
+
   private generateCSRFToken(): string {
     const array = new Uint8Array(32);
     crypto.getRandomValues(array);
-    return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
+    return Array.from(array, (byte) => byte.toString(16).padStart(2, "0")).join(
+      ""
+    );
   }
 
   private ensureCSRFToken(): string {
@@ -63,35 +62,39 @@ export class AuthCookieManager {
     return ctoken;
   }
 
-  createSessionCookie = async(token: string): Promise<SessionResult> => {
+  createSessionCookie = async (token: string): Promise<SessionResult> => {
     try {
       await this.serverCookie!.set(SESSION_COOKIE_NAME, token, cookieOptions);
       return {
         success: true,
-        message: 'Session cookie created successfully',
-        cookieSet: true
+        message: "Session cookie created successfully",
+        cookieSet: true,
       };
     } catch (error) {
-      console.error('[AuthCookieManager] Failed to create session cookie:', error);
-      throw error
-    }
-  }
-
-
-  clearServerCookie = async(): Promise<SessionResult> => {
-    try {
-      await clearSessionCookieServer(this.serverCookie!);
-      return {
-        success: true,
-        message: 'Session cookie cleared successfully',
-        cookieSet: false
-      };
-    } catch (error) {
-      console.error('[AuthCookieManager] Failed to clear session cookie:', error);
+      console.error(
+        "[AuthCookieManager] Failed to create session cookie:",
+        error
+      );
       throw error;
     }
   };
 
+  clearServerCookie = async (): Promise<SessionResult> => {
+    try {
+      await clearSessionCookieServer(this.serverCookie!);
+      return {
+        success: true,
+        message: "Session cookie cleared successfully",
+        cookieSet: false,
+      };
+    } catch (error) {
+      console.error(
+        "[AuthCookieManager] Failed to clear session cookie:",
+        error
+      );
+      throw error;
+    }
+  };
 
   /**
    * Set authentication tokens in cookies
@@ -102,8 +105,8 @@ export class AuthCookieManager {
         this.sessionCookieHandler.set(token.idToken, CSRF_COOKIE_OPTIONS);
       }
     } catch (error) {
-      console.error('Failed to set auth tokens:', error);
-      throw new Error('Unable to store authentication tokens');
+      console.error("Failed to set auth tokens:", error);
+      throw new Error("Unable to store authentication tokens");
     }
   }
 
@@ -114,8 +117,8 @@ export class AuthCookieManager {
     try {
       return this.sessionCookieHandler.get();
     } catch (error) {
-      console.error('Failed to get auth tokens:', error);
-      return undefined
+      console.error("Failed to get auth tokens:", error);
+      return undefined;
     }
   }
 
@@ -129,19 +132,23 @@ export class AuthCookieManager {
         this.csrfCookieHandler.set(token.token, CSRF_COOKIE_OPTIONS);
       }
     } catch (error) {
-      console.error('Failed to set CSRF token:', error);
-      throw new Error('Unable to store CSRF token');
+      console.error("Failed to set CSRF token:", error);
+      throw new Error("Unable to store CSRF token");
     }
   }
-  
+
   setServerResponse(response: Response): void {
     if (!response || !response.headers) {
-      console.error('[AuthCookieManager] Invalid response object provided to setServerResponse');
+      console.error(
+        "[AuthCookieManager] Invalid response object provided to setServerResponse"
+      );
       return;
     }
-    
+
     this.serverCookie = serverCookieHandler(response);
-    console.log('[AuthCookieManager] Server response configured for cookie operations');
+    console.log(
+      "[AuthCookieManager] Server response configured for cookie operations"
+    );
   }
 
   /**
@@ -151,11 +158,10 @@ export class AuthCookieManager {
     try {
       return this.csrfCookieHandler.get();
     } catch (error) {
-      console.error('Failed to get CSRF token:', error);
+      console.error("Failed to get CSRF token:", error);
       return undefined;
     }
   }
-
 
   /**
    * Clear all authentication cookies
@@ -165,7 +171,7 @@ export class AuthCookieManager {
       this.sessionCookieHandler.remove();
       this.csrfCookieHandler.remove();
     } catch (error) {
-      console.error('Failed to clear auth cookies:', error);
+      console.error("Failed to clear auth cookies:", error);
     }
   }
 

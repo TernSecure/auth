@@ -1,9 +1,6 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
-import { 
-  useTernSecureAuthCtx
-} from '@tern-secure/shared/react'
 import type { TernSecureUser } from '@tern-secure/types'
 import { useAssertWrappedByTernSecureAuthProvider } from './useAssertWrappedTernSecureProvider'
 import { useAuthProviderCtx } from '../ctx/AuthProvider'

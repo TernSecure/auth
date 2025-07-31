@@ -1,9 +1,7 @@
 "use client"
 
-import { useCallback } from 'react';
 import { useAssertWrappedByTernSecureAuthProvider } from './useAssertWrappedTernSecureProvider'
 import type { 
-  SignInResource,
   SignInFormValuesTree,
   SignInResponseTree,
   ResendEmailVerification,

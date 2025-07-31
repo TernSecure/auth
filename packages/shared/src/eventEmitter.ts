@@ -1,4 +1,4 @@
-  export class EventEmitter {
+export class EventEmitter {
     private listeners: { [eventName: string]: Array<(...args: any[]) => void> } = {};
 
     on(eventName: string, listener: (...args: any[]) => void): () => void {

@@ -1,7 +1,6 @@
 import admin from 'firebase-admin';
 import { initializeAdminConfig } from './config';
 
-// Initialize Firebase Admin if not already initialized
 if (!admin.apps.length) {
   try {
     const config = initializeAdminConfig();
@@ -16,7 +15,6 @@ if (!admin.apps.length) {
   }
 }
 
-// Add explicit type annotations using the types from the admin namespace
 export const adminTernSecureAuth: admin.auth.Auth = admin.auth();
 export const adminTernSecureDb: admin.firestore.Firestore = admin.firestore();
 export const TernSecureTenantManager: admin.auth.TenantManager = admin.auth().tenantManager();
