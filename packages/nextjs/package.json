@@ -46,10 +46,10 @@
       "import": "./dist/esm/server/index.js",
       "require": "./dist/cjs/server/index.js"
     },
-    "./server/edge": {
-      "types": "./dist/types/server/edge/index.d.ts",
-      "import": "./dist/esm/server/edge/index.js",
-      "require": "./dist/cjs/server/edge/index.js"
+    "./server/node": {
+      "types": "./dist/types/server/node/index.d.ts",
+      "import": "./dist/esm/server/node/index.js",
+      "require": "./dist/cjs/server/node/index.js"
     },
     "./admin": {
       "types": "./dist/types/app-router/admin/index.d.ts",

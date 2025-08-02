@@ -1,7 +1,7 @@
 import { cache } from "react";
 import { cookies } from "next/headers";
-import type { BaseUser } from "../types";
-import { verifyFirebaseToken } from "./SessionTernSecure";
+import { verifyToken } from "@tern-secure/backend/jwt";
+import type { BaseUser } from "./types";
 import { TernSecureError } from "../errors";
 
 export interface AuthResult {
@@ -10,7 +10,7 @@ export interface AuthResult {
 }
 
 /**
- * Get the current authenticated user from the session cookies
+ * Get the current authenticated user from the session or token
  */
 export const auth = cache(async (): Promise<AuthResult> => {
   try {
@@ -18,7 +18,7 @@ export const auth = cache(async (): Promise<AuthResult> => {
 
     const sessionCookie = cookieStore.get("_session_cookie")?.value;
     if (sessionCookie) {
-      const result = await verifyFirebaseToken(sessionCookie);
+      const result = await verifyToken(sessionCookie, true);
       if (result.valid) {
         const user: BaseUser = {
           uid: result.uid ?? "",
@@ -35,7 +35,6 @@ export const auth = cache(async (): Promise<AuthResult> => {
         return { user, error: null };
       }
     }
-
     return {
       user: null,
       error: new TernSecureError("UNAUTHENTICATED", "No valid session found"),

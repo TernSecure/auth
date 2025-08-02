@@ -1,13 +1,13 @@
 'use client'
 
-import { useAuth, clearNextSessionCookie } from "@tern-secure/nextjs"
+import { useAuth } from "@tern-secure/nextjs"
 import { useRouter } from "next/navigation"
+import { clearNextSessionCookie } from "./actions";
 
 export default function Home() {
   const router = useRouter();
-  const { user, isLoaded, isAuthenticated, signOut } = useAuth();
+  const { user, isLoaded, signOut } = useAuth();
 
-  //console.log('isAuthenticated:', isAuthenticated);
   if (!isLoaded) {
     return <div>Loading...</div>;
   }

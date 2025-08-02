@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createSessionCookie, clearSessionCookie } from "@tern-secure/backend"
+import { createSessionCookie, clearSessionCookie } from "@tern-secure/backend/admin"
 import { NextCookieStore } from "../../utils/NextCookieAdapter"
 
 export async function createSessionHandler(request: NextRequest): Promise<NextResponse> {

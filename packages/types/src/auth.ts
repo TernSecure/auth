@@ -1,41 +1,35 @@
-import { SignedInSession } from 'session';
-import type { 
-  TernSecureUser,
-  TernSecureConfig
-} from './all';
-import type { 
-    SignInResource
-} from './signIn';
-import { SignUpResource } from 'signUp';
+import { SignedInSession } from "session";
+import type { TernSecureUser, TernSecureConfig } from "./all";
+import type { SignInResource, AuthErrorResponse } from "./signIn";
+import { SignUpResource } from "signUp";
 import type {
   AfterSignOutUrl,
   SignInRedirectUrl,
-  SignUpRedirectUrl
-} from './redirect';
+  SignUpRedirectUrl,
+} from "./redirect";
+import type { DecodedIdToken } from "./jwt";
 
 export interface InitialState {
-  userId: string | null
-  token: any | null
-  email: string | null
-  user?: TernSecureUser | null
+  userId: string | null;
+  token: any | null;
+  email: string | null;
+  user?: TernSecureUser | null;
 }
-
 
 export interface TernSecureState {
-  userId: string | null
-  isLoaded: boolean
-  error: Error | null
-  isValid: boolean
-  isVerified: boolean
-  isAuthenticated: boolean
-  token: any | null
-  email: string | null
-  status: "loading" | "authenticated" | "unauthenticated" | "unverified"
-  user?: TernSecureUser | null
+  userId: string | null;
+  isLoaded: boolean;
+  error: Error | null;
+  isValid: boolean;
+  isVerified: boolean;
+  isAuthenticated: boolean;
+  token: any | null;
+  email: string | null;
+  status: "loading" | "authenticated" | "unauthenticated" | "unverified";
+  user?: TernSecureUser | null;
 }
 
-
-export type AuthProviderStatus = 'idle' | 'pending' | 'error' | 'success';
+export type AuthProviderStatus = "idle" | "pending" | "error" | "success";
 
 export const DEFAULT_TERN_SECURE_STATE: TernSecureState = {
   userId: null,
@@ -47,9 +41,8 @@ export const DEFAULT_TERN_SECURE_STATE: TernSecureState = {
   token: null,
   email: null,
   status: "loading",
-  user: null
+  user: null,
 };
-
 
 export interface TernSecureAuthProvider {
   /** Current auth state */
@@ -77,11 +70,9 @@ export interface TernSecureAuthProvider {
   signOut(): Promise<void>;
 }
 
-export type Persistence = 'local' | 'session' | 'none';
+export type Persistence = "local" | "session" | "none";
 
-
-
-type Mode = 'browser' | 'server';
+type Mode = "browser" | "server";
 
 export type TernAuthSDK = {
   /** SDK package name (e.g., @tern-secure/ui) */
@@ -99,13 +90,12 @@ export type TernAuthSDK = {
     buildDate: string;
     buildEnv: string;
   };
-}
+};
 
 export interface TernSecureResources {
   user?: TernSecureUser | null;
   session?: SignedInSession | null;
 }
-
 
 export type TernSecureAuthOptions = {
   sdkMetadata?: TernAuthSDK;
@@ -117,7 +107,9 @@ export type TernSecureAuthOptions = {
   ternSecureConfig?: TernSecureConfig;
   persistence?: Persistence;
   enableServiceWorker?: boolean;
-} & SignInRedirectUrl & SignUpRedirectUrl & AfterSignOutUrl;
+} & SignInRedirectUrl &
+  SignUpRedirectUrl &
+  AfterSignOutUrl;
 
 export type TernAuthListenerEventPayload = {
   authStateChanged: TernSecureState;
@@ -128,19 +120,27 @@ export type TernAuthListenerEventPayload = {
 
 export type TernAuthListenerEvent = keyof TernAuthListenerEventPayload;
 
-export type ListenerCallback = (emission: TernSecureResources)=> void;
+export type ListenerCallback = (emission: TernSecureResources) => void;
 type TernSecureEvent = keyof TernAuthEventPayload;
-type EventHandler<Events extends TernSecureEvent> = (payload: TernAuthEventPayload[Events]) => void;
+type EventHandler<Events extends TernSecureEvent> = (
+  payload: TernAuthEventPayload[Events]
+) => void;
 export type TernAuthEventPayload = {
   status: TernSecureAuthStatus;
 };
 
 export type UnsubscribeCallback = () => void;
 
-export type TernSecureAuthStatus = 'error' | 'loading' | 'ready';
+export type TernSecureAuthStatus = "error" | "loading" | "ready";
 
-type onEventListener = <E extends TernSecureEvent>(event: E, handler: EventHandler<E>) => void;
-type OffEventListener = <E extends TernSecureEvent>(event: E, handler: EventHandler<E>) => void;
+type onEventListener = <E extends TernSecureEvent>(
+  event: E,
+  handler: EventHandler<E>
+) => void;
+type OffEventListener = <E extends TernSecureEvent>(
+  event: E,
+  handler: EventHandler<E>
+) => void;
 
 export type SignOutOptions = {
   /** URL to redirect to after sign out */
@@ -152,7 +152,7 @@ export type SignOutOptions = {
 };
 
 export interface SignOut {
-  (options?: SignOutOptions): Promise<void>
+  (options?: SignOutOptions): Promise<void>;
 }
 
 export interface TernSecureAuth {
@@ -163,13 +163,13 @@ export interface TernSecureAuth {
   isLoading: boolean;
 
   /** The current status of the TernSecureAuth instance */
-  status: TernSecureAuthStatus; 
-  
+  status: TernSecureAuthStatus;
+
   /** Requires Verificatipn */
   requiresVerification: boolean;
-  
+
   /** Initialize TernSecureAuth */
-  initialize(options?: TernSecureAuthOptions): Promise<void>
+  initialize(options?: TernSecureAuthOptions): Promise<void>;
 
   /** Current user*/
   user: TernSecureUser | null | undefined;
@@ -187,20 +187,43 @@ export interface TernSecureAuth {
   ternSecureConfig?: TernSecureConfig;
 
   /** Subscribe to auth state changes */
-  onAuthStateChanged(callback: (user: TernSecureUser | null | undefined) => void): () => void;
+  onAuthStateChanged(
+    callback: (user: TernSecureUser | null | undefined) => void
+  ): () => void;
 
   /** Sign out the current user */
   signOut: SignOut;
-  
+
   /** Subscribe to a single event */
   on: onEventListener;
-  
+
   /** Remove event listener */
   off: OffEventListener;
 
-  addListener: (callback: ListenerCallback ) => UnsubscribeCallback;
+  addListener: (callback: ListenerCallback) => UnsubscribeCallback;
 }
 
 export interface TernSecureAuthFactory {
   create(options?: TernSecureAuthOptions): TernSecureAuth;
 }
+
+export type SharedSignInAuthObjectProperties = {
+  session: DecodedIdToken;
+  userId: string;
+};
+
+export type CheckCustomClaims = {
+  role?: never;
+  permissions?: never;
+};
+
+export type TernVerificationResult =
+  | (DecodedIdToken & {
+      valid: true;
+      token?: string;
+      error?: never;
+    })
+  | {
+      valid: false;
+      error: AuthErrorResponse;
+    };

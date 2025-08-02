@@ -1,5 +1,13 @@
-export { ternSecureMiddleware, createRouteMatcher } from './ternSecureNodeMiddleware'
-export { auth, getUser, isAuthenticated, requireAuth, type AuthResult } from './auth'
-export { auth as authNew, getUser as getUserNew, isAuthenticated as isAuthenticatedNew, requireAuth as requireAuthNew } from './auth-new'
-export type { BaseUser, SessionResult } from './types'
-export { NextCookieStore } from '../utils/NextCookieAdapter'
+export {
+  ternSecureMiddleware,
+} from "./ternSecureEdgeMiddleware";
+export { createRouteMatcher } from "./routeMatcher";
+export {
+  auth,
+  getUser,
+  isAuthenticated,
+  requireAuth,
+} from "./auth";
+export type { AuthResult } from "./auth";
+export type { BaseUser, SessionResult } from "./types";
+export { NextCookieStore } from "../utils/NextCookieAdapter";

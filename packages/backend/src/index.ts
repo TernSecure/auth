@@ -1,21 +1,19 @@
-export { 
-    createSessionCookie, 
-    clearSessionCookie
-} from './admin/sessionTernSecure'
-export { 
-    adminTernSecureAuth, 
-    adminTernSecureDb, 
-    TernSecureTenantManager 
-} from './utils/admin-init'
-export { initializeAdminConfig } from './utils/config'
-export { createTenant, createTenantUser } from './admin/tenant'
-export { 
-    CreateNextSessionCookie,
-    GetNextServerSessionCookie,
-    GetNextIdToken,
-    SetNextServerSession,
-    SetNextServerToken,
-    VerifyNextTernIdToken,
-    VerifyNextTernSessionCookie,
-    ClearNextSessionCookie
-} from './admin/nextSessionTernSecure'
+export { constants } from "./constants";
+
+export type { TernSecureRequest } from "./instance/ternSecureRequest";
+export { createTernSecureRequest } from "./instance/ternSecureRequest";
+
+export {
+  createBackendInstanceEdge,
+  authenticateRequestEdge,
+  signInAuthObject,
+  signedIn,
+} from "./instance/backendInstanceEdge";
+
+export type {
+  SignInAuthObject,
+  SignedOutAuthObject,
+  AuthObject,
+  RequestState,
+  BackendInstance,
+} from "./instance/backendInstanceEdge";

@@ -15,11 +15,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
-  createSessionCookieServer,
   useSignIn,
   type SignInResponseTree,
   type TernSecureUser,
 } from "@tern-secure/nextjs";
+import { createSessionCookieServer } from "../app/actions";
 
 export function LoginForm({
   className,
@@ -38,7 +38,7 @@ export function LoginForm({
   const handleSuccessfulAuth = async (user: TernSecureUser) => {
     try {
       const idToken = await user.getIdToken();
-
+      'use server'
       const sessionResult = await createSessionCookieServer(idToken);
 
       if (!sessionResult.success) {

@@ -1,6 +1,6 @@
 import { verifyFirebaseToken } from "./jwt";
 import type { NextRequest } from "next/server";
-import type { SessionResult, BaseUser } from "../types";
+import type { SessionResult, BaseUser } from "./types";
 
 export async function verifySession(
   request: NextRequest

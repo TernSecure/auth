@@ -31,7 +31,6 @@ import { getInstallations } from "firebase/installations";
 import { FirebaseApp, initializeApp, getApps } from "firebase/app";
 import { TernSecureBase, SignIn, SignUp } from "./resources/internal";
 import { eventBus, events } from "./events";
-import { AuthCookieManager } from "./resources/internal";
 
 export function inBrowser(): boolean {
   return typeof window !== "undefined";
@@ -55,14 +54,12 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   #listeners: Array<ListenerCallback> = [];
   #options: TernSecureAuthOptions = {};
   #eventBus = createTernAuthEventBus();
-  #authCookieManager: AuthCookieManager;
 
   signIn!: SignInResource;
   signUp!: SignUpResource;
 
   private constructor() {
     this.#eventBus.emit(ternEvents.Status, "loading");
-    this.#authCookieManager = new AuthCookieManager();
     TernSecureBase.ternsecure = this;
   }
 
@@ -142,7 +139,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     this.auth = getAuth(this.firebaseClientApp);
     getInstallations(this.firebaseClientApp);
 
-    setPersistence(this.auth, inMemoryPersistence).catch((error) =>
+    setPersistence(this.auth, browserLocalPersistence).catch((error) =>
       console.error("TernAuth: Error setting auth persistence:", error)
     );
   }

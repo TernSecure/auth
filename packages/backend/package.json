@@ -10,15 +10,45 @@
     "access": "public"
   },
   "files": [
-    "dist"
+    "dist",
+    "admin",
+    "internal",
+    "jwt"
   ],
   "exports": {
     ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
-    }
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./admin": {
+      "import": {
+        "types": "./dist/admin/index.d.ts",
+        "default": "./dist/admin/index.mjs"
+      },
+      "require": {
+        "types": "./dist/admin/index.d.ts",
+        "default": "./dist/admin/index.js"
+      }
+    },
+    "./jwt": {
+      "import": {
+        "types": "./dist/jwt/index.d.ts",
+        "default": "./dist/jwt/index.mjs"
+      },
+      "require": {
+        "types": "./dist/jwt/index.d.ts",
+        "default": "./dist/jwt/index.js"
+      }
+    },
+    "./package.json": "./package.json"
   },
+  "main": "./dist/index.js",
   "scripts": {
     "clean": "rimraf dist",
     "build": "pnpm clean && tsup && tsc -p tsconfig.add.json",
@@ -28,13 +58,13 @@
   "dependencies": {
     "@tern-secure/shared": "workspace:*",
     "@tern-secure/types": "workspace:*",
-    "js-cookie": "^3.0.5",
+    "cookie": "1.0.2",
+    "jose": "^5.10.0",
     "tslib": "2.4.1"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",
     "firebase-admin": "^12.7.0",
-    "jose": "^5.0.0",
     "next": "15.3.2"
   },
   "peerDependencies": {

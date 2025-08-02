@@ -3,29 +3,11 @@
 import { cookies } from "next/headers";
 import { adminTernSecureAuth as adminAuth } from "../utils/admin-init";
 import { handleFirebaseAuthError } from "@tern-secure/shared/errors";
+import type { TernVerificationResult } from "@tern-secure/types";
 
-export interface User {
-  uid: string | null;
-  email?: string | null;
-  tenant?: string | null;
-}
-
-export interface Session {
-  user: User | null;
-  token: string | null;
-  error: Error | null;
-}
-
-interface TernVerificationResult extends User {
-  valid: boolean;
-  authTime?: number;
-  message?: string;
-  error?: string;
-}
 
 const SESSION_CONSTANTS = {
   COOKIE_NAME: "_session_cookie",
-  TERN_NAME: "_tern",
   DEFAULT_EXPIRES_IN_MS: 60 * 60 * 24 * 5 * 1000, // 5 days
   DEFAULT_EXPIRES_IN_SECONDS: 60 * 60 * 24 * 5,
   REVOKE_REFRESH_TOKENS_ON_SIGNOUT: true,
@@ -131,28 +113,16 @@ export async function VerifyNextTernIdToken(
 ): Promise<TernVerificationResult> {
   try {
     const decodedToken = await adminAuth.verifyIdToken(token);
-    console.warn(
-      "[VerifyNextTernIdToken] uid in Decoded Token:",
-      decodedToken.uid
-    );
     return {
+      ...decodedToken,
       valid: true,
-      uid: decodedToken.uid,
-      email: decodedToken.email || null,
-      tenant: decodedToken.firebase?.tenant || null,
-      authTime: decodedToken.auth_time
-        ? Number(decodedToken.auth_time)
-        : undefined,
     };
   } catch (error) {
     console.error("[VerifyNextTernIdToken] Error verifying session:", error);
     const authError = handleFirebaseAuthError(error);
     return {
       valid: false,
-      uid: null,
-      email: null,
-      message: authError.message,
-      error: authError.code,
+      error: authError,
     };
   }
 }
@@ -168,10 +138,7 @@ export async function VerifyNextTernSessionCookie(
     );
     return {
       valid: true,
-      uid: res.uid,
-      email: res.email || null,
-      tenant: res.firebase?.tenant || null,
-      authTime: res.auth_time ? Number(res.auth_time) : undefined,
+      ...res,
     };
   } catch (error) {
     console.error(
@@ -181,10 +148,7 @@ export async function VerifyNextTernSessionCookie(
     const authError = handleFirebaseAuthError(error);
     return {
       valid: false,
-      uid: null,
-      email: null,
-      message: authError.message,
-      error: authError.code,
+      error: authError,
     };
   }
 }
@@ -195,7 +159,6 @@ export async function ClearNextSessionCookie() {
     const sessionCookie = cookieStore.get(SESSION_CONSTANTS.COOKIE_NAME);
 
     cookieStore.delete(SESSION_CONSTANTS.COOKIE_NAME);
-    cookieStore.delete(SESSION_CONSTANTS.TERN_NAME);
     cookieStore.delete("_session_token");
     cookieStore.delete("_session");
 

@@ -1,13 +1,11 @@
 {
   "compilerOptions": {
-    "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "baseUrl": ".",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
     "isolatedModules": true,
-    "lib": ["es2020"],
     "module": "NodeNext",
     "moduleResolution": "nodenext",
     "noImplicitReturns": true,
@@ -19,6 +17,7 @@
     "skipLibCheck": true,
     "sourceMap": false,
     "strict": true,
+    "target": "ES2022",
   },
   "include": ["src"],
   "exclude": ["node_modules"]
