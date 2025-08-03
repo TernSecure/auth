@@ -60,7 +60,8 @@
     "@tern-secure/types": "workspace:*",
     "cookie": "1.0.2",
     "jose": "^5.10.0",
-    "tslib": "2.4.1"
+    "tslib": "2.4.1",
+    "@upstash/redis": "^1.35.2"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",

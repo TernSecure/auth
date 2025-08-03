@@ -4,11 +4,11 @@ import {
 } from "./ternSecureRequest";
 import type {
   CheckCustomClaims,
-  SharedSignInAuthObjectProperties,
   DecodedIdToken,
   TernVerificationResult,
 } from "@tern-secure/types";
 import { verifyToken } from "../jwt";
+import { redis, type DisabledUserRecord } from "../utils/redis";
 
 export type SignInAuthObject = {
   session: DecodedIdToken;
@@ -68,10 +68,14 @@ async function verifySessionCookieEdge(
 }
 
 export const createBackendInstanceEdge = async (
-  request: Request
+  request: Request,
+  checkRevoked: boolean = false
 ): Promise<BackendInstance> => {
   const ternSecureRequest = createTernSecureRequest(request);
-  const requestState = await authenticateRequestEdge(request);
+  const requestState = await authenticateRequestEdge(
+    ternSecureRequest,
+    checkRevoked
+  );
 
   return {
     ternSecureRequest,
@@ -80,7 +84,8 @@ export const createBackendInstanceEdge = async (
 };
 
 export async function authenticateRequestEdge(
-  request: Request
+  request: Request,
+  checkRevoked: boolean = false
 ): Promise<RequestState> {
   const sessionCookie = request.headers.get("cookie");
   const sessionToken = sessionCookie
@@ -104,6 +109,19 @@ export async function authenticateRequestEdge(
       new Headers(request.headers),
       errorMessage
     );
+  }
+
+  if (checkRevoked) {
+    const disabledKey = `disabled_user:${verificationResult.uid}`;
+    const disabledUser: DisabledUserRecord | null = await redis.get(disabledKey);
+    const isDisabled = !!disabledUser;
+
+    if (isDisabled) {
+      return createUnauthenticatedState(
+        new Headers(request.headers),
+        "User account has been disabled"
+      );
+    }
   }
 
   const decodedToken: DecodedIdToken = {

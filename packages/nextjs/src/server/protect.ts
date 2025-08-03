@@ -1,7 +1,7 @@
-import { isNextFetcher } from './nextFetcher';
-import type { CheckCustomClaims } from '@tern-secure/types';
-import type { RedirectFun } from './redirect';
-import type { AuthObject } from '@tern-secure/backend';
+
+import type { CheckCustomClaims } from "@tern-secure/types";
+import type { RedirectFun } from "./redirect";
+import type { AuthObject } from "@tern-secure/backend";
 
 type AuthProtectOptions = {
   /**
@@ -15,9 +15,11 @@ type AuthProtectOptions = {
 };
 
 export interface AuthProtect {
-  (params?: (has: CheckCustomClaims) => boolean, options?: AuthProtectOptions): void;
+  (
+    params?: (has: CheckCustomClaims) => boolean,
+    options?: AuthProtectOptions
+  ): void;
   (options?: AuthProtectOptions): void;
-
 }
 
 export function createProtect(opts: {
@@ -29,12 +31,14 @@ export function createProtect(opts: {
 }) {
   const { redirectToSignIn, authObject, redirect, notFound, request } = opts;
 
-  return (params?: ((has: CheckCustomClaims) => boolean) | AuthProtectOptions, options?: AuthProtectOptions): void => {
-    // Handle overloaded parameters
+  return (
+    params?: ((has: CheckCustomClaims) => boolean) | AuthProtectOptions,
+    options?: AuthProtectOptions
+  ): void => {
     let checkCustomClaims: ((has: CheckCustomClaims) => boolean) | undefined;
     let protectOptions: AuthProtectOptions = {};
 
-    if (typeof params === 'function') {
+    if (typeof params === "function") {
       checkCustomClaims = params;
       protectOptions = options || {};
     } else {

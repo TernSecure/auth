@@ -23,7 +23,7 @@ import type {
 } from "./types";
 import { createProtect, type AuthProtect } from "./protect";
 
-export type MiddlewareAuth = AuthObject & {
+export interface MiddlewareAuth {
   (): Promise<MiddlewareAuthObject>;
   protect: () => AuthProtect;
 };
@@ -40,15 +40,17 @@ export type MiddlewareAuthObject = AuthObject & {
 };
 
 const authenticateMiddlewareRequest = async (
-  request: NextRequest
+  request: NextRequest,
+  checkRevoked: boolean
 ): Promise<AuthObject> => {
-  const requestState = await createBackendInstanceEdge(request);
+  const requestState = await createBackendInstanceEdge(request, checkRevoked);
   const authResult = requestState.requestState.auth();
   console.log("Auth Result:", authResult);
   return authResult;
 };
 
 export interface MiddlewareOptions {
+  checkRevoked?: boolean;
   signInUrl?: string;
   signUpUrl?: string;
   debug?: boolean;
@@ -101,8 +103,9 @@ export const ternSecureMiddleware = ((
 
       const signInUrl = resolvedParams.signInUrl || SIGN_IN_URL;
       const signUpUrl = resolvedParams.signUpUrl || SIGN_UP_URL;
+      const checkRevoked = resolvedParams.checkRevoked || false;
 
-      const authObject = await authenticateMiddlewareRequest(request);
+      const authObject = await authenticateMiddlewareRequest(request, checkRevoked);
 
       const ternSecureRequest = createTernSecureRequest(request);
 
@@ -121,7 +124,7 @@ export const ternSecureMiddleware = ((
       let handlerResult: Response = NextResponse.next();
 
       if (handler) {
-        const createAuthHandler = async (): Promise<MiddlewareAuth> => {
+        const createAuthHandler = (): MiddlewareAuth => {
           const getAuth = async (): Promise<MiddlewareAuthObject> => {
             const { redirectToSignUp } = createMiddlewareRedirects(
               ternSecureRequest,
@@ -145,7 +148,7 @@ export const ternSecureMiddleware = ((
         };
 
         try {
-          const auth = await createAuthHandler();
+          const auth = createAuthHandler();
           const userHandlerResult = await handler(auth, request, event);
           handlerResult = userHandlerResult || handlerResult;
         } catch (error) {
@@ -221,11 +224,11 @@ const createMiddlewareRedirects = (
   return { redirectToSignIn, redirectToSignUp };
 };
 
-const createMiddlewareProtect = async(
+const createMiddlewareProtect = (
   ternSecureRequest: TernSecureRequest,
   authObject: AuthObject,
   redirectToSignIn: RedirectFun<Response>
-): Promise<AuthProtect> => {
+): AuthProtect => {
   const notFound = () => nextjsNotFound();
 
   const redirect = (url: string) =>

@@ -245,15 +245,15 @@ importers:
       '@tern-secure/types':
         specifier: workspace:*
         version: link:../types
+      '@upstash/redis':
+        specifier: ^1.35.2
+        version: 1.35.2
       cookie:
         specifier: 1.0.2
         version: 1.0.2
       jose:
         specifier: ^5.10.0
         version: 5.10.0
-      js-cookie:
-        specifier: ^3.0.5
-        version: 3.0.5
       tslib:
         specifier: 2.4.1
         version: 2.4.1
