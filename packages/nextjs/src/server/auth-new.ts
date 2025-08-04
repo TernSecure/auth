@@ -1,4 +1,3 @@
-{/*import { cache } from "react";
 import { headers } from "next/headers";
 import type { BaseUser } from "../types";
 import { initializeServerConfig } from "../utils/config";
@@ -21,4 +20,4 @@ export async function getAuthenticatedApp(): Promise<AuthenticatedApp> {
     console.error("Failed to get authenticated app:", error);
     throw error;
   }
-}*/}
+}

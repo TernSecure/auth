@@ -2,10 +2,11 @@ import { notFound as nextjsNotFound } from "next/navigation";
 import {
   createTernSecureRequest,
   createBackendInstanceEdge,
+  enableDebugLogging,
 } from "@tern-secure/backend";
 import type { TernSecureRequest, AuthObject } from "@tern-secure/backend";
 import { SIGN_IN_URL, SIGN_UP_URL } from "./constant";
-import type { NextRequest } from "next/server";
+import { NextRequest } from "next/server";
 import { NextResponse, NextMiddleware } from "next/server";
 import {
   isNextjsNotFoundError,
@@ -14,6 +15,7 @@ import {
   redirectToSignUpError,
   isRedirectToSignInError,
   isRedirectToSignUpError,
+  isNextjsRedirectError,
 } from "./nextErrors";
 import { createRedirect, type RedirectFun } from "./redirect";
 import type {
@@ -22,11 +24,13 @@ import type {
   NextMiddlewareReturn,
 } from "./types";
 import { createProtect, type AuthProtect } from "./protect";
+import { CheckCustomClaims } from "@tern-secure/types";
+import { createEdgeCompatibleLogger } from "../utils/withLogger";
 
 export interface MiddlewareAuth {
   (): Promise<MiddlewareAuthObject>;
   protect: () => AuthProtect;
-};
+}
 
 type MiddlewareHandler = (
   auth: MiddlewareAuth,
@@ -41,12 +45,26 @@ export type MiddlewareAuthObject = AuthObject & {
 
 const authenticateMiddlewareRequest = async (
   request: NextRequest,
-  checkRevoked: boolean
+  checkRevoked: boolean,
+  logger: ReturnType<typeof createEdgeCompatibleLogger>
 ): Promise<AuthObject> => {
-  const requestState = await createBackendInstanceEdge(request, checkRevoked);
-  const authResult = requestState.requestState.auth();
-  console.log("Auth Result:", authResult);
-  return authResult;
+  try {
+    const requestState = await createBackendInstanceEdge(request, checkRevoked);
+    const authResult = requestState.requestState.auth();
+    logger.debug("Auth Result:", authResult);
+    return authResult;
+  } catch (error) {
+    logger.error(
+      "Auth check error:",
+      error instanceof Error ? error.message : "Unknown error"
+    );
+    return {
+      session: null,
+      userId: null,
+      has: {} as CheckCustomClaims,
+      error: error instanceof Error ? error.message : "Unknown error",
+    } as AuthObject;
+  }
 };
 
 export interface MiddlewareOptions {
@@ -104,62 +122,91 @@ export const ternSecureMiddleware = ((
       const signInUrl = resolvedParams.signInUrl || SIGN_IN_URL;
       const signUpUrl = resolvedParams.signUpUrl || SIGN_UP_URL;
       const checkRevoked = resolvedParams.checkRevoked || false;
+      const debug = resolvedParams.debug || false;
 
-      const authObject = await authenticateMiddlewareRequest(request, checkRevoked);
+      const logger = createEdgeCompatibleLogger(debug);
 
-      const ternSecureRequest = createTernSecureRequest(request);
+      const requestId = crypto.randomUUID().slice(0, 8);
+      const startTime = performance.now();
 
-      const { redirectToSignIn } = createMiddlewareRedirects(
-        ternSecureRequest,
-        signInUrl,
-        signUpUrl
-      );
+      //logger.logStart(requestId, request.method, request.url);
 
-      const protect = await createMiddlewareProtect(
-        ternSecureRequest,
-        authObject,
-        redirectToSignIn
-      );
-
-      let handlerResult: Response = NextResponse.next();
-
-      if (handler) {
-        const createAuthHandler = (): MiddlewareAuth => {
-          const getAuth = async (): Promise<MiddlewareAuthObject> => {
-            const { redirectToSignUp } = createMiddlewareRedirects(
-              ternSecureRequest,
-              signInUrl,
-              signUpUrl
-            );
-
-            return {
-              ...authObject,
-              redirectToSignIn,
-              redirectToSignUp,
-            };
-          };
-
-          // Return the MiddlewareAuth object with direct property access
-          const authHandler = Object.assign(getAuth, {
-            protect,
-          });
-
-          return authHandler as MiddlewareAuth;
-        };
-
-        try {
-          const auth = createAuthHandler();
-          const userHandlerResult = await handler(auth, request, event);
-          handlerResult = userHandlerResult || handlerResult;
-        } catch (error) {
-          const ternSecureRequest = createTernSecureRequest(request);
-          handlerResult = handleControlError(error, ternSecureRequest, request);
+      try {
+        // Enable backend logging only if debug is true (middleware logger takes priority)
+        if (debug) {
+          enableDebugLogging();
         }
 
-        return handlerResult;
-      }
+        const authObject = await authenticateMiddlewareRequest(
+          request,
+          checkRevoked,
+          logger
+        );
 
-      return handlerResult;
+        const ternSecureRequest = createTernSecureRequest(request);
+
+        const { redirectToSignIn } = createMiddlewareRedirects(
+          ternSecureRequest,
+          signInUrl,
+          signUpUrl
+        );
+
+        const { redirectToSignUp } = createMiddlewareRedirects(
+          ternSecureRequest,
+          signInUrl,
+          signUpUrl
+        );
+
+        const protect = createMiddlewareProtect(
+          ternSecureRequest,
+          authObject,
+          redirectToSignIn
+        );
+
+        let handlerResult: Response = NextResponse.next();
+
+        if (handler) {
+          const createAuthHandler = (): MiddlewareAuth => {
+            const getAuth = async (): Promise<MiddlewareAuthObject> => {
+              return {
+                ...authObject,
+                redirectToSignIn,
+                redirectToSignUp,
+              };
+            };
+
+            const authHandler = Object.assign(getAuth, {
+              protect,
+            });
+
+            return authHandler as MiddlewareAuth;
+          };
+
+          try {
+            const auth = createAuthHandler();
+            const userHandlerResult = await handler(auth, request, event);
+            handlerResult = userHandlerResult || handlerResult;
+          } catch (error) {
+            logger.error("User handler error:", error);
+            const ternSecureRequest = createTernSecureRequest(request);
+            handlerResult = handleControlError(
+              error,
+              ternSecureRequest,
+              request
+            );
+          }
+        }
+
+        // Log successful completion
+        //const duration = performance.now() - startTime;
+        //logger.logEnd(requestId, duration);
+
+        return handlerResult;
+      } catch (error) {
+        const duration = performance.now() - startTime;
+        logger.logError(requestId, duration, error);
+        throw error;
+      }
     };
 
     const nextMiddleware: NextMiddleware = async (request, event) => {
@@ -245,6 +292,10 @@ const createMiddlewareProtect = (
   });
 };
 
+const redirectAdapter = (url: string | URL) => {
+  return NextResponse.redirect(new URL(url), {});
+};
+
 /**
  * Handle control flow errors in middleware
  */
@@ -257,10 +308,9 @@ const handleControlError = (
     return NextResponse.rewrite(new URL("/404", nextrequest.url));
   }
 
-  // Handle redirect to sign in errors
   if (isRedirectToSignInError(error)) {
-    const redirectAdapter = (url: string) =>
-      NextResponse.redirect(new URL(url, nextrequest.url));
+    //const redirectAdapter = (url: string | URL) =>
+    //  NextResponse.redirect(new URL(url, nextrequest.url), {});
     const { redirectToSignIn } = createRedirect({
       redirectAdapter,
       baseUrl: ternSecureRequest.ternUrl.origin,
@@ -271,10 +321,9 @@ const handleControlError = (
     return redirectToSignIn({ returnBackUrl: error.returnBackUrl });
   }
 
-  // Handle redirect to sign up errors
   if (isRedirectToSignUpError(error)) {
-    const redirectAdapter = (url: string) =>
-      NextResponse.redirect(new URL(url, nextrequest.url));
+    //const redirectAdapter = (url: string | URL) =>
+    //  NextResponse.redirect(url, {});
     const { redirectToSignUp } = createRedirect({
       redirectAdapter,
       baseUrl: ternSecureRequest.ternUrl.origin,
@@ -283,6 +332,10 @@ const handleControlError = (
     });
 
     return redirectToSignUp({ returnBackUrl: error.returnBackUrl });
+  }
+
+  if (isNextjsRedirectError(error)) {
+    return redirectAdapter(error.redirectUrl);
   }
 
   throw error;

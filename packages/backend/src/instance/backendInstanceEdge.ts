@@ -8,7 +8,8 @@ import type {
   TernVerificationResult,
 } from "@tern-secure/types";
 import { verifyToken } from "../jwt";
-import { redis, type DisabledUserRecord } from "../utils/redis";
+import { getDisabledUser, type DisabledUserRecord } from "../utils/redis";
+import { authLogger } from "../utils/logger";
 
 export type SignInAuthObject = {
   session: DecodedIdToken;
@@ -54,7 +55,7 @@ async function verifySessionCookieEdge(
     const result = await verifyToken(sessionToken, true);
     return result;
   } catch (error) {
-    console.error("Edge verification error:", error);
+    authLogger.error("Edge verification error:", error);
     return {
       valid: false,
       error: {
@@ -87,6 +88,7 @@ export async function authenticateRequestEdge(
   request: Request,
   checkRevoked: boolean = false
 ): Promise<RequestState> {
+
   const sessionCookie = request.headers.get("cookie");
   const sessionToken = sessionCookie
     ?.split(";")
@@ -105,15 +107,16 @@ export async function authenticateRequestEdge(
   if (!verificationResult.valid) {
     const errorMessage =
       verificationResult.error?.message || "Invalid session token";
+    authLogger.debug("Token verification failed", { errorMessage });
     return createUnauthenticatedState(
       new Headers(request.headers),
       errorMessage
     );
   }
 
+
   if (checkRevoked) {
-    const disabledKey = `disabled_user:${verificationResult.uid}`;
-    const disabledUser: DisabledUserRecord | null = await redis.get(disabledKey);
+    const disabledUser: DisabledUserRecord | null = await getDisabledUser(verificationResult.uid);
     const isDisabled = !!disabledUser;
 
     if (isDisabled) {

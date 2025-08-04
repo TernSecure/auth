@@ -17,3 +17,11 @@ export type {
   RequestState,
   BackendInstance,
 } from "./instance/backendInstanceEdge";
+
+export {
+  enableDebugLogging,
+  disableDebugLogging,
+  setLogLevel,
+} from "./utils/enableDebugLogging";
+
+export { LogLevel } from "./utils/logger";
