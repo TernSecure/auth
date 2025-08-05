@@ -8,10 +8,16 @@ import type {
   TernVerificationResult,
 } from "@tern-secure/types";
 import { verifyToken } from "../jwt";
-import { getDisabledUser, type DisabledUserRecord } from "../utils/redis";
+import { type DisabledUserRecord } from "../utils/redis";
 import { authLogger } from "../utils/logger";
+import {
+  createAdapter,
+  type DisabledUserAdapter,
+  type CheckRevokedOptions,
+  validateCheckRevokedOptions,
+} from "../adapters";
 
-export type SignInAuthObject = {
+export type SignedInAuthObject = {
   session: DecodedIdToken;
   userId: string;
   has: CheckCustomClaims;
@@ -27,7 +33,7 @@ export type SignedOutAuthObject = {
 
 export type SignedInState = {
   isSignedIn: true;
-  auth: () => SignInAuthObject;
+  auth: () => SignedInAuthObject;
   token: string;
   headers: Headers;
 };
@@ -46,7 +52,7 @@ export interface BackendInstance {
   requestState: RequestState;
 }
 
-export type AuthObject = SignInAuthObject | SignedOutAuthObject;
+export type AuthObject = SignedInAuthObject | SignedOutAuthObject;
 
 async function verifySessionCookieEdge(
   sessionToken: string
@@ -70,7 +76,7 @@ async function verifySessionCookieEdge(
 
 export const createBackendInstanceEdge = async (
   request: Request,
-  checkRevoked: boolean = false
+  checkRevoked?: CheckRevokedOptions
 ): Promise<BackendInstance> => {
   const ternSecureRequest = createTernSecureRequest(request);
   const requestState = await authenticateRequestEdge(
@@ -86,9 +92,8 @@ export const createBackendInstanceEdge = async (
 
 export async function authenticateRequestEdge(
   request: Request,
-  checkRevoked: boolean = false
+  checkRevoked?: CheckRevokedOptions
 ): Promise<RequestState> {
-
   const sessionCookie = request.headers.get("cookie");
   const sessionToken = sessionCookie
     ?.split(";")
@@ -114,9 +119,23 @@ export async function authenticateRequestEdge(
     );
   }
 
+  if (checkRevoked?.enabled) {
+    const validation = validateCheckRevokedOptions(checkRevoked);
+    if (!validation.isValid) {
+      authLogger.error("Invalid checkRevoked configuration:", validation.error);
+      return createUnauthenticatedState(
+        new Headers(request.headers),
+        validation.error || "Invalid checkRevoked configuration"
+      );
+    }
 
-  if (checkRevoked) {
-    const disabledUser: DisabledUserRecord | null = await getDisabledUser(verificationResult.uid);
+    let disabledUser: DisabledUserRecord | null = null;
+
+    if (checkRevoked.adapter) {
+      const adapter: DisabledUserAdapter = createAdapter(checkRevoked.adapter);
+      disabledUser = await adapter.getDisabledUser(verificationResult.uid);
+    }
+
     const isDisabled = !!disabledUser;
 
     if (isDisabled) {
@@ -149,7 +168,7 @@ export async function authenticateRequestEdge(
   return signedIn(decodedToken, new Headers(request.headers), sessionToken);
 }
 
-export function signInAuthObject(session: DecodedIdToken): SignInAuthObject {
+export function signInAuthObject(session: DecodedIdToken): SignedInAuthObject {
   return {
     session: {
       ...session,

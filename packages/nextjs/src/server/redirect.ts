@@ -68,8 +68,7 @@ export const createRedirect: CreateRedirect = params => {
     }
 
     const pathToSignUpUrl = `${baseUrl}/sign-up`;
-
-    // Allows redirection to SignInOrUp path
+    
     function buildSignUpUrl(signIn: string | URL | undefined) {
       if (!signIn) {
         return;

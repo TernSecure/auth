@@ -3,7 +3,6 @@ import {
   createRouteMatcher,
 } from "@tern-secure/nextjs/server";
 
-
 const publicPaths = createRouteMatcher([
   "/sign-in",
   "/sign-up",
@@ -17,8 +16,24 @@ export const config = {
   ],
 };
 
-export default ternSecureMiddleware(async (auth, request) => {
-  if (!publicPaths(request)) {
-    await auth.protect();
+export default ternSecureMiddleware(
+  async (auth, request) => {
+    if (!publicPaths(request)) {
+      await auth.protect();
+    }
+  },
+  {
+    debug: true,
+    checkRevoked: {
+      enabled: true,
+      adapter: {
+        type: "redis",
+        config: {
+          url: process.env.KV_REST_API_URL!,
+          token: process.env.KV_REST_API_TOKEN!,
+          keyPrefix: process.env.REDIS_KEY_PREFIX!,
+        },
+      },
+    },
   }
-}, { checkRevoked: true, debug: true });
+);

@@ -1,10 +1,16 @@
 import { notFound as nextjsNotFound } from "next/navigation";
 import {
+  constants,
   createTernSecureRequest,
   createBackendInstanceEdge,
   enableDebugLogging,
+  validateCheckRevokedOptions,
 } from "@tern-secure/backend";
-import type { TernSecureRequest, AuthObject } from "@tern-secure/backend";
+import type {
+  TernSecureRequest,
+  AuthObject,
+  CheckRevokedOptions,
+} from "@tern-secure/backend";
 import { SIGN_IN_URL, SIGN_UP_URL } from "./constant";
 import { NextRequest } from "next/server";
 import { NextResponse, NextMiddleware } from "next/server";
@@ -18,6 +24,7 @@ import {
   isNextjsRedirectError,
 } from "./nextErrors";
 import { createRedirect, type RedirectFun } from "./redirect";
+import { setHeader } from '../utils/response';
 import type {
   NextMiddlewareEvtParam,
   NextMiddlewareRequestParam,
@@ -27,9 +34,10 @@ import { createProtect, type AuthProtect } from "./protect";
 import { CheckCustomClaims } from "@tern-secure/types";
 import { createEdgeCompatibleLogger } from "../utils/withLogger";
 
+
 export interface MiddlewareAuth {
   (): Promise<MiddlewareAuthObject>;
-  protect: () => AuthProtect;
+  protect: AuthProtect;
 }
 
 type MiddlewareHandler = (
@@ -45,7 +53,7 @@ export type MiddlewareAuthObject = AuthObject & {
 
 const authenticateMiddlewareRequest = async (
   request: NextRequest,
-  checkRevoked: boolean,
+  checkRevoked: CheckRevokedOptions | undefined,
   logger: ReturnType<typeof createEdgeCompatibleLogger>
 ): Promise<AuthObject> => {
   try {
@@ -68,7 +76,7 @@ const authenticateMiddlewareRequest = async (
 };
 
 export interface MiddlewareOptions {
-  checkRevoked?: boolean;
+  checkRevoked?: CheckRevokedOptions;
   signInUrl?: string;
   signUpUrl?: string;
   debug?: boolean;
@@ -121,18 +129,26 @@ export const ternSecureMiddleware = ((
 
       const signInUrl = resolvedParams.signInUrl || SIGN_IN_URL;
       const signUpUrl = resolvedParams.signUpUrl || SIGN_UP_URL;
-      const checkRevoked = resolvedParams.checkRevoked || false;
       const debug = resolvedParams.debug || false;
 
       const logger = createEdgeCompatibleLogger(debug);
+      const checkRevoked = resolvedParams.checkRevoked;
+
+      if (checkRevoked) {
+        const validation = validateCheckRevokedOptions(checkRevoked);
+        if (!validation.isValid) {
+          logger.error("Invalid checkRevoked configuration:", validation.error);
+          const ternSecureRequest = createTernSecureRequest(request);
+          const configError = new Error(validation.error);
+          configError.name = "CHECK_REVOKED_CONFIG_ERROR";
+          return handleControlError(configError, ternSecureRequest, request);
+        }
+      }
 
       const requestId = crypto.randomUUID().slice(0, 8);
       const startTime = performance.now();
 
-      //logger.logStart(requestId, request.method, request.url);
-
       try {
-        // Enable backend logging only if debug is true (middleware logger takes priority)
         if (debug) {
           enableDebugLogging();
         }
@@ -146,15 +162,11 @@ export const ternSecureMiddleware = ((
         const ternSecureRequest = createTernSecureRequest(request);
 
         const { redirectToSignIn } = createMiddlewareRedirects(
-          ternSecureRequest,
-          signInUrl,
-          signUpUrl
+          ternSecureRequest
         );
 
         const { redirectToSignUp } = createMiddlewareRedirects(
-          ternSecureRequest,
-          signInUrl,
-          signUpUrl
+          ternSecureRequest
         );
 
         const protect = createMiddlewareProtect(
@@ -196,11 +208,6 @@ export const ternSecureMiddleware = ((
             );
           }
         }
-
-        // Log successful completion
-        //const duration = performance.now() - startTime;
-        //logger.logEnd(requestId, duration);
-
         return handlerResult;
       } catch (error) {
         const duration = performance.now() - startTime;
@@ -250,21 +257,19 @@ const parseHandlerAndOptions = (args: unknown[]) => {
  * Create middleware redirect functions
  */
 const createMiddlewareRedirects = (
-  ternSecureRequest: TernSecureRequest,
-  signInUrl: string,
-  signUpUrl: string
+  ternSecureRequest: TernSecureRequest
 ) => {
   const redirectToSignIn: MiddlewareAuthObject["redirectToSignIn"] = (
     opts = {}
   ) => {
-    const url = signInUrl || ternSecureRequest.ternUrl.toString();
+    const url = ternSecureRequest.ternUrl.toString();
     redirectToSignInError(url, opts.returnBackUrl);
   };
 
   const redirectToSignUp: MiddlewareAuthObject["redirectToSignUp"] = (
     opts = {}
   ) => {
-    const url = signUpUrl || ternSecureRequest.ternUrl.toString();
+    const url = ternSecureRequest.ternUrl.toString();
     redirectToSignUpError(url, opts.returnBackUrl);
   };
 
@@ -293,7 +298,7 @@ const createMiddlewareProtect = (
 };
 
 const redirectAdapter = (url: string | URL) => {
-  return NextResponse.redirect(new URL(url), {});
+  return NextResponse.redirect(url, { headers: { [constants.Headers.TernSecureRedirectTo]: 'true' } });
 };
 
 /**
@@ -302,36 +307,30 @@ const redirectAdapter = (url: string | URL) => {
 const handleControlError = (
   error: any,
   ternSecureRequest: TernSecureRequest,
-  nextrequest: NextRequest
+  nextrequest: NextRequest,
 ): Response => {
   if (isNextjsNotFoundError(error)) {
-    return NextResponse.rewrite(new URL("/404", nextrequest.url));
+    return setHeader(
+      NextResponse.rewrite(new URL(`/tern_${Date.now()}`, nextrequest.url)),
+      constants.Headers.AuthReason,
+      'protect-rewrite'
+    );
   }
 
-  if (isRedirectToSignInError(error)) {
-    //const redirectAdapter = (url: string | URL) =>
-    //  NextResponse.redirect(new URL(url, nextrequest.url), {});
-    const { redirectToSignIn } = createRedirect({
+  const isRedirectToSignIn = isRedirectToSignInError(error);
+  const isRedirectToSignUp = isRedirectToSignUpError(error);
+
+  if (isRedirectToSignIn || isRedirectToSignUp) {
+    const redirect = createRedirect({
       redirectAdapter,
-      baseUrl: ternSecureRequest.ternUrl.origin,
+      baseUrl: ternSecureRequest.ternUrl,
       signInUrl: SIGN_IN_URL,
       signUpUrl: SIGN_UP_URL,
     });
 
-    return redirectToSignIn({ returnBackUrl: error.returnBackUrl });
-  }
+    const { returnBackUrl } = error;
 
-  if (isRedirectToSignUpError(error)) {
-    //const redirectAdapter = (url: string | URL) =>
-    //  NextResponse.redirect(url, {});
-    const { redirectToSignUp } = createRedirect({
-      redirectAdapter,
-      baseUrl: ternSecureRequest.ternUrl.origin,
-      signInUrl: SIGN_IN_URL,
-      signUpUrl: SIGN_UP_URL,
-    });
-
-    return redirectToSignUp({ returnBackUrl: error.returnBackUrl });
+    return redirect[isRedirectToSignIn ? 'redirectToSignIn' : 'redirectToSignUp']({ returnBackUrl });
   }
 
   if (isNextjsRedirectError(error)) {

@@ -1,7 +1,9 @@
-
 import type { CheckCustomClaims } from "@tern-secure/types";
 import type { RedirectFun } from "./redirect";
-import type { AuthObject } from "@tern-secure/backend";
+import type { AuthObject, SignedInAuthObject } from "@tern-secure/backend";
+import { constants } from "@tern-secure/backend";
+import { constants as nextConstants } from "../constants";
+import { isNextFetcher } from "./nextFetcher";
 
 type AuthProtectOptions = {
   /**
@@ -18,8 +20,8 @@ export interface AuthProtect {
   (
     params?: (has: CheckCustomClaims) => boolean,
     options?: AuthProtectOptions
-  ): void;
-  (options?: AuthProtectOptions): void;
+  ): Promise<SignedInAuthObject>;
+  (options?: AuthProtectOptions): Promise<SignedInAuthObject>;
 }
 
 export function createProtect(opts: {
@@ -28,34 +30,40 @@ export function createProtect(opts: {
   notFound: () => never;
   redirect: (url: string) => void;
   redirectToSignIn: RedirectFun<unknown>;
-}) {
+}): AuthProtect {
   const { redirectToSignIn, authObject, redirect, notFound, request } = opts;
 
-  return (
-    params?: ((has: CheckCustomClaims) => boolean) | AuthProtectOptions,
-    options?: AuthProtectOptions
-  ): void => {
+  return (async (...args: any[]) => {
+    const optionValuesAsParam =
+      args[0]?.unauthenticatedUrl || args[0]?.unauthorizedUrl;
+    const paramsOrFunction = optionValuesAsParam;
     let checkCustomClaims: ((has: CheckCustomClaims) => boolean) | undefined;
-    let protectOptions: AuthProtectOptions = {};
+    const unauthenticatedUrl = (args[0]?.unauthenticatedUrl ||
+      args[1]?.unauthenticatedUrl) as string | undefined;
+    const unauthorizedUrl = (args[0]?.unauthorizedUrl ||
+      args[1]?.unauthorizedUrl) as string | undefined;
 
-    if (typeof params === "function") {
-      checkCustomClaims = params;
-      protectOptions = options || {};
-    } else {
-      protectOptions = params || {};
-    }
-
-    // Check if user is authenticated
-    if (!authObject || !authObject.userId || !authObject.session) {
-      if (protectOptions.unauthenticatedUrl) {
-        redirect(protectOptions.unauthenticatedUrl);
-        return;
+    const handleUnauthenticated = () => {
+      if (unauthenticatedUrl) {
+        redirect(unauthenticatedUrl);
       }
-      redirectToSignIn({ returnBackUrl: request.url });
-      return;
+      if (isPageRequest(request)) {
+        return redirectToSignIn();
+      }
+      return notFound();
+    };
+
+    const handleUnauthorized = () => {
+      if (unauthorizedUrl) {
+        redirect(unauthorizedUrl);
+      }
+      notFound();
+    };
+
+    if (!authObject.userId) {
+      handleUnauthenticated();
     }
 
-    // Check custom claims if provided
     if (checkCustomClaims) {
       const has: CheckCustomClaims = {
         role: undefined as never,
@@ -64,13 +72,65 @@ export function createProtect(opts: {
 
       const isAuthorized = checkCustomClaims(has);
       if (!isAuthorized) {
-        if (protectOptions.unauthorizedUrl) {
-          redirect(protectOptions.unauthorizedUrl);
-          return;
-        }
-        notFound();
-        return;
+        handleUnauthorized();
       }
     }
-  };
+
+    if (!paramsOrFunction) {
+      return authObject;
+    }
+
+    if (typeof paramsOrFunction === "function") {
+      checkCustomClaims = paramsOrFunction;
+      return authObject;
+    } else {
+      handleUnauthorized();
+    }
+  }) as AuthProtect;
 }
+
+const isServerActionRequest = (req: Request) => {
+  return (
+    !!req.headers.get(nextConstants.Headers.NextUrl) &&
+    (req.headers.get(constants.Headers.Accept)?.includes("text/x-component") ||
+      req.headers
+        .get(constants.Headers.ContentType)
+        ?.includes("multipart/form-data") ||
+      !!req.headers.get(nextConstants.Headers.NextAction))
+  );
+};
+
+const isPageRequest = (req: Request): boolean => {
+  return (
+    req.headers.get(constants.Headers.SecFetchDest) === "document" ||
+    req.headers.get(constants.Headers.SecFetchDest) === "iframe" ||
+    req.headers.get(constants.Headers.Accept)?.includes("text/html") ||
+    isAppRouterInternalNavigation(req) ||
+    isPagesRouterInternalNavigation(req)
+  );
+};
+
+const isAppRouterInternalNavigation = (req: Request) =>
+  (!!req.headers.get(nextConstants.Headers.NextUrl) &&
+    !isServerActionRequest(req)) ||
+  isPagePathAvailable();
+
+const isPagePathAvailable = () => {
+  const __fetch = globalThis.fetch;
+
+  if (!isNextFetcher(__fetch)) {
+    return false;
+  }
+
+  const { page, pagePath } = __fetch.__nextGetStaticStore().getStore() || {};
+
+  return Boolean(
+    // available on next@14
+    pagePath ||
+      // available on next@15
+      page
+  );
+};
+
+const isPagesRouterInternalNavigation = (req: Request) =>
+  !!req.headers.get(nextConstants.Headers.NextjsData);

@@ -17,7 +17,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ### Testing Applications
 - `cd apps/test && pnpm dev` - Test app with full Next.js features
-- `cd apps/test-auth-only && pnpm dev` - Auth-only test app
 
 ## Architecture
 

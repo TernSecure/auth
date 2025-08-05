@@ -11,7 +11,7 @@ export {
 } from "./instance/backendInstanceEdge";
 
 export type {
-  SignInAuthObject,
+  SignedInAuthObject,
   SignedOutAuthObject,
   AuthObject,
   RequestState,
@@ -25,3 +25,21 @@ export {
 } from "./utils/enableDebugLogging";
 
 export { LogLevel } from "./utils/logger";
+
+export {
+  RedisAdapter,
+  PostgresAdapter,
+  createAdapter,
+  validateCheckRevokedOptions,
+} from "./adapters";
+
+export type {
+  DisabledUserAdapter,
+  DisabledUserRecord,
+  AdapterConfig,
+  RedisConfig,
+  PostgresConfig,
+  AdapterType,
+  AdapterConfiguration,
+  CheckRevokedOptions,
+} from "./adapters";
