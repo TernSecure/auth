@@ -32,7 +32,9 @@
   "description": "Firebase authentication solution for Next.js applications",
   "types": "./dist/types/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "admin",
+    "server"
   ],
   "sideEffects": false,
   "exports": {
@@ -70,6 +72,7 @@
     "@tern-secure/types": "workspace:*",
     "@upstash/redis": "^1.35.2",
     "jose": "^5.9.6",
+    "server-only": "^0.0.1",
     "tslib": "2.4.1"
   },
   "peerDependencies": {

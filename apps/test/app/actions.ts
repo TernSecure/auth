@@ -1,5 +1,17 @@
-'use server'
+"use server";
 
-import { clearNextSessionCookie, createSessionCookieServer, setNextServerSession } from "@tern-secure/nextjs/admin";
+import {
+  createNextSessionCookie,
+  clearNextSessionCookie,
+  clearSessionCookieServer,
+  createSessionCookieServer,
+  setNextServerSession,
+} from "@tern-secure/nextjs/admin";
 
-export { clearNextSessionCookie, createSessionCookieServer, setNextServerSession }
+export {
+  clearNextSessionCookie,
+  clearSessionCookieServer,
+  createSessionCookieServer,
+  setNextServerSession,
+  createNextSessionCookie,
+};

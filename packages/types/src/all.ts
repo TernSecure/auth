@@ -135,3 +135,5 @@ export interface ServerConfigValidationResult {
   errors: string[]
   config: TernSecureServerConfig
 }
+
+ export type InstanceType = 'production' | 'development';

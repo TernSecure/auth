@@ -1,9 +1,9 @@
-import { jwtVerify, createRemoteJWKSet } from "jose";
+import { jwtVerify, createRemoteJWKSet, decodeJwt } from "jose";
 import type {
   DecodedIdToken,
   TernVerificationResult,
 } from "@tern-secure/types";
-import { base64url } from "../utils/rfc4648";
+
 
 export type FirebaseIdTokenPayload = DecodedIdToken;
 
@@ -12,6 +12,8 @@ const FIREBASE_ID_TOKEN_URL =
   "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
 const FIREBASE_SESSION_CERT_URL =
   "https://identitytoolkit.googleapis.com/v1/sessionCookiePublicKeys";
+
+const FIREBASE_NEW_SESSION_PK = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/publicKeys"
 
 // Simple in-memory cache for JWKS
 let idTokenJWKS: ReturnType<typeof createRemoteJWKSet> | null = null;
@@ -39,24 +41,7 @@ const getSessionJWKS = () => {
   return sessionJWKS;
 };
 
-function decodeJwt(token: string) {
-  const decoder = new TextDecoder();
-  try {
-    const tokenParts = (token || "").toString().split(".");
-    const [rawHeader, rawPayload] = tokenParts;
 
-    const header = JSON.parse(
-      decoder.decode(base64url.parse(rawHeader, { loose: true }))
-    );
-    const payload = JSON.parse(
-      decoder.decode(base64url.parse(rawPayload, { loose: true }))
-    );
-    return { header, payload };
-  } catch (error) {
-    console.error("Error decoding JWT:", error);
-    return null;
-  }
-}
 
 export async function verifyToken(
   token: string,
@@ -68,7 +53,7 @@ export async function verifyToken(
       throw new Error("Firebase Project ID is not configured");
     }
 
-    const decoded = decodeJwt(token);
+    const { decoded } = decodeJwt(token);
     if (!decoded) {
       throw new Error("Invalid token format");
     }
@@ -140,7 +125,6 @@ export async function verifyToken(
 
     throw lastError || new Error("Failed to verify token after retries");
   } catch (error) {
-    const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID;
     console.error("Token verification details:", {
       error:
         error instanceof Error
@@ -151,7 +135,6 @@ export async function verifyToken(
             }
           : error,
       decoded: decodeJwt(token),
-      projectId,
       isSessionCookie,
     });
 

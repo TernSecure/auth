@@ -1,5 +1,5 @@
 import { SignedInSession } from "session";
-import type { TernSecureUser, TernSecureConfig } from "./all";
+import type { TernSecureUser, TernSecureConfig, InstanceType } from "./all";
 import type { SignInResource, AuthErrorResponse } from "./signIn";
 import { SignUpResource } from "signUp";
 import type {
@@ -75,7 +75,7 @@ export type Persistence = "local" | "session" | "none";
 type Mode = "browser" | "server";
 
 export type TernAuthSDK = {
-  /** SDK package name (e.g., @tern-secure/ui) */
+  /** SDK package name (e.g., @tern-secure/auth) */
   name: string;
   /** SDK version (e.g., 1.2.3) */
   version: string;
@@ -98,6 +98,7 @@ export interface TernSecureResources {
 }
 
 export type TernSecureAuthOptions = {
+  apiUrl?: string;
   sdkMetadata?: TernAuthSDK;
   signInUrl?: string;
   signUpUrl?: string;
@@ -121,6 +122,7 @@ export type TernAuthListenerEventPayload = {
 export type TernAuthListenerEvent = keyof TernAuthListenerEventPayload;
 
 export type ListenerCallback = (emission: TernSecureResources) => void;
+export type UnsubscribeCallback = () => void;
 type TernSecureEvent = keyof TernAuthEventPayload;
 type EventHandler<Events extends TernSecureEvent> = (
   payload: TernAuthEventPayload[Events]
@@ -129,13 +131,11 @@ export type TernAuthEventPayload = {
   status: TernSecureAuthStatus;
 };
 
-export type UnsubscribeCallback = () => void;
-
 export type TernSecureAuthStatus = "error" | "loading" | "ready";
 
 type onEventListener = <E extends TernSecureEvent>(
   event: E,
-  handler: EventHandler<E>
+  handler: EventHandler<E>, opt?: { notify?: boolean }
 ) => void;
 type OffEventListener = <E extends TernSecureEvent>(
   event: E,
@@ -156,8 +156,11 @@ export interface SignOut {
 }
 
 export interface TernSecureAuth {
-  /** Indicates if the TernSecureAuth instance is ready for use */
-  isReady: boolean;
+  /** TernSecureAuth SDK version number */
+  version: string | undefined;
+
+  /** Metadata about the SDK instance */
+  sdkMetadata: TernAuthSDK | undefined;
 
   /** Indicates if the TernSecureAuth instance is currently loading */
   isLoading: boolean;
@@ -165,7 +168,22 @@ export interface TernSecureAuth {
   /** The current status of the TernSecureAuth instance */
   status: TernSecureAuthStatus;
 
-  /** Requires Verificatipn */
+  /** TernSecure API URL */
+  apiUrl: string;
+
+  /** TernSecure domain for API string */
+  domain: string;
+
+  /** TernSecure Proxy url */
+  proxyUrl?: string;
+
+  /** TernSecure Instance type */
+  instanceType: InstanceType | undefined;
+
+  /** Indicates if the TernSecureAuth instance is ready for use */
+  isReady: boolean;
+
+  /** Requires Verification */
   requiresVerification: boolean;
 
   /** Initialize TernSecureAuth */
@@ -187,9 +205,7 @@ export interface TernSecureAuth {
   ternSecureConfig?: TernSecureConfig;
 
   /** Subscribe to auth state changes */
-  onAuthStateChanged(
-    callback: (user: TernSecureUser | null | undefined) => void
-  ): () => void;
+  onAuthStateChanged(callback: (cb: any) => void): () => void;
 
   /** Sign out the current user */
   signOut: SignOut;
@@ -216,6 +232,10 @@ export type CheckCustomClaims = {
   role?: never;
   permissions?: never;
 };
+
+export type CheckAuthorizationFromSessionClaims = (
+  isAuthorizedParams: CheckCustomClaims,
+) => boolean;
 
 export type TernVerificationResult =
   | (DecodedIdToken & {

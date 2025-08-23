@@ -1,14 +1,19 @@
-import { auth } from "@tern-secure/nextjs/server";
+import { auth, type BaseUser} from "@tern-secure/nextjs/server";
 import { ProtectedPageClient } from "./protectedClient";
 
 export const dynamic = "force-dynamic";
 
 export default async function ProtectedPage() {
-  const session = await auth();
+  const { session } = await auth();
 
-  if (!session || !session.user) return null;
+  if (!session) return null;
 
-  const user = session.user;
+  const user: BaseUser = {
+    uid: session.uid,
+    email: session.email || null,
+    emailVerified: session.emailVerified || null,
+    tenantId: session.tenantId || null,
+  };
 
-  return <ProtectedPageClient user={user} />;
+  return <ProtectedPageClient user={user} />
 }

@@ -1,12 +1,14 @@
 "use server";
 
 import { adminTernSecureAuth as adminAuth } from "../utils/admin-init";
-import {
-  type SessionParams,
-  type SessionResult,
-  type CookieStore,
+import type {
+  SessionParams,
+  SessionResult,
+  CookieStore,
 } from "@tern-secure/types";
 import { handleFirebaseAuthError } from "@tern-secure/shared/errors";
+import type { RequestOptions } from "../tokens/types";
+import { getCookieOptions, getSessionConfig } from "../tokens/sessionConfig";
 
 const SESSION_CONSTANTS = {
   COOKIE_NAME: "_session_cookie",
@@ -22,11 +24,17 @@ const COOKIE_OPTIONS = {
   path: "/",
 } as const;
 
+
 export async function createSessionCookie(
   params: SessionParams | string,
-  cookieStore: CookieStore
+  cookieStore: CookieStore,
+  options?: RequestOptions
 ): Promise<SessionResult> {
   try {
+
+    const sessionConfig = getSessionConfig(options);
+    const cookieOptions = getCookieOptions(options);
+    
     let decodedToken;
     let sessionCookie;
 
@@ -193,5 +201,15 @@ export async function clearSessionCookie(
       error: authError.code || "INTERNAL_ERROR",
       cookieSet: false,
     };
+  }
+}
+
+export async function createCustomToken(uid: string): Promise<string | null> {
+  try {
+    const customToken = await adminAuth.createCustomToken(uid);
+    return customToken;
+  } catch (error) {
+    console.error("[createCustomToken] Error creating custom token:", error);
+    return null;
   }
 }

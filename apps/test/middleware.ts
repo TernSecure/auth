@@ -3,11 +3,7 @@ import {
   createRouteMatcher,
 } from "@tern-secure/nextjs/server";
 
-const publicPaths = createRouteMatcher([
-  "/sign-in",
-  "/sign-up",
-  "/api/session",
-]);
+const publicPaths = createRouteMatcher(["/sign-in", "/sign-up"]);
 
 export const config = {
   matcher: [
@@ -24,6 +20,18 @@ export default ternSecureMiddleware(
   },
   {
     debug: true,
+    cookies: {
+      session_cookie: {
+        name: "_session_cookie",
+        attributes: {
+          path: "/",
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict" as const,
+          maxAge: 60 * 60 * 24 * 5 * 1000, // 5 days
+        },
+      },
+    },
     checkRevoked: {
       enabled: true,
       adapter: {

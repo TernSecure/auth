@@ -15,6 +15,18 @@
     "internal",
     "jwt"
   ],
+  "imports": {
+    "#crypto": {
+      "edge-light": "./dist/runtime/browser/crypto.mjs",
+      "worker": "./dist/runtime/browser/crypto.mjs",
+      "browser": "./dist/runtime/browser/crypto.mjs",
+      "node": {
+        "require": "./dist/runtime/node/crypto.js",
+        "import": "./dist/runtime/node/crypto.mjs"
+      },
+      "default": "./dist/runtime/browser/crypto.mjs"
+    }
+  },
   "exports": {
     ".": {
       "import": {
@@ -53,7 +65,8 @@
     "clean": "rimraf dist",
     "build": "pnpm clean && tsup && tsc -p tsconfig.add.json",
     "dev": "tsup --watch",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "check-types": "pnpm exec tsc --noEmit"
   },
   "dependencies": {
     "@tern-secure/shared": "workspace:*",

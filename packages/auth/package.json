@@ -25,11 +25,13 @@
     "clean": "rimraf dist",
     "build": "pnpm clean && tsup && tsc -p tsconfig.add.json",
     "dev": "tsup --watch",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "check-types": "pnpm exec tsc --noEmit"
   },
   "dependencies": {
-    "@tern-secure/types": "workspace:*",
     "@tern-secure/shared": "workspace:*",
+    "@tern-secure/types": "workspace:*",
+    "server-only": "^0.0.1",
     "tslib": "2.4.1"
   },
   "devDependencies": {

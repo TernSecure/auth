@@ -7,7 +7,9 @@ interface ProtectedPageClientProps {
   user: BaseUser;
 }
 
-export function ProtectedPageClient({ user }: ProtectedPageClientProps) {
+export function ProtectedPageClient({
+  user
+}: ProtectedPageClientProps) {
   //console.log('User in protected page:', user)
   const router = useRouter();
 
@@ -22,6 +24,7 @@ export function ProtectedPageClient({ user }: ProtectedPageClientProps) {
   const redirectToSecondProtectedPage = () => {
     router.push("/second-protected");
   };
+
 
   return (
     <div>
@@ -47,6 +50,7 @@ export function ProtectedPageClient({ user }: ProtectedPageClientProps) {
       >
         Second Protected Page
       </button>
+
     </div>
   );
 }

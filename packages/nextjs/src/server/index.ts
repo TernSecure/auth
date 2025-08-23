@@ -3,11 +3,8 @@ export {
 } from "./ternSecureEdgeMiddleware";
 export { createRouteMatcher } from "./routeMatcher";
 export {
-  auth,
-  getUser,
-  isAuthenticated,
-  requireAuth,
-} from "./auth";
-export type { AuthResult } from "./auth";
+  auth
+} from "../app-router/server/auth";
+export type { AuthResult } from "../app-router/server/auth";
 export type { BaseUser, SessionResult } from "./types";
 export { NextCookieStore } from "../utils/NextCookieAdapter";

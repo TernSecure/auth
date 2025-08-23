@@ -14,6 +14,7 @@ export const allNextProviderPropsWithEnv = (
     signInUrl,
     signUpUrl,
     apiKey: propsApiKey,
+    apiUrl: propsApiUrl,
     requiresVerification: propsRequiresVerification,
     isTernSecureDev: propsIsTernSecureDev,
     enableServiceWorker: propsEnableServiceWorker,
@@ -23,6 +24,7 @@ export const allNextProviderPropsWithEnv = (
 
   const envConfig = {
     apiKey: process.env.NEXT_PUBLIC_TERN_API_KEY,
+    apiUrl: process.env.TERNSECURE_API_URL || '',
     projectId: process.env.NEXT_PUBLIC_TERN_PROJECT_ID,
     customDomain: process.env.NEXT_PUBLIC_TERN_CUSTOM_DOMAIN,
     proxyUrl: process.env.NEXT_PUBLIC_TERN_PROXY_URL,
@@ -47,6 +49,7 @@ export const allNextProviderPropsWithEnv = (
 
   // Merge config values: props take precedence over environment variables
   const finalApiKey = propsApiKey ?? envConfig.apiKey;
+  const finalApiUrl = propsApiUrl ?? envConfig.apiUrl;
   const finalSignInUrl = signInUrl ?? envConfig.signInUrl;
   const finalSignUpUrl = signUpUrl ?? envConfig.signUpUrl;
 
@@ -54,7 +57,7 @@ export const allNextProviderPropsWithEnv = (
   // (Omit<TernSecureProviderProps, 'children'>)
   const result: NextProviderProcessedProps = {
     ...(baseProps as Omit<TernSecureProviderProps, 'children' | keyof IsoTernSecureAuthOptions | 'requiresVerification' | 'loadingComponent'>),
-  
+
     // Set the Firebase configuration properties
     ternSecureConfig,
     
@@ -71,6 +74,7 @@ export const allNextProviderPropsWithEnv = (
     signInUrl: finalSignInUrl,
     signUpUrl: finalSignUpUrl,
     mode: baseProps.mode,
+    apiUrl: finalApiUrl,
   };
 
   // Clean up undefined keys that might have resulted from spreading if not present in baseProps

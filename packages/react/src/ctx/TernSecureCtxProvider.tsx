@@ -29,15 +29,11 @@ export function TernSecureCtxProvider(props: TernSecureCtxProviderProps) {
     user: instance.user,
   });
 
-  useEffect(() => {
-    const unsubscribe = instance.onAuthStateChanged((user) => {
-      setAuthState((prevState) => ({
-        ...prevState,
-        user,
-      }));
-    });
-    return () => unsubscribe();
+
+  React.useEffect(() => {
+    return instance.addListener(e => setAuthState({ ...e }));
   }, []);
+
 
   const derivedState = deriveAuthState(authState, initialState);
   const { token, email, user, userId } = derivedState;

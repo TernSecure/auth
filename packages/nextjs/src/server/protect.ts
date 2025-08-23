@@ -1,4 +1,4 @@
-import type { CheckCustomClaims } from "@tern-secure/types";
+import type { CheckAuthorizationFromSessionClaims } from "@tern-secure/types";
 import type { RedirectFun } from "./redirect";
 import type { AuthObject, SignedInAuthObject } from "@tern-secure/backend";
 import { constants } from "@tern-secure/backend";
@@ -18,7 +18,7 @@ type AuthProtectOptions = {
 
 export interface AuthProtect {
   (
-    params?: (has: CheckCustomClaims) => boolean,
+    params?: (has: CheckAuthorizationFromSessionClaims) => boolean,
     options?: AuthProtectOptions
   ): Promise<SignedInAuthObject>;
   (options?: AuthProtectOptions): Promise<SignedInAuthObject>;
@@ -36,8 +36,9 @@ export function createProtect(opts: {
   return (async (...args: any[]) => {
     const optionValuesAsParam =
       args[0]?.unauthenticatedUrl || args[0]?.unauthorizedUrl;
-    const paramsOrFunction = optionValuesAsParam;
-    let checkCustomClaims: ((has: CheckCustomClaims) => boolean) | undefined;
+    const paramsOrFunction = optionValuesAsParam ? undefined : (args[0] as 
+      | CheckAuthorizationFromSessionClaims
+      | ((has: CheckAuthorizationFromSessionClaims) => boolean));
     const unauthenticatedUrl = (args[0]?.unauthenticatedUrl ||
       args[1]?.unauthenticatedUrl) as string | undefined;
     const unauthorizedUrl = (args[0]?.unauthorizedUrl ||
@@ -64,27 +65,19 @@ export function createProtect(opts: {
       handleUnauthenticated();
     }
 
-    if (checkCustomClaims) {
-      const has: CheckCustomClaims = {
-        role: undefined as never,
-        permissions: undefined as never,
-      };
-
-      const isAuthorized = checkCustomClaims(has);
-      if (!isAuthorized) {
-        handleUnauthorized();
-      }
-    }
-
     if (!paramsOrFunction) {
       return authObject;
     }
 
     if (typeof paramsOrFunction === "function") {
-      checkCustomClaims = paramsOrFunction;
+      if (paramsOrFunction(authObject.has)) {
+        return authObject;
+      }
+      return handleUnauthorized();
+    }
+
+    if (authObject.has(paramsOrFunction)) {
       return authObject;
-    } else {
-      handleUnauthorized();
     }
   }) as AuthProtect;
 }

@@ -1,9 +1,10 @@
-export { createSessionHandler } from './sessionHandler'
+export { createTernSecureNextJsHandler } from './ternsecureNextjsHandler'
 
 export { 
     clearSessionCookieServer,
     clearNextSessionCookie,
     createSessionCookieServer,
+    createNextSessionCookie,
     setNextServerSession,
     setNextServerToken
 } from './actions'

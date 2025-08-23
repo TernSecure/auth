@@ -1,3 +1,5 @@
+import type { TernSecureUser } from "all";
+
 export type SessionStatus = 'active' | 'expired' | 'revoked' | 'pending';
 
 
@@ -58,6 +60,7 @@ interface AuthenticatedSessionBase {
  */
 export interface ActiveSession extends AuthenticatedSessionBase {
   status: 'active';
+  user?: TernSecureUser
 }
 
 /**
@@ -65,6 +68,7 @@ export interface ActiveSession extends AuthenticatedSessionBase {
  */
 export interface ExpiredSession extends AuthenticatedSessionBase {
   status: 'expired';
+  user?: TernSecureUser
 }
 
 
@@ -73,6 +77,7 @@ export interface ExpiredSession extends AuthenticatedSessionBase {
  */
 export interface PendingSession extends AuthenticatedSessionBase { 
   status: 'pending';
+  user?: TernSecureUser
 }
 
 

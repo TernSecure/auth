@@ -1,6 +1,7 @@
 'use server'
 
 import {
+    CreateNextSessionCookie,
     createSessionCookie, 
     clearSessionCookie, 
     SetNextServerSession, 
@@ -29,4 +30,8 @@ export async function setNextServerSession(idToken: string) {
 
 export async function setNextServerToken(token: string) {
     return SetNextServerToken(token);
+}
+
+export async function createNextSessionCookie(idToken: string) {
+    return CreateNextSessionCookie(idToken);
 }

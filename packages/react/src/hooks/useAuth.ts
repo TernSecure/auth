@@ -30,14 +30,6 @@ export const useAuth = (): UseAuthReturn => {
   useAssertWrappedByTernSecureAuthProvider("useAuth");
 
   const ctx = useAuthProviderCtx();
-  let authCtx = ctx;
-
-  if (authCtx.userId === null) {
-    console.warn(
-      "[useAuth] TernSecureAuth context is not initialized. Returning default state."
-    );
-  }
-
   const instance = useIsoTernSecureAuthCtx();
   const signOut: SignOut = useCallback(handleSignOut(instance), [instance]);
 

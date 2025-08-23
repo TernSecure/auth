@@ -6,6 +6,7 @@ export default defineConfig(() => {
     entry: [
       './src/*.{ts,tsx}',
       './src/react/index.ts',
+      './src/utils/index.ts',
     ],
     bundle: true,
     minify: false,

@@ -18,11 +18,28 @@ import {
   sendEmailVerification,
   UserCredential,
 } from "firebase/auth";
+import { TernSecureBase } from "./internal";
+import { apiRequest, ApiResponse, HTTPMethod } from "../utils/apiRequest";
 
 interface ProviderConfig {
   provider: GoogleAuthProvider | OAuthProvider;
   customParameters: Record<string, string>;
 }
+
+export type TernRequestInit = RequestInit;
+
+export type SignInParams = {
+  idToken: string;
+  csrfToken: string | undefined;
+};
+
+export type postMutateParams = {
+  action?: string | undefined;
+  body?: any;
+  method?: HTTPMethod | undefined;
+  path?: string;
+};
+
 
 type FirebaseAuthResult = UserCredential | void;
 
@@ -32,17 +49,45 @@ type AuthMethodFunction = (
 ) => Promise<FirebaseAuthResult>;
 
 export class SignIn implements SignInResource {
+  pathRoot = '/sessions/createsession';
+  
   status?: SignInStatus | undefined;
-  private _currentUser: TernSecureUser | null = null;
   private auth: Auth;
+  private csrfToken: string | undefined;
+  private _currentUser: TernSecureUser | null = null;
 
-  constructor(auth: Auth) {
+  constructor(auth: Auth, csrfToken: string | undefined) {
     this.auth = auth;
+    this.csrfToken = csrfToken;
   }
 
-  async withEmailAndPassword(
+
+  signInWithCredential = async (credential: UserCredential) => {
+    const idToken = await credential.user.getIdToken();
+    const params = {
+      idToken: idToken,
+      csrfToken: this.csrfToken,
+    };
+
+    return this._post({
+      body: params,
+      action: "create",
+    });
+  };
+
+  
+
+  _post = async (params: postMutateParams): Promise<ApiResponse> => {
+    return apiRequest({
+      pathRoot: this.pathRoot,
+      body: params.body,
+      method: params.method,
+    });
+  };
+
+  withEmailAndPassword = async (
     params: SignInFormValuesTree
-  ): Promise<SignInResponseTree> {
+  ): Promise<SignInResponseTree> => {
     try {
       const { email, password } = params;
       const userCredential = await signInWithEmailAndPassword(
@@ -50,12 +95,21 @@ export class SignIn implements SignInResource {
         email,
         password
       );
-      const user = userCredential.user;
-
+      
+      const s = await this.signInWithCredential(userCredential);
+      if (!s.success) {
+        return {
+          success: false,
+          message: s.message,
+          error: s.error,
+          user: null,
+        };
+      }
+      const { user } = userCredential;
       return {
         success: true,
         message: "Authentication successful",
-        user: userCredential.user,
+        user,
         error: !user.emailVerified ? "REQUIRES_VERIFICATION" : "AUTHENTICATED",
       };
     } catch (error) {
@@ -67,14 +121,29 @@ export class SignIn implements SignInResource {
         user: null,
       };
     }
-  }
+  };
 
-  async withSocialProvider(
+  withCredential = async (params: SignInFormValuesTree): Promise<void> => {
+    try {
+      const { email, password } = params;
+      const userCredential = await signInWithEmailAndPassword(
+        this.auth,
+        email,
+        password
+      );
+      await this.signInWithCredential(userCredential);
+    } catch (error) {
+      const authError = handleFirebaseAuthError(error);
+      console.error(authError);
+    }
+  };
+
+  withSocialProvider = async (
     provider: string,
     options?: {
       mode?: "popup" | "redirect";
     }
-  ): Promise<SignInResponseTree | void> {
+  ): Promise<SignInResponseTree | void> => {
     try {
       if (options?.mode === "redirect") {
         const redirectResult = await this.authRedirectResult();
@@ -103,20 +172,20 @@ export class SignIn implements SignInResource {
         user: null,
       };
     }
-  }
+  };
 
-  async completeMfaSignIn(
+  completeMfaSignIn = async (
     mfaToken: string,
     mfaContext?: any
-  ): Promise<SignInResponseTree> {
+  ): Promise<SignInResponseTree> => {
     throw new Error("Method not implemented.");
-  }
+  };
 
-  async sendPasswordResetEmail(email: string): Promise<void> {
+  sendPasswordResetEmail = async (email: string): Promise<void> => {
     console.log(`Sending password reset email to ${email}`);
-  }
+  };
 
-  async resendEmailVerification(): Promise<ResendEmailVerification> {
+  resendEmailVerification = async (): Promise<ResendEmailVerification> => {
     const user = this._currentUser;
     if (!user) {
       throw new Error("No user is currently signed in");
@@ -143,7 +212,7 @@ export class SignIn implements SignInResource {
       message: "Verification email sent. Please check your inbox.",
       isVerified: false,
     };
-  }
+  };
 
   private getProviderConfig(providerName: string): ProviderConfig {
     switch (providerName.toLowerCase()) {

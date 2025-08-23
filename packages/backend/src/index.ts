@@ -1,20 +1,20 @@
+
 export { constants } from "./constants";
 
-export type { TernSecureRequest } from "./instance/ternSecureRequest";
-export { createTernSecureRequest } from "./instance/ternSecureRequest";
+export type { TernSecureRequest } from "./tokens/ternSecureRequest";
+export { createTernSecureRequest } from "./tokens/ternSecureRequest";
+
+export type { RequestOptions } from "./tokens/types";
+
+export type { AuthObject, RequestState, SignedInAuthObject, SignedOutAuthObject } from "./tokens/authstate";
+export { signedIn, signedInAuthObject} from './tokens/authstate'
 
 export {
   createBackendInstanceEdge,
-  authenticateRequestEdge,
-  signInAuthObject,
-  signedIn,
+  createBackendInstanceClient
 } from "./instance/backendInstanceEdge";
 
 export type {
-  SignedInAuthObject,
-  SignedOutAuthObject,
-  AuthObject,
-  RequestState,
   BackendInstance,
 } from "./instance/backendInstanceEdge";
 

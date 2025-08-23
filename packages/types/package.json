@@ -17,6 +17,7 @@
     "clean": "rimraf dist",
     "build": "pnpm clean && tsup && tsc -p tsconfig.add.json",
     "dev": "tsup --watch",
+    "check-types": "pnpm exec tsc --noEmit",
     "lint": "eslint src"
   },
   "engines": {

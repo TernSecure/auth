@@ -1,4 +1,4 @@
-import { TernSecureRequest, createTernSecureRequest } from "./ternSecureRequest";
+import { TernSecureRequest, createTernSecureRequest } from "../tokens/ternSecureRequest";
 import type { CheckCustomClaims, SharedSignInAuthObjectProperties, DecodedIdToken } from "@tern-secure/types";
 import { VerifyNextTernSessionCookie } from "../admin/nextSessionTernSecure";
 

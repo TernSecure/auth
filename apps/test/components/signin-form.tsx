@@ -17,9 +17,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import {
   useSignIn,
   type SignInResponseTree,
-  type TernSecureUser,
 } from "@tern-secure/nextjs";
-import { createSessionCookieServer } from "../app/actions";
 
 export function LoginForm({
   className,
@@ -35,38 +33,24 @@ export function LoginForm({
     return null;
   }
 
-  const handleSuccessfulAuth = async (user: TernSecureUser) => {
+  const handleSuccessfulAuth = () => {
     try {
-      const idToken = await user.getIdToken();
-      'use server'
-      const sessionResult = await createSessionCookieServer(idToken);
-
-      if (!sessionResult.success) {
-        setFormError({
-          success: false,
-          message: sessionResult.message || "Failed to create session",
-          error: "INTERNAL_ERROR",
-          user: null,
-        });
-      }
       if (process.env.NODE_ENV === "production") {
         window.location.href = "/";
       } else {
         router.push("/");
       }
-    } catch (err) {
+    } catch (err: any) {
       setFormError({
         success: false,
-        message: "Failed to complete authentication",
+        message: err.message || "Failed to complete authentication",
         error: "INTERNAL_ERROR",
         user: null,
       });
     }
   };
 
-  const handleEmailSignIn = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setFormError(null);
+  const signInPasswordField = async () => {
     try {
       const res = await signIn.withEmailAndPassword({ email, password });
       if (!res.success) {
@@ -79,12 +63,15 @@ export function LoginForm({
         return;
       }
 
-      if (res.success) {
-        await handleSuccessfulAuth(res.user);
-      }
+      handleSuccessfulAuth();
     } catch (error) {
       console.error("Sign-in error:", error);
     }
+  };
+
+  const handleEmailSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    return signInPasswordField();
   };
 
   return (
@@ -96,16 +83,12 @@ export function LoginForm({
             Login with your Apple or Google account
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <Alert variant="destructive" className="animate-in fade-in-50">
-            <AlertDescription>
-              {formError && (
-                <div className="text-red-500 text-sm mb-4">
-                  {formError.message || "An error occurred during sign-in."}
-                </div>
-              )}
-            </AlertDescription>
-          </Alert>
+        <CardContent className="space-y-4">
+          {formError && (
+            <Alert variant="destructive" className="animate-in fade-in-50">
+              <AlertDescription>{formError.message}</AlertDescription>
+            </Alert>
+          )}
           <form onSubmit={handleEmailSignIn}>
             <div className="grid gap-6">
               <div className="flex flex-col gap-4">
