@@ -18,8 +18,7 @@ import {
   sendEmailVerification,
   UserCredential,
 } from "firebase/auth";
-import { TernSecureBase } from "./internal";
-import { apiRequest, ApiResponse, HTTPMethod } from "../utils/apiRequest";
+import { TernSecureBase } from "./Base";
 
 interface ProviderConfig {
   provider: GoogleAuthProvider | OAuthProvider;
@@ -33,12 +32,6 @@ export type SignInParams = {
   csrfToken: string | undefined;
 };
 
-export type postMutateParams = {
-  action?: string | undefined;
-  body?: any;
-  method?: HTTPMethod | undefined;
-  path?: string;
-};
 
 
 type FirebaseAuthResult = UserCredential | void;
@@ -48,7 +41,7 @@ type AuthMethodFunction = (
   provider: GoogleAuthProvider | OAuthProvider
 ) => Promise<FirebaseAuthResult>;
 
-export class SignIn implements SignInResource {
+export class SignIn extends TernSecureBase implements SignInResource {
   pathRoot = '/sessions/createsession';
   
   status?: SignInStatus | undefined;
@@ -57,6 +50,7 @@ export class SignIn implements SignInResource {
   private _currentUser: TernSecureUser | null = null;
 
   constructor(auth: Auth, csrfToken: string | undefined) {
+    super();
     this.auth = auth;
     this.csrfToken = csrfToken;
   }
@@ -70,20 +64,13 @@ export class SignIn implements SignInResource {
     };
 
     return this._post({
+      path: this.pathRoot,
       body: params,
-      action: "create",
     });
   };
 
   
 
-  _post = async (params: postMutateParams): Promise<ApiResponse> => {
-    return apiRequest({
-      pathRoot: this.pathRoot,
-      body: params.body,
-      method: params.method,
-    });
-  };
 
   withEmailAndPassword = async (
     params: SignInFormValuesTree
@@ -96,15 +83,8 @@ export class SignIn implements SignInResource {
         password
       );
       
-      const s = await this.signInWithCredential(userCredential);
-      if (!s.success) {
-        return {
-          success: false,
-          message: s.message,
-          error: s.error,
-          user: null,
-        };
-      }
+     await this.signInWithCredential(userCredential);
+
       const { user } = userCredential;
       return {
         success: true,
@@ -175,8 +155,8 @@ export class SignIn implements SignInResource {
   };
 
   completeMfaSignIn = async (
-    mfaToken: string,
-    mfaContext?: any
+    _mfaToken: string,
+    _mfaContext?: any
   ): Promise<SignInResponseTree> => {
     throw new Error("Method not implemented.");
   };

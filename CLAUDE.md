@@ -75,8 +75,7 @@ This is a TypeScript monorepo for TernSecure Authentication - a Firebase Auth wr
 
 **Development Apps**
 - `apps/test/` - Full-featured test application
-- `apps/test-auth-only/` - Minimal auth-only test app
-- Both use workspace packages for testing integration
+- it uses workspace packages for testing integration
 
 ### Build System
 - Uses `tsup` for package building

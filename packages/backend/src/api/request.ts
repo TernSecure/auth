@@ -1,16 +1,10 @@
+import type {
+  TernSecureAPIError,
+  TernSecureApiErrorJSON,
+} from "@tern-secure/types";
 import { joinPaths } from "../utils/path";
 import { runtime } from "../runtime";
 import { constants } from "../constants";
-
-export interface TernSecureAPIError {
-  code: string;
-  message: string;
-}
-
-export interface TernSecureApiErrorJSON {
-  code: string;
-  message: string;
-}
 
 export type HTTPMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
 export type BackendApiRequestOptions = {

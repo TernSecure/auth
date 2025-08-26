@@ -1,7 +1,19 @@
-import { createTernSecureNextJsHandler } from '@tern-secure/nextjs/admin'
+import { createTernSecureNextJsHandler } from '@tern-secure/nextjs/admin';
 
-export const runtime = 'nodejs'
+export const runtime = 'nodejs';
 
-const { GET, POST } = createTernSecureNextJsHandler()
+const authHandlerOptions = {
+  cors: {
+    allowedOrigins: ['http://localhost:3000', 'https://ternsecure.com'],
+    allowedMethods: ['GET', 'POST'],
+  },
+  security: {
+    requireCSRF: true,
+    allowedReferers: ['localhost:3000', 'ternsecure.com'],
+  },
+  debug: process.env.NODE_ENV === 'development',
+};
 
-export { GET, POST }
+const { GET, POST } = createTernSecureNextJsHandler(authHandlerOptions);
+
+export { GET, POST };
