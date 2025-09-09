@@ -41,9 +41,9 @@ export default function Home() {
   return (
     <div>
       <h1>Welcome, {user?.displayName || user?.email}</h1>
-          <button onClick={redirectToMoPage}>
-            Visit Mo Page
-          </button>
+      <button onClick={redirectToMoPage}>
+        Visit Mo Page
+      </button>
 
       <button
         onClick={redirectToDashboard}

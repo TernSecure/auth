@@ -63,6 +63,7 @@ export interface TernSecureConfig {
   appId: string
   measurementId?: string
   appName?: string
+  tenantId?: string
 }
 
 /**

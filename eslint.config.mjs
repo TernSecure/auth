@@ -34,8 +34,18 @@ export default [
     rules: {
       ...tseslint.configs.recommended.rules,
       ...pluginReact.configs.recommended.rules,
+      "no-unused-vars": "off",
+      "no-unused-expressions": "off",
+      "@typescript-eslint/no-unused-expressions": "error",
       "@typescript-eslint/no-unused-vars": "off",
       "@typescript-eslint/no-explicit-any": "off",  // Disable no-explicit-any rule
+      '@typescript-eslint/no-unsafe-argument': 'off',
+      '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unsafe-call': 'off',
+      '@typescript-eslint/no-unsafe-declaration-merging': 'off',
+      '@typescript-eslint/no-unsafe-member-access': 'off',
+      '@typescript-eslint/no-unsafe-return': 'off',
+      '@typescript-eslint/restrict-template-expressions': 'off',
       "react/react-in-jsx-scope": "off", // Next.js doesn't require React import
       "react/prop-types": "off", // We're using TypeScript for prop validation
       "no-undef": "off", // TypeScript handles this

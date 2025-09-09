@@ -229,8 +229,9 @@ export type SharedSignInAuthObjectProperties = {
 };
 
 export type CheckCustomClaims = {
-  role?: never;
-  permissions?: never;
+  role?: string | string[];
+  permissions?: string | string[];
+  [key: string]: any;
 };
 
 export type CheckAuthorizationFromSessionClaims = (

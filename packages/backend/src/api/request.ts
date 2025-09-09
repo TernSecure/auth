@@ -25,7 +25,6 @@ export type BackendApiResponse<T> =
       data: null;
       errors: TernSecureAPIError[];
       totalCount?: never;
-      clerkTraceId?: string;
       status?: number;
       statusText?: string;
       retryAfter?: number;

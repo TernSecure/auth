@@ -18,7 +18,7 @@ type AuthProtectOptions = {
 
 export interface AuthProtect {
   (
-    params?: (has: CheckAuthorizationFromSessionClaims) => boolean,
+    params?: (require: CheckAuthorizationFromSessionClaims) => boolean,
     options?: AuthProtectOptions
   ): Promise<SignedInAuthObject>;
   (options?: AuthProtectOptions): Promise<SignedInAuthObject>;
@@ -38,7 +38,7 @@ export function createProtect(opts: {
       args[0]?.unauthenticatedUrl || args[0]?.unauthorizedUrl;
     const paramsOrFunction = optionValuesAsParam ? undefined : (args[0] as 
       | CheckAuthorizationFromSessionClaims
-      | ((has: CheckAuthorizationFromSessionClaims) => boolean));
+      | ((require: CheckAuthorizationFromSessionClaims) => boolean));
     const unauthenticatedUrl = (args[0]?.unauthenticatedUrl ||
       args[1]?.unauthenticatedUrl) as string | undefined;
     const unauthorizedUrl = (args[0]?.unauthorizedUrl ||
@@ -70,13 +70,13 @@ export function createProtect(opts: {
     }
 
     if (typeof paramsOrFunction === "function") {
-      if (paramsOrFunction(authObject.has)) {
+      if (paramsOrFunction(authObject.require)) {
         return authObject;
       }
       return handleUnauthorized();
     }
 
-    if (authObject.has(paramsOrFunction)) {
+    if (authObject.require(paramsOrFunction)) {
       return authObject;
     }
   }) as AuthProtect;

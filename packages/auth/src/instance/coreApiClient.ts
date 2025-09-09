@@ -2,7 +2,16 @@ import type { TernSecureAPIError, TernSecureApiErrorJSON } from '@tern-secure/ty
 
 import { stringifyQueryParams, buildURL as buildUrlUtil } from '../utils';
 
-export type HTTPMethod = 'CONNECT' | 'DELETE' | 'GET' | 'HEAD' | 'OPTIONS' | 'PATCH' | 'POST' | 'PUT' | 'TRACE';
+export type HTTPMethod =
+  | 'CONNECT'
+  | 'DELETE'
+  | 'GET'
+  | 'HEAD'
+  | 'OPTIONS'
+  | 'PATCH'
+  | 'POST'
+  | 'PUT'
+  | 'TRACE';
 
 export type ApiRequestInit = RequestInit & {
   path?: string;
@@ -102,7 +111,7 @@ function buildUrl(requestInit: ApiRequestInit, options: RequestOptions): URL {
   return buildUrlUtil(
     {
       base: fullUrl,
-      searchParams: requestInit.search ? new URLSearchParams(requestInit.search) : undefined
+      searchParams: requestInit.search ? new URLSearchParams(requestInit.search) : undefined,
     },
     { stringify: false },
   );
@@ -172,7 +181,8 @@ export class CoreApiClient {
 
   private shouldRetry(error: any, method: string, attempt: number, maxTries: number): boolean {
     // Only retry on network errors for GET requests
-    const isRetryable = error instanceof NetworkError && method.toUpperCase() === 'GET' && attempt < maxTries;
+    const isRetryable =
+      error instanceof NetworkError && method.toUpperCase() === 'GET' && attempt < maxTries;
 
     // If not retrying, we should still record the failure for circuit breaker
     if (!isRetryable) {
@@ -225,9 +235,6 @@ export class CoreApiClient {
     const requestInit = { ...init };
     const { method = 'GET', body } = requestInit;
 
-    const c = (requestInit.url = buildUrl({ ...init }, { ...opts }));
-    console.log('Built URL:', c);
-
     requestInit.url = buildUrl({ ...init }, { ...opts });
     // Check circuit breaker
     this.checkCircuitBreaker();
@@ -256,13 +263,19 @@ export class CoreApiClient {
     requestInit.headers = new Headers(requestInit.headers);
 
     // Set the default content type for non-GET requests.
-    if (method !== 'GET' && !(body instanceof FormData) && !requestInit.headers.has('content-type')) {
+    if (
+      method !== 'GET' &&
+      !(body instanceof FormData) &&
+      !requestInit.headers.has('content-type')
+    ) {
       requestInit.headers.set('content-type', 'application/json');
     }
 
     if (requestInit.headers.get('content-type') === 'application/x-www-form-urlencoded') {
       requestInit.body = body
-        ? stringifyQueryParams(body as any as Record<string, string>, { keyEncoder: camelToSnake })
+        ? stringifyQueryParams(body as any as Record<string, string>, {
+            keyEncoder: camelToSnake,
+          })
         : body;
     } else if (requestInit.headers.get('content-type') === 'application/json' && body) {
       requestInit.body = typeof body === 'string' ? body : JSON.stringify(body);
@@ -331,5 +344,4 @@ export class CoreApiClient {
   }
 }
 
-// Default instance
 export const coreApiClient = new CoreApiClient();

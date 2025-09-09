@@ -8,3 +8,5 @@ export {
     setNextServerSession,
     setNextServerToken
 } from './actions'
+
+export type { TernSecureHandlerOptions } from './types'

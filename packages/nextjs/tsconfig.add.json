@@ -9,4 +9,5 @@
       "skipLibCheck": true,
       "sourceMap": false
     },
+    "exclude": ["**/__tests__/**/*", "examples"]
   }

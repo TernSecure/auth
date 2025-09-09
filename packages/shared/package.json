@@ -26,6 +26,8 @@
     "derivedAuthState",
     "eventBus",
     "loadScript",
+    "pathToRegexp",
+    "pathMatcher",
     "loadTernUIScript",
     "react",
     "resolveVersion",

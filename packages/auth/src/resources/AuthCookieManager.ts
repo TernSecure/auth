@@ -46,7 +46,7 @@ export class AuthCookieManager {
 
   /**
    * Set CSRFcookie
-   */
+  */
 
   setCSRFToken(token: CSRFToken): void {
     try {

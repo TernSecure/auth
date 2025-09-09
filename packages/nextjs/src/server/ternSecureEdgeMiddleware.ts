@@ -2,7 +2,6 @@ import { notFound as nextjsNotFound } from "next/navigation";
 import {
   constants,
   createTernSecureRequest,
-  createBackendInstanceEdge,
   createBackendInstanceClient,
   enableDebugLogging,
   validateCheckRevokedOptions,
@@ -58,41 +57,6 @@ type MiddlewareHandler = (
   event: NextMiddlewareEvtParam
 ) => NextMiddlewareReturn;
 
-interface AuthenticationResult {
-  authObject: AuthObject;
-  headers: Headers;
-}
-
-const authenticateMiddlewareRequest = async (
-  request: NextRequest,
-  checkRevoked: CheckRevokedOptions | undefined,
-  logger: ReturnType<typeof createEdgeCompatibleLogger>
-): Promise<AuthenticationResult> => {
-  try {
-    const reqBackend = await createBackendInstanceEdge(request, checkRevoked);
-    const requestState = reqBackend.requestState;
-    const authResult = requestState.auth();
-    logger.debug("Auth Result:", authResult);
-    return {
-      authObject: authResult,
-      headers: requestState.headers,
-    };
-  } catch (error) {
-    logger.error(
-      "Auth check error:",
-      error instanceof Error ? error.message : "Unknown error"
-    );
-    return {
-      authObject: {
-        session: null,
-        userId: null,
-        has: {} as CheckAuthorizationFromSessionClaims,
-        error: error instanceof Error ? error.message : "Unknown error",
-      },
-      headers: new Headers(request.headers),
-    };
-  }
-};
 
 export interface MiddlewareOptions extends RequestOptions {
   debug?: boolean;

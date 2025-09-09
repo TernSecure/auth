@@ -1,6 +1,6 @@
 import type { RequestState } from "./authstate";
-import { signedIn, signedOut } from "./authstate";
-import { verifyTokenV } from "./verify";
+import { AuthErrorReason, signedIn, signedOut } from "./authstate";
+import { verifyToken } from "./verify";
 import type { RequestOptions } from "./types";
 import { getSessionConfig } from "./sessionConfig";
 import type { ApiClient } from "../api";
@@ -56,9 +56,9 @@ export async function authenticateRequest(
     try {
       const token = extractTokenFromCookie(request, options);
       if (!token) {
-        return signedOut();
+        return signedOut(AuthErrorReason.SessionTokenMissing);
       }
-      const { data, errors } = await verifyTokenV(token);
+      const { data, errors } = await verifyToken(token, options);
 
       if (errors) {
         throw errors[0];
@@ -75,10 +75,10 @@ export async function authenticateRequest(
     try {
       const token = extractTokenFromHeader(request);
       if (!token) {
-        return signedOut();
+        return signedOut(AuthErrorReason.SessionTokenMissing);
       }
 
-      const { data, errors } = await verifyTokenV(token);
+      const { data, errors } = await verifyToken(token, options);
 
       if (errors) {
         throw errors[0];

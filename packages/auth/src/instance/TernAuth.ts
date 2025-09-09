@@ -1,7 +1,4 @@
-import {
-  createTernAuthEventBus,
-  ternEvents,
-} from "@tern-secure/shared/ternStatusEvent";
+import { createTernAuthEventBus, ternEvents } from '@tern-secure/shared/ternStatusEvent';
 import type {
   DomainOrProxyUrl,
   InstanceType,
@@ -23,32 +20,28 @@ import type {
   SignUpRedirectOptions,
   TernSecureResources,
   RedirectOptions,
-} from "@tern-secure/types";
-import { handleFirebaseAuthError } from "@tern-secure/shared/errors";
-import { stripScheme } from "@tern-secure/shared/url";
-import { handleValueOrFn } from "@tern-secure/shared/utils";
+} from '@tern-secure/types';
+import { handleFirebaseAuthError } from '@tern-secure/shared/errors';
+import { stripScheme } from '@tern-secure/shared/url';
+import { handleValueOrFn } from '@tern-secure/shared/utils';
 import {
   Auth,
   getAuth,
   onAuthStateChanged,
+  onIdTokenChanged,
   getRedirectResult,
   browserLocalPersistence,
   inMemoryPersistence,
   setPersistence,
-} from "firebase/auth";
-import { getInstallations } from "firebase/installations";
-import { FirebaseApp, initializeApp, getApps } from "firebase/app";
-import {
-  TernSecureBase,
-  SignIn,
-  SignUp,
-  AuthCookieManager,
-} from "../resources/internal";
-import { eventBus, events } from "./events";
-import { buildURL } from "../utils/construct";
+} from 'firebase/auth';
+import { getInstallations } from 'firebase/installations';
+import { FirebaseApp, initializeApp, getApps } from 'firebase/app';
+import { TernSecureBase, SignIn, SignUp, AuthCookieManager } from '../resources/internal';
+import { eventBus, events } from './events';
+import { buildURL } from '../utils/construct';
 
 export function inBrowser(): boolean {
-  return typeof window !== "undefined";
+  return typeof window !== 'undefined';
 }
 
 /**
@@ -59,7 +52,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   public static sdkMetadata: TernSecureSDK = {
     name: PACKAGE_NAME,
     version: PACKAGE_VERSION,
-    environment: process.env.NODE_ENV || "production",
+    environment: process.env.NODE_ENV || 'production',
   };
   private static instance: TernSecureAuth | null = null;
   private _currentUser: TernSecureUser | null = null;
@@ -71,11 +64,12 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   public isLoading = false;
   public error: Error | null = null;
   public user: TernSecureUser | null | undefined = null;
-  #proxyUrl: DomainOrProxyUrl["proxyUrl"];
-  #domain: DomainOrProxyUrl["domain"];
+  public __internal_country?: string | null;
+  #proxyUrl: DomainOrProxyUrl['proxyUrl'];
+  #domain: DomainOrProxyUrl['domain'];
   #apiUrl!: string;
   #instanceType?: InstanceType;
-  #status: TernSecureAuthInterface["status"] = "loading";
+  #status: TernSecureAuthInterface['status'] = 'loading';
   #listeners: Array<(emission: TernSecureResources) => void> = [];
   #options: TernSecureAuthOptions = {} as TernSecureAuthOptions;
   #authCookieManager?: AuthCookieManager;
@@ -85,10 +79,10 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   signUp!: SignUpResource;
 
   get isReady(): boolean {
-    return this.status === "ready";
+    return this.status === 'ready';
   }
 
-  get status(): TernSecureAuthInterface["status"] {
+  get status(): TernSecureAuthInterface['status'] {
     return this.#status;
   }
 
@@ -112,17 +106,19 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return this.#apiUrl;
   }
 
+  public getApiUrl = (): string => this.#apiUrl;
+
   get domain(): string {
     if (inBrowser()) {
       const strippedDomainString = stripScheme(
-        handleValueOrFn(this.#domain, new URL(window.location.href))
+        handleValueOrFn(this.#domain, new URL(window.location.href)),
       );
-      if (this.#instanceType === "production") {
+      if (this.#instanceType === 'production') {
         return strippedDomainString;
       }
       return strippedDomainString;
     }
-    return "";
+    return '';
   }
 
   get instanceType() {
@@ -130,8 +126,8 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   }
 
   public constructor() {
-    this.#instanceType = (process.env.NODE_ENV as InstanceType) || "production";
-    this.#publicEventBus.emit(ternEvents.Status, "loading");
+    this.#instanceType = (process.env.NODE_ENV as InstanceType) || 'production';
+    this.#publicEventBus.emit(ternEvents.Status, 'loading');
     TernSecureBase.ternsecure = this;
   }
 
@@ -171,13 +167,11 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
     try {
       if (!this.#options.ternSecureConfig) {
-        throw new Error(
-          "TernSecureConfig is required to initialize TernSecureAuth"
-        );
+        throw new Error('TernSecureConfig is required to initialize TernSecureAuth');
       }
 
       if (!this.#options.apiUrl) {
-        throw new Error("apiUrl is required to initialize TernSecureAuth");
+        throw new Error('apiUrl is required to initialize TernSecureAuth');
       }
 
       this.#apiUrl = this.#options.apiUrl;
@@ -191,34 +185,37 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       this.signIn = new SignIn(this.auth, this.csrfToken);
       this.signUp = new SignUp(this.auth);
 
-      this.#setStatus("ready");
-      this.#publicEventBus.emit(ternEvents.Status, "ready");
+      this.#setStatus('ready');
+      this.#publicEventBus.emit(ternEvents.Status, 'ready');
 
       return this;
     } catch (error) {
       this.error = error as Error;
-      this.#setStatus("error");
-      this.#publicEventBus.emit(ternEvents.Status, "error");
+      this.#setStatus('error');
+      this.#publicEventBus.emit(ternEvents.Status, 'error');
       throw error;
     }
   };
 
   private initializeFirebaseApp(config: TernSecureConfig) {
-    const appName = config.appName || "[DEFAULT]";
-    this.firebaseClientApp =
-      getApps().length === 0 ? initializeApp(config, appName) : getApps()[0];
+    const appName = config.appName || '[DEFAULT]';
+    this.firebaseClientApp = getApps().length === 0 ? initializeApp(config, appName) : getApps()[0];
 
     this.auth = getAuth(this.firebaseClientApp);
+
+    if (config.tenantId) {
+      this.auth.tenantId = config.tenantId;
+    }
+
     getInstallations(this.firebaseClientApp);
 
-    setPersistence(this.auth, browserLocalPersistence).catch((error) =>
-      console.error("TernAuth: Error setting auth persistence:", error)
+    setPersistence(this.auth, browserLocalPersistence).catch(error =>
+      console.error('TernAuth: Error setting auth persistence:', error),
     );
   }
 
   public signOut: SignOut = async (options?: SignOutOptions) => {
-    const redirectUrl =
-      options?.redirectUrl || this.#constructAfterSignOutUrl();
+    const redirectUrl = options?.redirectUrl || this.#constructAfterSignOutUrl();
     if (options?.onBeforeSignOut) {
       await options.onBeforeSignOut();
     }
@@ -241,32 +238,33 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
     const res = await this._currentUser.getIdTokenResult();
     this.signedInSession = {
-      status: "active",
+      status: 'active',
       token: res.token,
       claims: res.claims,
       issuedAtTime: res.issuedAtTime,
       expirationTime: res.expirationTime,
       authTime: res.authTime,
-      signInProvider: res.signInProvider || "unknown",
+      signInProvider: res.signInProvider || 'unknown',
     };
     return this.signedInSession;
   };
 
   private initAuthStateListener(): () => void {
-    return onAuthStateChanged(
-      this.auth,
-      async (user: TernSecureUser | null) => {
-        await this.auth.authStateReady();
-        this._currentUser = user;
+    return onAuthStateChanged(this.auth, async (user: TernSecureUser | null) => {
+      await this.auth.authStateReady();
+      this._currentUser = user;
 
-        eventBus.emit(events.UserChanged, this._currentUser);
-        this.#emit();
-      }
-    );
+      eventBus.emit(events.UserChanged, this._currentUser);
+      this.#emit();
+    });
   }
 
   public onAuthStateChanged(callback: (cb: any) => void): () => void {
     return onAuthStateChanged(this.auth, callback);
+  }
+
+  public onIdTokenChanged(callback: (cb: any) => void): () => void {
+    return onIdTokenChanged(this.auth, callback);
   }
 
   public async checkRedirectResult(): Promise<SignInResponseTree | null> {
@@ -299,16 +297,16 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
 
     const unsubscribe = () => {
-      this.#listeners = this.#listeners.filter((l) => l !== listener);
+      this.#listeners = this.#listeners.filter(l => l !== listener);
     };
     return unsubscribe;
   };
 
-  public on: TernSecureAuthInterface["on"] = (...args) => {
+  public on: TernSecureAuthInterface['on'] = (...args) => {
     this.#publicEventBus.on(...args);
   };
 
-  public off: TernSecureAuthInterface["off"] = (...args) => {
+  public off: TernSecureAuthInterface['off'] = (...args) => {
     this.#publicEventBus.off(...args);
   };
 
@@ -327,13 +325,11 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     this.#options = this.#initOptions(options);
     try {
       if (!this.#options.ternSecureConfig) {
-        throw new Error(
-          "TernSecureConfig is required to initialize TernSecureAuth"
-        );
+        throw new Error('TernSecureConfig is required to initialize TernSecureAuth');
       }
 
       if (!this.#options.apiUrl) {
-        throw new Error("apiUrl is required to initialize TernSecureAuth");
+        throw new Error('apiUrl is required to initialize TernSecureAuth');
       }
 
       this.#apiUrl = this.#options.apiUrl;
@@ -343,10 +339,10 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       this.signIn = new SignIn(this.auth, this.csrfToken);
       this.signUp = new SignUp(this.auth);
 
-      this.#setStatus("ready");
+      this.#setStatus('ready');
     } catch (error) {
       this.error = error as Error;
-      this.#setStatus("error");
+      this.#setStatus('error');
       throw error;
     }
   };
@@ -362,32 +358,28 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return url.toString();
   };
 
-  #buildUrl = (
-    key: "signInUrl" | "signUpUrl",
-    options: RedirectOptions
-  ): string => {
+  #buildUrl = (key: 'signInUrl' | 'signUpUrl', options: RedirectOptions): string => {
     if (!key || !this.isReady) {
-      return "";
+      return '';
     }
 
-    const baseUrlConfig =
-      key === "signInUrl" ? this.#options.signInUrl : this.#options.signUpUrl;
-    const defaultPagePath = key === "signInUrl" ? "/sign-in" : "/sign-up";
+    const baseUrlConfig = key === 'signInUrl' ? this.#options.signInUrl : this.#options.signUpUrl;
+    const defaultPagePath = key === 'signInUrl' ? '/sign-in' : '/sign-up';
     const base = baseUrlConfig || defaultPagePath;
 
     let effectiveRedirectUrl: string | null | undefined = undefined;
 
     // Priority 1: Get redirect URL from options (signInForceRedirectUrl or signUpForceRedirectUrl)
-    if (key === "signInUrl" && "signInForceRedirectUrl" in options) {
+    if (key === 'signInUrl' && 'signInForceRedirectUrl' in options) {
       effectiveRedirectUrl = options.signInForceRedirectUrl;
-    } else if (key === "signUpUrl" && "signUpForceRedirectUrl" in options) {
+    } else if (key === 'signUpUrl' && 'signUpForceRedirectUrl' in options) {
       effectiveRedirectUrl = options.signUpForceRedirectUrl;
     }
 
     // Priority 2: If no force redirect from options, check 'redirect' param in current URL (only in browser)
     if (!effectiveRedirectUrl && inBrowser()) {
       const currentUrlParams = new URLSearchParams(window.location.search);
-      const existingRedirectParam = currentUrlParams.get("redirect_url");
+      const existingRedirectParam = currentUrlParams.get('redirect_url');
       if (existingRedirectParam) {
         effectiveRedirectUrl = existingRedirectParam;
       }
@@ -397,9 +389,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     // This ensures that if the call originates from a page, it attempts to redirect back there by default.
     if (!effectiveRedirectUrl && inBrowser()) {
       effectiveRedirectUrl =
-        window.location.pathname +
-        window.location.search +
-        window.location.hash;
+        window.location.pathname + window.location.search + window.location.hash;
     }
 
     if (effectiveRedirectUrl && inBrowser()) {
@@ -416,17 +406,14 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       try {
         signUpPagePath = this.#options.signUpUrl
           ? new URL(this.#options.signUpUrl, window.location.origin).pathname
-          : key === "signUpUrl"
+          : key === 'signUpUrl'
             ? defaultPagePath
-            : "/sign-in";
+            : '/sign-in';
       } catch {
-        signUpPagePath = key === "signUpUrl" ? defaultPagePath : "/sign-in";
+        signUpPagePath = key === 'signUpUrl' ? defaultPagePath : '/sign-in';
       }
 
-      const redirectTargetObj = new URL(
-        effectiveRedirectUrl,
-        window.location.origin
-      );
+      const redirectTargetObj = new URL(effectiveRedirectUrl, window.location.origin);
 
       if (
         redirectTargetObj.pathname === signInPagePath ||
@@ -434,7 +421,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       ) {
         // If the intended redirect path is the sign-in or sign-up page itself,
         // change the redirect target to the application root ('/').
-        effectiveRedirectUrl = "/";
+        effectiveRedirectUrl = '/';
       }
     }
 
@@ -446,15 +433,12 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     if (effectiveRedirectUrl) {
       // Check if a redirect URL was determined
       if (inBrowser()) {
-        const absoluteRedirectUrl = new URL(
-          effectiveRedirectUrl,
-          window.location.origin
-        ).href;
-        paramsForBuildUrl.searchParams!.set("redirect", absoluteRedirectUrl);
+        const absoluteRedirectUrl = new URL(effectiveRedirectUrl, window.location.origin).href;
+        paramsForBuildUrl.searchParams!.set('redirect', absoluteRedirectUrl);
       } else {
         // If not in browser, use the effectiveRedirectUrl as is.
         // This assumes it's either absolute or a path the server can interpret.
-        paramsForBuildUrl.searchParams!.set("redirect", effectiveRedirectUrl);
+        paramsForBuildUrl.searchParams!.set('redirect', effectiveRedirectUrl);
       }
     }
 
@@ -463,9 +447,9 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       skipOrigin: false,
     });
 
-    if (typeof constructedUrl !== "string") {
+    if (typeof constructedUrl !== 'string') {
       console.error(
-        "[TernSecure] Error: buildURL did not return a string as expected. Falling back to base URL."
+        '[TernSecure] Error: buildURL did not return a string as expected. Falling back to base URL.',
       );
       if (inBrowser()) {
         try {
@@ -482,17 +466,23 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
   #constructAfterSignOutUrl = (): string => {
     if (!this.#options.afterSignOutUrl) {
-      return "/";
+      return '/';
     }
     return this.constructUrlWithAuthRedirect(this.#options.afterSignOutUrl);
   };
 
   public constructSignInUrl = (options?: SignInRedirectOptions): string => {
-    return this.#buildUrl("signInUrl", { ...options });
+    return this.#buildUrl('signInUrl', { ...options });
   };
 
   public constructSignUpUrl = (options?: SignUpRedirectOptions): string => {
-    return this.#buildUrl("signUpUrl", { ...options });
+    return this.#buildUrl('signUpUrl', { ...options });
+  };
+
+  __internal_setCountry = (country: string | null) => {
+    if (!this.__internal_country) {
+      this.__internal_country = country;
+    }
   };
 
   #initOptions = (options: TernSecureAuthOptions): TernSecureAuthOptions => {
@@ -516,8 +506,8 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       this.#status = newStatus;
       this.#publicEventBus.emit(ternEvents.Status, this.#status);
 
-      if (newStatus === "ready") {
-        this.#publicEventBus.emit(ternEvents.Status, "ready");
+      if (newStatus === 'ready') {
+        this.#publicEventBus.emit(ternEvents.Status, 'ready');
       }
     }
   }

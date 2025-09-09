@@ -149,7 +149,7 @@ export function decorateRequest(
   res: Response,
   requestState: RequestState,
 ): Response {
-  const { token, status } = requestState;
+  const { reason, token, status } = requestState;
   // pass-through case, convert to next()
   if (!res) {
     res = NextResponse.next();
@@ -185,6 +185,7 @@ export function decorateRequest(
     setRequestHeadersOnNextResponse(res, req, {
       [constants.Headers.AuthStatus]: status,
       [constants.Headers.AuthToken]: token || '',
+      [constants.Headers.AuthReason]: reason || '',
       [constants.Headers.TernSecureUrl]: req.ternUrl.toString(),
     });
     res.headers.set(nextConstants.Headers.NextRewrite, rewriteURL.href);

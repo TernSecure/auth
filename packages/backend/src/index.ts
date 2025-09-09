@@ -7,10 +7,9 @@ export { createTernSecureRequest } from "./tokens/ternSecureRequest";
 export type { RequestOptions } from "./tokens/types";
 
 export type { AuthObject, RequestState, SignedInAuthObject, SignedOutAuthObject } from "./tokens/authstate";
-export { signedIn, signedInAuthObject} from './tokens/authstate'
+export { signedIn, signedInAuthObject, signedOutAuthObject, AuthStatus} from './tokens/authstate'
 
 export {
-  createBackendInstanceEdge,
   createBackendInstanceClient
 } from "./instance/backendInstanceEdge";
 

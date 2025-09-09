@@ -1,6 +1,6 @@
 "use server";
 
-import { adminTernSecureAuth as adminAuth } from "../utils/admin-init";
+import {  getAuthForTenant } from "../utils/admin-init";
 import type {
   SessionParams,
   SessionResult,
@@ -12,8 +12,10 @@ import { getCookieOptions, getSessionConfig } from "../tokens/sessionConfig";
 
 const SESSION_CONSTANTS = {
   COOKIE_NAME: "_session_cookie",
-  DEFAULT_EXPIRES_IN_MS: 60 * 60 * 24 * 5 * 1000, // 5 days
-  DEFAULT_EXPIRES_IN_SECONDS: 60 * 60 * 24 * 5,
+  //DEFAULT_EXPIRES_IN_MS: 60 * 60 * 24 * 5 * 1000, // 5 days
+  //DEFAULT_EXPIRES_IN_SECONDS: 60 * 60 * 24 * 5, // 5days
+  DEFAULT_EXPIRES_IN_MS: 5 * 60 * 1000, // 5 minutes
+  DEFAULT_EXPIRES_IN_SECONDS: 5 * 60,
   REVOKE_REFRESH_TOKENS_ON_SIGNOUT: true,
 } as const;
 
@@ -31,6 +33,7 @@ export async function createSessionCookie(
   options?: RequestOptions
 ): Promise<SessionResult> {
   try {
+    const tenantAuth = getAuthForTenant(options?.tenantId);
 
     const sessionConfig = getSessionConfig(options);
     const cookieOptions = getCookieOptions(options);
@@ -52,7 +55,8 @@ export async function createSessionCookie(
     }
 
     try {
-      decodedToken = await adminAuth.verifyIdToken(idToken);
+      console.log("Verifying ID token for tenant:", options?.tenantId);
+      decodedToken = await tenantAuth.verifyIdToken(idToken);
     } catch (verifyError) {
       console.error(
         "[createSessionCookie] ID token verification failed:",
@@ -82,7 +86,7 @@ export async function createSessionCookie(
     }
 
     try {
-      sessionCookie = await adminAuth.createSessionCookie(idToken, {
+      sessionCookie = await tenantAuth.createSessionCookie(idToken, {
         expiresIn: SESSION_CONSTANTS.DEFAULT_EXPIRES_IN_MS,
       });
     } catch (sessionError) {
@@ -157,9 +161,11 @@ export async function createSessionCookie(
 }
 
 export async function clearSessionCookie(
-  cookieStore: CookieStore
+  cookieStore: CookieStore,
+  options?: RequestOptions
 ): Promise<SessionResult> {
   try {
+    const adminAuth = getAuthForTenant(options?.tenantId);
     const sessionCookie = await cookieStore.get(SESSION_CONSTANTS.COOKIE_NAME);
 
     await cookieStore.delete(SESSION_CONSTANTS.COOKIE_NAME);
@@ -204,7 +210,8 @@ export async function clearSessionCookie(
   }
 }
 
-export async function createCustomToken(uid: string): Promise<string | null> {
+export async function createCustomToken(uid: string, options?: RequestOptions): Promise<string | null> {
+  const adminAuth = getAuthForTenant(options?.tenantId);
   try {
     const customToken = await adminAuth.createCustomToken(uid);
     return customToken;

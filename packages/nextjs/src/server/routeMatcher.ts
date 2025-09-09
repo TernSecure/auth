@@ -1,16 +1,26 @@
-import type { NextRequest } from "next/server";
+import type { NextRequest } from 'next/server';
+import type Link from 'next/link';
+import { createPathMatcher, type WithPathPatternWildcard } from '@tern-secure/shared/pathMatcher';
+import type { Autocomplete } from '@tern-secure/types';
+
+type NextTypedRoute<T = Parameters<typeof Link>['0']['href']> = T extends string ? T : never;
+type RouteMatcherWithNextTypedRoutes = Autocomplete<
+  WithPathPatternWildcard<NextTypedRoute> | NextTypedRoute
+>;
+
+export type RouteMatcherParams =
+  | Array<RegExp | RouteMatcherWithNextTypedRoutes>
+  | RouteMatcherWithNextTypedRoutes
+  | RegExp
+  | ((req: NextRequest) => boolean);
 /**
  * Create a route matcher function for public paths
  */
-export const createRouteMatcher = (patterns: string[]) => {
-  return (request: NextRequest): boolean => {
-    const { pathname } = request.nextUrl;
-    return patterns.some((pattern) => {
-      const regexPattern = pattern
-        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-        .replace(/\\\*/g, ".*");
+export const createRouteMatcher = (routes: RouteMatcherParams) => {
+  if (typeof routes === 'function') {
+    return (request: NextRequest) => routes(request);
+  }
 
-      return new RegExp(`^${regexPattern}$`).test(pathname);
-    });
-  };
+  const pathMatcher = createPathMatcher(routes);
+  return (request: NextRequest) => pathMatcher(request.nextUrl.pathname);
 };

@@ -1,5 +1,6 @@
 import type { CheckRevokedOptions } from "../adapters";
 import type { ApiClient } from "../api";
+import type { VerifyTokenVOptions } from "./verify";
 
 export type SessionCookieAttributes = {
   path?: string;
@@ -22,6 +23,7 @@ export type MiddlewareCookiesOptions = {
 };
 
 export type RequestOptions = {
+  tenantId?: string;
   signInUrl?: string;
   signUpUrl?: string;
   checkRevoked?: CheckRevokedOptions;
@@ -29,4 +31,4 @@ export type RequestOptions = {
   apiClient?: ApiClient;
   apiUrl?: string;
   apiVersion?: string;
-};
+ } & VerifyTokenVOptions;

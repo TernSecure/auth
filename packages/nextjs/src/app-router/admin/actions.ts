@@ -6,9 +6,10 @@ import {
     clearSessionCookie, 
     SetNextServerSession, 
     SetNextServerToken,
-    ClearNextSessionCookie
+    ClearNextSessionCookie,
 } from "@tern-secure/backend/admin";
 import { NextCookieStore } from "../../utils/NextCookieAdapter";
+import { TENANT_ID } from "./constants";
 
 export async function createSessionCookieServer(idToken: string) {
     const cookieStore = new NextCookieStore();
@@ -21,7 +22,7 @@ export async function clearSessionCookieServer() {
 }
 
 export async function clearNextSessionCookie() {
-    return ClearNextSessionCookie();
+    return ClearNextSessionCookie(TENANT_ID);
 }
 
 export async function setNextServerSession(idToken: string) {

@@ -1,25 +1,58 @@
-import type { DecodedIdToken } from "@tern-secure/types";
-import type { JwtReturnType } from "../jwt/types";
-import { ternDecodeJwt, verifyJwt} from "../jwt/verifyJwt";
-import { TokenVerificationError } from "../utils/errors";
+import type { DecodedIdToken } from '@tern-secure/types';
+import type { JwtReturnType } from '../jwt/types';
+import { ternDecodeJwt, verifyJwt, type VerifyJwtOptions } from '../jwt/verifyJwt';
+import { TokenVerificationError, TokenVerificationErrorReason } from '../utils/errors';
+import { loadJWKFromRemote } from './keys';
+import type { LoadJWKFromRemoteOptions } from './keys';
 
-export async function verifyTokenV(
-  token: string
+export type VerifyTokenVOptions = Omit<VerifyJwtOptions, 'key'> & Omit<LoadJWKFromRemoteOptions, 'kid'> & {
+  jwtKey?: string;
+};
+
+export async function verifyToken(
+  token: string,
+  options: VerifyTokenVOptions,
 ): Promise<JwtReturnType<DecodedIdToken, TokenVerificationError>> {
-    const { data: decodedResult, errors } = ternDecodeJwt(token);
+  const { data: decodedResult, errors } = ternDecodeJwt(token);
 
-    if(errors) {
-        return {errors}
+  if (errors) {
+    return { errors };
+  }
+
+  const { header } = decodedResult;
+  const { kid } = header;
+
+  if (!kid) {
+    return {
+      errors: [
+        new TokenVerificationError({
+          reason: TokenVerificationErrorReason.TokenInvalid,
+          message: 'JWT "kid" header is missing.',
+        }),
+      ],
+    };
+  }
+
+  try {
+    const key = options.jwtKey || (await loadJWKFromRemote({ ...options, kid }));
+
+    if (!key) {
+      return {
+        errors: [
+          new TokenVerificationError({
+            reason: TokenVerificationErrorReason.TokenInvalid,
+            message: `No public key found for kid "${kid}".`,
+          }),
+        ],
+      };
     }
-
-    const { header } = decodedResult;
-    const { kid } = header
-
-    try {
-        return await verifyJwt(token);
-    } catch (error) {
-        return {
-            errors: [error as TokenVerificationError]
-        };
+    return await verifyJwt(token, { ...options, key });
+  } catch (error) {
+    if (error instanceof TokenVerificationError) {
+      return { errors: [error] };
     }
+    return {
+      errors: [error as TokenVerificationError],
+    };
+  }
 }

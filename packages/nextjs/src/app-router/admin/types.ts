@@ -1,9 +1,12 @@
+import { type NextResponse } from 'next/server';
+
 export interface CorsOptions {
-  allowedOrigins: string[] | "*";
+  allowedOrigins: string[] | '*';
   allowedMethods?: string[];
   allowedHeaders?: string[];
   allowCredentials?: boolean;
   maxAge?: number;
+  skipSameOrigin?: boolean;
 }
 
 export interface CookieOptions {
@@ -12,7 +15,7 @@ export interface CookieOptions {
   path?: string;
   secure?: boolean;
   httpOnly?: boolean;
-  sameSite?: "strict" | "lax" | "none";
+  sameSite?: 'strict' | 'lax' | 'none';
   maxAge?: number;
 }
 
@@ -36,7 +39,7 @@ export interface SecurityOptions {
 
 export interface EndpointConfig {
   enabled: boolean;
-  methods: ("GET" | "POST" | "PUT" | "DELETE")[];
+  methods: ('GET' | 'POST' | 'PUT' | 'DELETE')[];
   requireAuth?: boolean;
   rateLimit?: RateLimitOptions;
   security?: SecurityOptions;
@@ -54,44 +57,40 @@ export interface TernSecureHandlerOptions {
   cookies?: CookieOptions;
   rateLimit?: RateLimitOptions;
   security?: SecurityOptions;
-
-  // Endpoint configurations
   endpoints?: {
     sessions?: SessionEndpointConfig;
-    // Future endpoints can be added here
-    // users?: EndpointConfig;
-    // tokens?: EndpointConfig;
   };
 
-  // Global settings
   debug?: boolean;
-  environment?: "development" | "production" | "test";
+  environment?: 'development' | 'production' | 'test';
   basePath?: string;
 }
 
-// Re-export existing types
-export type AuthEndpoint = "sessions";
-export type SessionSubEndpoint =
-  | "verify"
-  | "createsession"
-  | "refresh"
-  | "revoke";
+/**
+ * Define an internal config type that extends the public options
+ * with server-side only values like tenantId.
+ */
+export type TernSecureInternalHandlerConfig = Required<TernSecureHandlerOptions> & {
+  tenantId?: string;
+};
 
-// Default configurations
+export type AuthEndpoint = 'sessions' | 'users';
+export type SessionSubEndpoint = 'verify' | 'createsession' | 'refresh' | 'revoke';
+
 export const DEFAULT_CORS_OPTIONS: CorsOptions = {
   allowedOrigins: [],
-  allowedMethods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type", "Authorization", "X-Requested-With"],
+  allowedMethods: ['GET', 'POST'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   allowCredentials: true,
   maxAge: 86400, // 24 hours
 };
 
 export const DEFAULT_COOKIE_OPTIONS: CookieOptions = {
-  name: "__session",
-  path: "/",
+  name: '__session',
+  path: '/',
   secure: true,
   httpOnly: true,
-  sameSite: "lax",
+  sameSite: 'lax',
   maxAge: 3600 * 24 * 7, // 7 days
 };
 
@@ -108,7 +107,7 @@ export const DEFAULT_SECURITY_OPTIONS: SecurityOptions = {
 
 export const DEFAULT_ENDPOINT_CONFIG: EndpointConfig = {
   enabled: true,
-  methods: ["GET", "POST"],
+  methods: ['GET', 'POST'],
   requireAuth: false,
   security: DEFAULT_SECURITY_OPTIONS,
 };
@@ -118,7 +117,7 @@ export const DEFAULT_SESSIONS_CONFIG: SessionEndpointConfig = {
   subEndpoints: {
     verify: {
       enabled: true,
-      methods: ["GET"],
+      methods: ['GET'],
       requireAuth: false,
       security: {
         requireCSRF: true,
@@ -127,7 +126,7 @@ export const DEFAULT_SESSIONS_CONFIG: SessionEndpointConfig = {
     },
     createsession: {
       enabled: true,
-      methods: ["POST"],
+      methods: ['POST'],
       requireAuth: false,
       security: {
         requireCSRF: true,
@@ -135,7 +134,7 @@ export const DEFAULT_SESSIONS_CONFIG: SessionEndpointConfig = {
     },
     refresh: {
       enabled: true,
-      methods: ["POST"],
+      methods: ['POST'],
       requireAuth: true,
       security: {
         requireCSRF: true,
@@ -143,7 +142,7 @@ export const DEFAULT_SESSIONS_CONFIG: SessionEndpointConfig = {
     },
     revoke: {
       enabled: true,
-      methods: ["POST"],
+      methods: ['POST'],
       requireAuth: true,
       security: {
         requireCSRF: true,
@@ -153,7 +152,7 @@ export const DEFAULT_SESSIONS_CONFIG: SessionEndpointConfig = {
 };
 
 export const DEFAULT_HANDLER_OPTIONS: Required<TernSecureHandlerOptions> & {
-  endpoints: Required<NonNullable<TernSecureHandlerOptions["endpoints"]>>;
+  endpoints: Required<NonNullable<TernSecureHandlerOptions['endpoints']>>;
 } = {
   cors: DEFAULT_CORS_OPTIONS,
   cookies: DEFAULT_COOKIE_OPTIONS,
@@ -168,6 +167,38 @@ export const DEFAULT_HANDLER_OPTIONS: Required<TernSecureHandlerOptions> & {
     sessions: DEFAULT_SESSIONS_CONFIG,
   },
   debug: false,
-  environment: "production",
-  basePath: "/api/auth",
+  environment: 'production',
+  basePath: '/api/auth',
 };
+
+
+export interface ValidationResult {
+  error?: NextResponse;
+  data?: any;
+}
+
+export interface ValidationConfig {
+  cors?: CorsOptions;
+  security?: SecurityOptions;
+  endpoint?: {
+    name: AuthEndpoint;
+    config: EndpointConfig;
+  };
+  subEndpoint?: {
+    name: SessionSubEndpoint;
+    config: EndpointConfig;
+  };
+  requireIdToken?: boolean;
+  requireCsrfToken?: boolean;
+}
+
+export interface ComprehensiveValidationResult {
+  isValid: boolean;
+  error?: NextResponse;
+  corsResponse?: NextResponse;
+  sessionData?: {
+    body: any;
+    idToken?: string;
+    csrfToken?: string;
+  };
+}

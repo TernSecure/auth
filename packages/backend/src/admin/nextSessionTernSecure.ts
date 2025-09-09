@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { adminTernSecureAuth as adminAuth } from "../utils/admin-init";
+import { adminTernSecureAuth as adminAuth, getAuthForTenant } from "../utils/admin-init";
 import { handleFirebaseAuthError } from "@tern-secure/shared/errors";
 import type { TernVerificationResult } from "@tern-secure/types";
 
@@ -153,8 +153,10 @@ export async function VerifyNextTernSessionCookie(
   }
 }
 
-export async function ClearNextSessionCookie() {
+export async function ClearNextSessionCookie(tenantId?: string) {
   try {
+    console.log("[clearSessionCookie] Clearing session for tenant:", tenantId);
+    const tenantAuth = getAuthForTenant(tenantId);
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(SESSION_CONSTANTS.COOKIE_NAME);
 
@@ -167,10 +169,10 @@ export async function ClearNextSessionCookie() {
       sessionCookie?.value
     ) {
       try {
-        const decodedClaims = await adminAuth.verifySessionCookie(
+        const decodedClaims = await tenantAuth.verifySessionCookie(
           sessionCookie.value
         );
-        await adminAuth.revokeRefreshTokens(decodedClaims.sub);
+        await tenantAuth.revokeRefreshTokens(decodedClaims.sub);
         console.log(
           `[clearSessionCookie] Successfully revoked tokens for user: ${decodedClaims.sub}`
         );

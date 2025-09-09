@@ -1,11 +1,20 @@
-import type { TernSecureAuth, AuthCookieManager } from './internal';
+import { TernSecureAuth, AuthCookieManager } from './internal';
 import { coreApiClient } from '../instance/coreApiClient';
 import type { ApiRequestInit, ApiResponse, ApiResponseJSON } from '../instance/coreApiClient';
 import type { TernSecureApiErrorJSON } from '@tern-secure/types';
 import { isValidBrowserOnline } from '@tern-secure/shared/browser';
 import { TernSecureAPIResponseError } from './Error';
 
-export type HTTPMethod = 'CONNECT' | 'DELETE' | 'GET' | 'HEAD' | 'OPTIONS' | 'PATCH' | 'POST' | 'PUT' | 'TRACE';
+export type HTTPMethod =
+  | 'CONNECT'
+  | 'DELETE'
+  | 'GET'
+  | 'HEAD'
+  | 'OPTIONS'
+  | 'PATCH'
+  | 'POST'
+  | 'PUT'
+  | 'TRACE';
 
 export type PostMutateParams = {
   action?: string | undefined;
@@ -16,6 +25,10 @@ export type PostMutateParams = {
 
 export abstract class TernSecureBase {
   static ternsecure: TernSecureAuth;
+
+  static get apiUrl() {
+    return TernSecureBase.ternsecure.getApiUrl();
+  }
 
   static get authCookieManager(): AuthCookieManager | undefined {
     return this.ternsecure.authCookieManager();
@@ -29,7 +42,7 @@ export abstract class TernSecureBase {
    * This method handles the complete request lifecycle including error handling
    */
   static async fetchFromCoreApi(requestInit: ApiRequestInit): Promise<ApiResponseJSON<any> | null> {
-    if (!this.ternsecure?.apiUrl) {
+    if (!TernSecureBase.apiUrl) {
       throw new Error('API URL is not defined. Make sure TernSecureAuth is properly initialized.');
     }
 
@@ -50,7 +63,7 @@ export abstract class TernSecureBase {
 
     if (headers) {
       const country = headers.get('x-country');
-      console.log('Request country:', country);
+      this.ternsecure.__internal_setCountry(country ? country.toLowerCase() : null);
     }
 
     if (status >= 200 && status <= 299) {
@@ -61,7 +74,10 @@ export abstract class TernSecureBase {
       const errors = payload?.errors as TernSecureApiErrorJSON[];
       const message = errors?.[0]?.message;
 
-      const apiResponseOptions: ConstructorParameters<typeof TernSecureAPIResponseError>[1] = { data: errors, status };
+      const apiResponseOptions: ConstructorParameters<typeof TernSecureAPIResponseError>[1] = {
+        data: errors,
+        status,
+      };
       if (status === 429 && headers) {
         const retryAfter = headers.get('retry-After');
         if (retryAfter) {
@@ -88,7 +104,9 @@ export abstract class TernSecureBase {
   /**
    * Instance method to fetch data from API endpoints
    */
-  protected async fetchFromCoreApi(requestInit: ApiRequestInit): Promise<ApiResponseJSON<any> | null> {
+  protected async fetchFromCoreApi(
+    requestInit: ApiRequestInit,
+  ): Promise<ApiResponseJSON<any> | null> {
     return TernSecureBase.fetchFromCoreApi(requestInit);
   }
 
@@ -103,20 +121,20 @@ export abstract class TernSecureBase {
    * Protected instance method for making POST requests with specific path and body
    * This is designed to be used by child classes like SignIn
    */
-  protected async _post(params: { path: string; body?: any }): Promise<ApiResponseJSON<any> | null> {
+  protected async _post(params: PostMutateParams): Promise<ApiResponseJSON<any> | null> {
     return this.basePost({
       path: params.path,
-      body: params.body,
-      method: 'POST',
+      body: params.body
     });
   }
 
-  // Legacy method names for backward compatibility
   static async makeApiRequest(requestInit: ApiRequestInit): Promise<ApiResponseJSON<any> | null> {
     return this.fetchFromCoreApi(requestInit);
   }
 
-  protected async makeApiRequest(requestInit: ApiRequestInit): Promise<ApiResponseJSON<any> | null> {
+  protected async makeApiRequest(
+    requestInit: ApiRequestInit,
+  ): Promise<ApiResponseJSON<any> | null> {
     return this.fetchFromCoreApi(requestInit);
   }
 }

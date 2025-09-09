@@ -221,6 +221,7 @@ export function handleFirebaseAuthError(error: unknown): AuthErrorResponse {
   // Map error codes to user-friendly messages
   const ERROR_MESSAGES: Record<string, { message: string; code: ErrorCode }> = {
     'invalid-email': { message: 'Invalid email format', code: 'INVALID_EMAIL' },
+    'invalid-tenant-id': { message: 'Invalid tenant ID', code: 'INVALID_ARGUMENT' },
     'invalid-credential': { message: 'Invalid email or password', code: 'INVALID_CREDENTIALS' },
     'invalid-login-credentials': { message: 'Invalid email or password', code: 'INVALID_CREDENTIALS' },
     'wrong-password': { message: 'Invalid email or password', code: 'INVALID_CREDENTIALS' },
@@ -233,7 +234,8 @@ export function handleFirebaseAuthError(error: unknown): AuthErrorResponse {
     'operation-not-allowed': { message: 'This login method is not enabled', code: 'OPERATION_NOT_ALLOWED' },
     'popup-blocked': { message: 'Login popup was blocked. Please enable popups', code: 'POPUP_BLOCKED' },
     'expired-action-code': { message: 'Your session has expired. Please login again', code: 'EXPIRED_TOKEN' },
-    'user-token-expired': { message: 'Your session has expired. Please login again', code: 'EXPIRED_TOKEN' }
+    'user-token-expired': { message: 'Your session has expired. Please login again', code: 'EXPIRED_TOKEN' },
+    'tenant-not-found': { message: 'There is no tenant corresponding to the provided identifier.', code: 'INVALID_ARGUMENT' },
   };
 
   try {

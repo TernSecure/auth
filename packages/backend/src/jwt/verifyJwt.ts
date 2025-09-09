@@ -4,20 +4,29 @@ import {
   decodeProtectedHeader,
   decodeJwt,
   jwtVerify,
-  KeyLike
-} from "jose";
-import type { DecodedIdToken } from "@tern-secure/types";
-import { TokenVerificationError, TokenVerificationErrorReason } from "../utils/errors";
-import { base64url } from "../utils/rfc4648";
-import { JwtReturnType } from "./types";
+} from 'jose';
+import { importKey } from './cryptoKeys';
+import type { DecodedIdToken } from '@tern-secure/types';
+import { TokenVerificationError, TokenVerificationErrorReason } from '../utils/errors';
+import { base64url } from '../utils/rfc4648';
+import { JwtReturnType } from './types';
 import {
-  verifyHeaderAlgorithm,
   verifyHeaderKid,
   verifySubClaim,
-} from "./verifyContent";
-import { mapJwtPayloadToDecodedIdToken } from "../utils/mapDecode";
+  verifyExpirationClaim,
+  verifyIssuedAtClaim,
+} from './verifyContent';
+import { mapJwtPayloadToDecodedIdToken } from '../utils/mapDecode';
 
-export type JwtDecodedToken = {
+const DEFAULT_CLOCK_SKEW_IN_MS = 5 * 1000;
+
+export type VerifyJwtOptions = {
+  audience?: string | string[];
+  clockSkewInMs?: number;
+  key: JsonWebKey | string;
+};
+
+export type Jwt = {
   header: ProtectedHeaderParameters;
   payload: JWTPayload;
   signature: Uint8Array;
@@ -29,72 +38,83 @@ export type JwtDecodedToken = {
   };
 };
 
-function _decodeJwt(
-  token: string
-): JwtReturnType<JwtDecodedToken, TokenVerificationError> {
-  const tokenParts = (token || "").toString().split(".");
-  const [rawHeader, rawPayload, rawSignature] = tokenParts;
-  const decoder = new TextDecoder();
+export async function verifySignature(
+  jwt: Jwt,
+  key: JsonWebKey | string,
+): Promise<JwtReturnType<JWTPayload, Error>> {
+  const { header, raw } = jwt;
+  const joseAlgorithm = header.alg || 'RS256';
 
-  const header = JSON.parse(
-    decoder.decode(base64url.parse(rawHeader, { loose: true }))
-  );
-  const payload = JSON.parse(
-    decoder.decode(base64url.parse(rawPayload, { loose: true }))
-  );
+  try {
+    const publicKey = await importKey(key, joseAlgorithm);
 
-  const signature = base64url.parse(rawSignature, { loose: true });
+    const { payload } = await jwtVerify(raw.text, publicKey);
 
-  const data = {
-    header,
-    payload,
-    signature,
-    raw: {
-      header: rawHeader,
-      payload: rawPayload,
-      signature: rawSignature,
-      text: token,
-    },
-  };
-  return { data };
+    return { data: payload };
+  } catch (error) {
+    return {
+      errors: [
+        new TokenVerificationError({
+          reason: TokenVerificationErrorReason.TokenInvalidSignature,
+          message: (error as Error).message,
+        }),
+      ],
+    };
+  }
 }
 
-export function ternDecodeJwt(
-  token: string
-): JwtReturnType<JwtDecodedToken, TokenVerificationError> {
-  const header = decodeProtectedHeader(token);
-  const payload = decodeJwt(token);
+export function ternDecodeJwt(token: string): JwtReturnType<Jwt, TokenVerificationError> {
+  try {
+    const header = decodeProtectedHeader(token);
+    const payload = decodeJwt(token);
 
-  const tokenParts = (token || '').toString().split('.');
-  if (tokenParts.length !== 3) {
-    return { errors: [
-      new TokenVerificationError({
-        reason: TokenVerificationErrorReason.TokenInvalid,
-        message: 'Invalid JWT format'
-      })] };
+    const tokenParts = (token || '').toString().split('.');
+    if (tokenParts.length !== 3) {
+      return {
+        errors: [
+          new TokenVerificationError({
+            reason: TokenVerificationErrorReason.TokenInvalid,
+            message: 'Invalid JWT format',
+          }),
+        ],
+      };
+    }
+
+    const [rawHeader, rawPayload, rawSignature] = tokenParts;
+    const signature = base64url.parse(rawSignature, { loose: true });
+
+    const data = {
+      header,
+      payload,
+      signature,
+      raw: {
+        header: rawHeader,
+        payload: rawPayload,
+        signature: rawSignature,
+        text: token,
+      },
+    };
+
+    return { data };
+  } catch (error: any) {
+    return {
+      errors: [
+        new TokenVerificationError({
+          reason: TokenVerificationErrorReason.TokenInvalid,
+          message: error.message,
+        }),
+      ],
+    };
   }
-  
-  const [rawHeader, rawPayload, rawSignature] = tokenParts;
-  const signature = base64url.parse(rawSignature, { loose: true });
-
-  const data = {
-    header,
-    payload,
-    signature,
-    raw: {
-      header: rawHeader,
-      payload: rawPayload,
-      signature: rawSignature,
-      text: token,
-    },
-  };
-
-  return { data };
 }
 
 export async function verifyJwt(
-  token: string
+  token: string,
+  options: VerifyJwtOptions,
 ): Promise<JwtReturnType<DecodedIdToken, TokenVerificationError>> {
+  const { key } = options;
+  const clockSkew = options.clockSkewInMs || DEFAULT_CLOCK_SKEW_IN_MS;
+
   const { data: decoded, errors } = ternDecodeJwt(token);
   if (errors) {
     return { errors };
@@ -103,17 +123,27 @@ export async function verifyJwt(
   const { header, payload } = decoded;
 
   try {
-    const { kid } = header;
-    verifyHeaderKid(kid);
-
-    const { azp, sub, aud, iat, exp, nbf } = payload;
-    verifySubClaim(sub);
-
+    verifyHeaderKid(header.kid);
+    verifySubClaim(payload.sub);
+    verifyExpirationClaim(payload.exp, clockSkew);
+    verifyIssuedAtClaim(payload.iat, clockSkew);
   } catch (error) {
     return { errors: [error as TokenVerificationError] };
   }
 
-  const decodedIdToken = mapJwtPayloadToDecodedIdToken(payload);
+  const { data: verifiedPayload, errors: signatureErrors } = await verifySignature(decoded, key);
+  if (signatureErrors) {
+    return {
+      errors: [
+        new TokenVerificationError({
+          reason: TokenVerificationErrorReason.TokenInvalidSignature,
+          message: 'Token signature verification failed.',
+        }),
+      ],
+    };
+  }
+
+  const decodedIdToken = mapJwtPayloadToDecodedIdToken(verifiedPayload);
 
   return { data: decodedIdToken };
 }

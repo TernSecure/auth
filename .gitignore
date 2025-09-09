@@ -69,5 +69,9 @@ yarn-error.log*
 *.tsbuildinfo
 
 CLAUDE.md
+gemini.md
 
 instructions/
+
+# Examples
+packages/*/examples/**

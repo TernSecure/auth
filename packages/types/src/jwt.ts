@@ -29,3 +29,15 @@ export interface VerifiedTokens {
   IdToken: string;
   DecodedIdToken: DecodedIdToken;
 }
+
+
+export interface JWTPayloadBase {
+  iss?: string
+  sub?: string
+  aud?: string | string[]
+  jti?: string
+  nbf?: number
+  exp?: number
+  iat?: number
+  [propName: string]: unknown
+}
