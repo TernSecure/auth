@@ -32,6 +32,7 @@ import {
   getRedirectResult,
   browserLocalPersistence,
   inMemoryPersistence,
+  browserSessionPersistence,
   setPersistence,
 } from 'firebase/auth';
 import { getInstallations } from 'firebase/installations';
@@ -68,6 +69,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   #proxyUrl: DomainOrProxyUrl['proxyUrl'];
   #domain: DomainOrProxyUrl['domain'];
   #apiUrl!: string;
+  #persistence = inMemoryPersistence;
   #instanceType?: InstanceType;
   #status: TernSecureAuthInterface['status'] = 'loading';
   #listeners: Array<(emission: TernSecureResources) => void> = [];
@@ -159,11 +161,13 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   public static initialize(options: TernSecureAuthOptions): TernSecureAuth {
     const instance = this.getorCreateInstance();
     instance.#initialize(options);
+    console.log('TernSecureAuth: instance', instance);
     return instance;
   }
 
   #initialize = (options: TernSecureAuthOptions): TernSecureAuth => {
     this.#options = this.#initOptions(options);
+    //this.#setPersistence();
 
     try {
       if (!this.#options.ternSecureConfig) {
@@ -208,8 +212,10 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
 
     getInstallations(this.firebaseClientApp);
+    const persistence = this.#getPersistence();
+    console.log('TernAuth: Setting auth persistence to', persistence);
 
-    setPersistence(this.auth, browserLocalPersistence).catch(error =>
+    setPersistence(this.auth, persistence).catch(error =>
       console.error('TernAuth: Error setting auth persistence:', error),
     );
   }
@@ -511,4 +517,35 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       }
     }
   }
+
+  #setPersistence = () => {
+    const persistenceType = this.#options.persistence || 'none';
+
+    switch (persistenceType) {
+      case 'session':
+        this.#persistence = browserSessionPersistence;
+        break;
+      case 'local':
+        this.#persistence = browserLocalPersistence;
+        break;
+      case 'none':
+      default:
+        this.#persistence = inMemoryPersistence;
+        break;
+    }
+  };
+
+  #getPersistence = () => {
+    const persistenceType = this.#options.persistence || 'none';
+
+    switch (persistenceType) {
+      case 'session':
+        return browserSessionPersistence;
+      case 'local':
+        return browserLocalPersistence;
+      case 'none':
+      default:
+        return inMemoryPersistence;
+    }
+  };
 }

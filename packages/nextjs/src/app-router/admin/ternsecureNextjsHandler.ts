@@ -12,7 +12,6 @@ import { ConfigUtils, LoggingUtils } from './utils';
 import { createRequestContext, createValidators, RequestContext } from './fnValidators';
 import { TENANT_ID } from './constants';
 
-
 /**
  * Apply all global validations in a clean, sequential manner
  */

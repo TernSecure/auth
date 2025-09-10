@@ -4,7 +4,6 @@ import React, { useEffect, useState, useMemo } from 'react';
 import type { IsoTernSecureAuthOptions } from '../types';
 import { IsoTernSecureAuth } from '../lib/isoTernSecureAuth';
 import { type InitialState, type TernSecureResources } from '@tern-secure/types';
-import { TernSecureAuthCtx } from '@tern-secure/shared/react';
 import { AuthProviderCtx } from './AuthProvider';
 import { deriveAuthState } from '@tern-secure/shared/derivedAuthState';
 import { IsoTernSecureAuthCtx } from './IsomorphicTernSecureCtx';
@@ -64,7 +63,6 @@ const useInitTernSecureAuth = (options: IsoTernSecureAuthOptions) => {
   }, []);
 
   const [instanceStatus, setInstanceStatus] = useState(isoTernSecureAuth.status);
-  const [userStatus, setUserStatus] = useState(isoTernSecureAuth.user);
 
   useEffect(() => {
     void isoTernSecureAuth.on('status', setInstanceStatus);

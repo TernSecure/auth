@@ -58,7 +58,7 @@ export class SessionPostHandler {
   ): Promise<NextResponse> {
     const cookieStore = new NextCookieStore();
 
-    const { body, idToken, csrfToken, error } = await RequestValidator.validateSessionRequest(request);
+    const { idToken, csrfToken, error } = await RequestValidator.validateSessionRequest(request);
     if (error) return error;
 
     const csrfCookieValue = request.cookies.get('_session_terncf')?.value;
@@ -142,18 +142,15 @@ export class SessionEndpointHandler {
     const sessionsConfig = config.endpoints.sessions;
     const subEndpointConfig = sessionsConfig?.subEndpoints?.[subEndpoint!];
 
-    // Validate sub-endpoint
     const subEndpointValidation = this.validateSubEndpoint(subEndpoint, subEndpointConfig, method);
     if (subEndpointValidation) return subEndpointValidation;
 
-    // Apply endpoint-specific security checks
     if (subEndpointConfig?.security) {
       const { SecurityValidator } = await import('./validators.js');
       const securityResult = await SecurityValidator.validate(request, subEndpointConfig.security);
       if (securityResult) return securityResult;
     }
 
-    // Route to appropriate method handler
     switch (method) {
       case 'GET':
         return SessionGetHandler.handle(request, subEndpoint!, config);

@@ -31,6 +31,7 @@ export const allNextProviderPropsWithEnv = (
     environment: process.env.NEXT_PUBLIC_TERN_ENVIRONMENT,
     signInUrl: process.env.NEXT_PUBLIC_SIGN_IN_URL,
     signUpUrl: process.env.NEXT_PUBLIC_SIGN_UP_URL,
+    persistence: process.env.NEXT_PUBLIC_TERN_PERSISTENCE as 'local' | 'session' | 'none',
     projectIdAdmin: process.env.FIREBASE_PROJECT_ID,
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
     privateKey: process.env.FIREBASE_PRIVATE_KEY,
@@ -53,6 +54,7 @@ export const allNextProviderPropsWithEnv = (
   const finalApiUrl = propsApiUrl ?? envConfig.apiUrl;
   const finalSignInUrl = signInUrl ?? envConfig.signInUrl;
   const finalSignUpUrl = signUpUrl ?? envConfig.signUpUrl;
+  const finalPersistence = baseProps.persistence ?? envConfig.persistence;
 
   // Construct the result, ensuring it conforms to NextProviderProcessedProps
   // (Omit<TernSecureProviderProps, 'children'>)
@@ -76,6 +78,7 @@ export const allNextProviderPropsWithEnv = (
     signUpUrl: finalSignUpUrl,
     mode: baseProps.mode,
     apiUrl: finalApiUrl,
+    persistence: finalPersistence
   };
 
   // Clean up undefined keys that might have resulted from spreading if not present in baseProps
