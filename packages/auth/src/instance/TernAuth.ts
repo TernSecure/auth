@@ -26,15 +26,18 @@ import { stripScheme } from '@tern-secure/shared/url';
 import { handleValueOrFn } from '@tern-secure/shared/utils';
 import {
   Auth,
+  browserSessionPersistence,
+  browserLocalPersistence,
+  connectAuthEmulator,
   getAuth,
   onAuthStateChanged,
   onIdTokenChanged,
   getRedirectResult,
-  browserLocalPersistence,
   inMemoryPersistence,
-  browserSessionPersistence,
+  initializeAuth,
   setPersistence,
 } from 'firebase/auth';
+import { browserCookiePersistence } from 'firebase/auth/web-extension';
 import { getInstallations } from 'firebase/installations';
 import { FirebaseApp, initializeApp, getApps } from 'firebase/app';
 import { TernSecureBase, SignIn, SignUp, AuthCookieManager } from '../resources/internal';
@@ -69,7 +72,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   #proxyUrl: DomainOrProxyUrl['proxyUrl'];
   #domain: DomainOrProxyUrl['domain'];
   #apiUrl!: string;
-  #persistence = inMemoryPersistence;
   #instanceType?: InstanceType;
   #status: TernSecureAuthInterface['status'] = 'loading';
   #listeners: Array<(emission: TernSecureResources) => void> = [];
@@ -161,13 +163,11 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   public static initialize(options: TernSecureAuthOptions): TernSecureAuth {
     const instance = this.getorCreateInstance();
     instance.#initialize(options);
-    console.log('TernSecureAuth: instance', instance);
     return instance;
   }
 
   #initialize = (options: TernSecureAuthOptions): TernSecureAuth => {
     this.#options = this.#initOptions(options);
-    //this.#setPersistence();
 
     try {
       if (!this.#options.ternSecureConfig) {
@@ -204,20 +204,25 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   private initializeFirebaseApp(config: TernSecureConfig) {
     const appName = config.appName || '[DEFAULT]';
     this.firebaseClientApp = getApps().length === 0 ? initializeApp(config, appName) : getApps()[0];
+    const auth = initializeAuth(this.firebaseClientApp, {
+      persistence: browserCookiePersistence,
+    });
 
-    this.auth = getAuth(this.firebaseClientApp);
+    //this.auth = getAuth(this.firebaseClientApp);
+    this.auth = auth;
 
     if (config.tenantId) {
       this.auth.tenantId = config.tenantId;
     }
 
+    this.#configureEmulator();
     getInstallations(this.firebaseClientApp);
-    const persistence = this.#getPersistence();
-    console.log('TernAuth: Setting auth persistence to', persistence);
+    //const persistence = this.#setPersistence();
+    //console.log('TernAuth: Setting auth persistence to', persistence);
 
-    setPersistence(this.auth, persistence).catch(error =>
-      console.error('TernAuth: Error setting auth persistence:', error),
-    );
+    //setPersistence(this.auth, browserCookiePersistence).catch(error =>
+    //  console.error('TernAuth: Error setting auth persistence:', error),
+    //);
   }
 
   public signOut: SignOut = async (options?: SignOutOptions) => {
@@ -518,27 +523,12 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
   }
 
-  #setPersistence = () => {
+  #setPersistence = async () => {
     const persistenceType = this.#options.persistence || 'none';
 
     switch (persistenceType) {
-      case 'session':
-        this.#persistence = browserSessionPersistence;
-        break;
-      case 'local':
-        this.#persistence = browserLocalPersistence;
-        break;
-      case 'none':
-      default:
-        this.#persistence = inMemoryPersistence;
-        break;
-    }
-  };
-
-  #getPersistence = () => {
-    const persistenceType = this.#options.persistence || 'none';
-
-    switch (persistenceType) {
+      case 'browserCookie':
+        return browserCookiePersistence;
       case 'session':
         return browserSessionPersistence;
       case 'local':
@@ -546,6 +536,31 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       case 'none':
       default:
         return inMemoryPersistence;
+    }
+  };
+
+  #emulatorHost = (): string | undefined => {
+    if (typeof process === 'undefined') return undefined;
+    return process.env.FIREBASE_AUTH_EMULATOR_HOSTT;
+  };
+
+  #configureEmulator = (): void => {
+    const { useEmulator = false } = this.#options;
+    const host = this.#emulatorHost();
+    const isDev = this.#instanceType === 'development';
+    const shouldUseEmulator = useEmulator || (isDev && !!host);
+    if (!shouldUseEmulator || !host) {
+      return;
+    }
+
+    const emulatorUrl = host.startsWith('http') ? host : `http://${host}`;
+
+    try {
+      (this.auth as unknown as any)._canInitEmulator = true;
+      connectAuthEmulator(this.auth, emulatorUrl, { disableWarnings: true });
+      console.warn(`[TernSecure] Firebase Auth Emulator connected at ${emulatorUrl}`);
+    } catch (error) {
+      console.error('[TernSecure] Error connecting to Firebase Auth Emulator:', error);
     }
   };
 }

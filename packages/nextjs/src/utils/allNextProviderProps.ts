@@ -19,6 +19,7 @@ export const allNextProviderPropsWithEnv = (
     isTernSecureDev: propsIsTernSecureDev,
     enableServiceWorker: propsEnableServiceWorker,
     loadingComponent: propsLoadingComponent,
+    useEmulator: propsUseEmulator,
     ...baseProps 
   } = nextProps;
 
@@ -32,6 +33,7 @@ export const allNextProviderPropsWithEnv = (
     signInUrl: process.env.NEXT_PUBLIC_SIGN_IN_URL,
     signUpUrl: process.env.NEXT_PUBLIC_SIGN_UP_URL,
     persistence: process.env.NEXT_PUBLIC_TERN_PERSISTENCE as 'local' | 'session' | 'none',
+    useEmulator: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR,
     projectIdAdmin: process.env.FIREBASE_PROJECT_ID,
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
     privateKey: process.env.FIREBASE_PRIVATE_KEY,
@@ -78,7 +80,8 @@ export const allNextProviderPropsWithEnv = (
     signUpUrl: finalSignUpUrl,
     mode: baseProps.mode,
     apiUrl: finalApiUrl,
-    persistence: finalPersistence
+    persistence: finalPersistence,
+    useEmulator: propsUseEmulator
   };
 
   // Clean up undefined keys that might have resulted from spreading if not present in baseProps

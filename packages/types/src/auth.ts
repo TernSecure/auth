@@ -70,7 +70,7 @@ export interface TernSecureAuthProvider {
   signOut(): Promise<void>;
 }
 
-export type Persistence = "local" | "session" | "none";
+export type Persistence = "local" | "session" | "browserCookie" | "none";
 
 type Mode = "browser" | "server";
 
@@ -108,6 +108,7 @@ export type TernSecureAuthOptions = {
   ternSecureConfig?: TernSecureConfig;
   persistence?: Persistence;
   enableServiceWorker?: boolean;
+  useEmulator?: boolean;
 } & SignInRedirectUrl &
   SignUpRedirectUrl &
   AfterSignOutUrl;

@@ -31,7 +31,7 @@ export function inBrowser(): boolean {
 export class IsoTernSecureAuth implements TernSecureAuth {
   private readonly _mode: 'browser' | 'server';
   private readonly options: IsoTernSecureAuthOptions;
-  //private readonly TernSecureAuth: TernSecureAuthProps;
+  private readonly TernSecureAuth: TernSecureAuthProps;
   private ternauth: TernSecureAuthProps | null = null;
   private preAddListener = new Map<ListenerCallback, { unsubscribe: UnsubscribeCallback }>();
 
@@ -85,12 +85,12 @@ export class IsoTernSecureAuth implements TernSecureAuth {
   static getOrCreateInstance(options: IsoTernSecureAuthOptions) {
     if (
       !inBrowser() ||
-      !this.#instance
-      //(options.TernSecureAuth && this.#instance.TernSecureAuth !== options.TernSecureAuth)
+      !this.#instance ||
+      (options.TernSecureAuth && this.#instance.TernSecureAuth !== options.TernSecureAuth)
     ) {
       this.#instance = new IsoTernSecureAuth(options);
     }
-    console.log('[IsoTernSecureAuth] getOrCreateInstance', this.#instance);
+    //console.log('[IsoTernSecureAuth] getOrCreateInstance', this.#instance);
     return this.#instance;
   }
 
@@ -130,11 +130,11 @@ export class IsoTernSecureAuth implements TernSecureAuth {
   }
 
   constructor(options: IsoTernSecureAuthOptions) {
-    //const { TernSecureAuth = null } = options || {};
+    const { TernSecureAuth = null } = options || {};
     this.options = { ...options };
     this._mode = inBrowser() ? 'browser' : 'server';
     this.#apiUrl = this.options.apiUrl;
-    //this.TernSecureAuth = TernSecureAuth;
+    this.TernSecureAuth = TernSecureAuth;
 
     if (!this.options.sdkMetadata) {
       this.options.sdkMetadata = SDK_METADATA;
@@ -160,7 +160,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
   }
 
   async initTernSecureAuth() {
-    if (this._mode !== 'browser' && this.isReady) {
+    if (this._mode !== 'browser' || this.isReady) {
       return;
     }
 

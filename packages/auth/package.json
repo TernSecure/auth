@@ -35,8 +35,8 @@
     "tslib": "2.4.1"
   },
   "devDependencies": {
-    "firebase": "^11.0.0",
-    "jose": "^5.0.0",
+    "firebase": "^12.0.0",
+    "jose": "^5.10.0",
     "next": "15.3.2"
   },
   "peerDependencies": {

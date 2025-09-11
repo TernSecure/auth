@@ -1,20 +1,20 @@
-import { notFound as nextjsNotFound } from "next/navigation";
+import { notFound as nextjsNotFound } from 'next/navigation';
 import {
   constants,
   createTernSecureRequest,
   createBackendInstanceClient,
   enableDebugLogging,
   validateCheckRevokedOptions,
-} from "@tern-secure/backend";
+} from '@tern-secure/backend';
 import type {
   TernSecureRequest,
   AuthObject,
   CheckRevokedOptions,
   RequestOptions,
-} from "@tern-secure/backend";
-import { SIGN_IN_URL, SIGN_UP_URL, API_URL, API_VERSION } from "./constant";
-import { NextRequest } from "next/server";
-import { NextResponse, NextMiddleware } from "next/server";
+} from '@tern-secure/backend';
+import { SIGN_IN_URL, SIGN_UP_URL, API_URL, API_VERSION } from './constant';
+import { NextRequest } from 'next/server';
+import { NextResponse, NextMiddleware } from 'next/server';
 import {
   isNextjsNotFoundError,
   nextjsRedirectError,
@@ -23,22 +23,24 @@ import {
   isRedirectToSignInError,
   isRedirectToSignUpError,
   isNextjsRedirectError,
-} from "./nextErrors";
-import { createRedirect, type RedirectFun } from "./redirect";
-import { isRedirect, setHeader } from "../utils/response";
-import { serverRedirectWithAuth } from "../utils/serverRedirectAuth";
+} from './nextErrors';
+import { createRedirect, type RedirectFun } from './redirect';
+import { isRedirect, setHeader } from '../utils/response';
+import { serverRedirectWithAuth } from '../utils/serverRedirectAuth';
 import type {
   NextMiddlewareEvtParam,
   NextMiddlewareRequestParam,
   NextMiddlewareReturn,
-} from "./types";
-import { createProtect, type AuthProtect } from "./protect";
-import {
+} from './types';
+import { createProtect, type AuthProtect } from './protect';
+import type {
   CheckAuthorizationFromSessionClaims,
   CookieOptions,
-} from "@tern-secure/types";
-import { createEdgeCompatibleLogger } from "../utils/withLogger";
-import { decorateRequest } from "./utils";
+  TernSecureConfig,
+} from '@tern-secure/types';
+import { createEdgeCompatibleLogger } from '../utils/withLogger';
+import { decorateRequest } from './utils';
+import { N } from 'vitest/dist/chunks/environment.d.cL3nLXbE.js';
 
 export type MiddlewareAuthObject = AuthObject & {
   redirectToSignIn: RedirectFun<Response>;
@@ -54,15 +56,15 @@ export interface MiddlewareAuth {
 type MiddlewareHandler = (
   auth: MiddlewareAuth,
   request: NextMiddlewareRequestParam,
-  event: NextMiddlewareEvtParam
+  event: NextMiddlewareEvtParam,
 ) => NextMiddlewareReturn;
-
 
 export interface MiddlewareOptions extends RequestOptions {
   debug?: boolean;
+  firebaseOptions?: TernSecureConfig;
 }
 type MiddlewareOptionsCallback = (
-  req: NextRequest
+  req: NextRequest,
 ) => MiddlewareOptions | Promise<MiddlewareOptions>;
 
 interface TernSecureMiddleware {
@@ -76,10 +78,7 @@ interface TernSecureMiddleware {
    * @example
    * export default ternSecureMiddleware((auth, request, event) => { ... }, (req) => options);
    */
-  (
-    handler: MiddlewareHandler,
-    options?: MiddlewareOptionsCallback
-  ): NextMiddleware;
+  (handler: MiddlewareHandler, options?: MiddlewareOptionsCallback): NextMiddleware;
 
   /**
    * @example
@@ -90,10 +89,7 @@ interface TernSecureMiddleware {
    * @example
    * export default ternSecureMiddleware;
    */
-  (
-    request: NextMiddlewareRequestParam,
-    event: NextMiddlewareEvtParam
-  ): NextMiddlewareReturn;
+  (request: NextMiddlewareRequestParam, event: NextMiddlewareEvtParam): NextMiddlewareReturn;
 }
 
 const backendClientDefaultOptions = {
@@ -105,9 +101,7 @@ const ternSecureBackendClient = async () => {
   return createBackendClientWithOptions({});
 };
 
-const createBackendClientWithOptions: typeof createBackendInstanceClient = (
-  options
-) => {
+const createBackendClientWithOptions: typeof createBackendInstanceClient = options => {
   return createBackendInstanceClient({
     ...backendClientDefaultOptions,
     ...options,
@@ -122,9 +116,7 @@ export const ternSecureMiddleware = ((
 
   const middleware = () => {
     const withAuthNextMiddleware: NextMiddleware = async (request, event) => {
-      const resolvedParams =
-        typeof params === "function" ? await params(request) : params;
-
+      const resolvedParams = typeof params === 'function' ? await params(request) : params;
       const signInUrl = resolvedParams.signInUrl || SIGN_IN_URL;
       const signUpUrl = resolvedParams.signUpUrl || SIGN_UP_URL;
 
@@ -153,7 +145,7 @@ export const ternSecureMiddleware = ((
 
       const requestStateClient = await reqBackendClient.authenticateRequest(
         ternSecureRequest,
-        options
+        options,
       );
 
       const authObjectClient = requestStateClient.auth();
@@ -165,7 +157,7 @@ export const ternSecureMiddleware = ((
       const protect = await createMiddlewareProtect(
         ternSecureRequest,
         authObjectClient,
-        redirectToSignIn
+        redirectToSignIn,
       );
 
       //const createAuthHandler = (): MiddlewareAuth => {
@@ -216,6 +208,11 @@ export const ternSecureMiddleware = ((
       return handlerResult;
     };
 
+    const withFirePersistence: NextMiddleware = async (request) => {
+      const resolvedParams = typeof params === 'function' ? await params(request) : params;
+      return handleFirebaseAuthRequest(request, resolvedParams);
+    };
+
     const nextMiddleware: NextMiddleware = async (request, event) => {
       return withAuthNextMiddleware(request, event);
     };
@@ -233,40 +230,26 @@ const parseRequestAndEvent = (args: unknown[]) => {
   return [
     args[0] instanceof Request ? args[0] : undefined,
     args[0] instanceof Request ? args[1] : undefined,
-  ] as [
-    NextMiddlewareRequestParam | undefined,
-    NextMiddlewareEvtParam | undefined,
-  ];
+  ] as [NextMiddlewareRequestParam | undefined, NextMiddlewareEvtParam | undefined];
 };
 
 const parseHandlerAndOptions = (args: unknown[]) => {
   return [
-    typeof args[0] === "function" ? args[0] : undefined,
-    (args.length === 2
-      ? args[1]
-      : typeof args[0] === "function"
-        ? {}
-        : args[0]) || {},
-  ] as [
-    MiddlewareHandler | undefined,
-    MiddlewareOptions | MiddlewareOptionsCallback,
-  ];
+    typeof args[0] === 'function' ? args[0] : undefined,
+    (args.length === 2 ? args[1] : typeof args[0] === 'function' ? {} : args[0]) || {},
+  ] as [MiddlewareHandler | undefined, MiddlewareOptions | MiddlewareOptionsCallback];
 };
 
 /**
  * Create middleware redirect functions
  */
 const createMiddlewareRedirects = (ternSecureRequest: TernSecureRequest) => {
-  const redirectToSignIn: MiddlewareAuthObject["redirectToSignIn"] = (
-    opts = {}
-  ) => {
+  const redirectToSignIn: MiddlewareAuthObject['redirectToSignIn'] = (opts = {}) => {
     const url = ternSecureRequest.ternUrl.toString();
     redirectToSignInError(url, opts.returnBackUrl);
   };
 
-  const redirectToSignUp: MiddlewareAuthObject["redirectToSignUp"] = (
-    opts = {}
-  ) => {
+  const redirectToSignUp: MiddlewareAuthObject['redirectToSignUp'] = (opts = {}) => {
     const url = ternSecureRequest.ternUrl.toString();
     redirectToSignUpError(url, opts.returnBackUrl);
   };
@@ -277,7 +260,7 @@ const createMiddlewareRedirects = (ternSecureRequest: TernSecureRequest) => {
 const createMiddlewareProtect = (
   ternSecureRequest: TernSecureRequest,
   authObject: AuthObject,
-  redirectToSignIn: RedirectFun<Response>
+  redirectToSignIn: RedirectFun<Response>,
 ) => {
   return (async (params: any, options: any) => {
     const notFound = () => nextjsNotFound();
@@ -299,7 +282,7 @@ const createMiddlewareProtect = (
 
 export const redirectAdapter = (url: string | URL) => {
   return NextResponse.redirect(url, {
-    headers: { [constants.Headers.TernSecureRedirectTo]: "true" },
+    headers: { [constants.Headers.TernSecureRedirectTo]: 'true' },
   });
 };
 
@@ -309,13 +292,13 @@ export const redirectAdapter = (url: string | URL) => {
 const handleControlError = (
   error: any,
   ternSecureRequest: TernSecureRequest,
-  nextrequest: NextRequest
+  nextrequest: NextRequest,
 ): Response => {
   if (isNextjsNotFoundError(error)) {
     return setHeader(
       NextResponse.rewrite(new URL(`/tern_${Date.now()}`, nextrequest.url)),
       constants.Headers.AuthReason,
-      "protect-rewrite"
+      'protect-rewrite',
     );
   }
 
@@ -332,9 +315,9 @@ const handleControlError = (
 
     const { returnBackUrl } = error;
 
-    return redirect[
-      isRedirectToSignIn ? "redirectToSignIn" : "redirectToSignUp"
-    ]({ returnBackUrl });
+    return redirect[isRedirectToSignIn ? 'redirectToSignIn' : 'redirectToSignUp']({
+      returnBackUrl,
+    });
   }
 
   if (isNextjsRedirectError(error)) {
@@ -342,4 +325,112 @@ const handleControlError = (
   }
 
   throw error;
+};
+
+const handleFirebaseAuthRequest = async (
+  request: NextRequest,
+  options: MiddlewareOptions,
+): Promise<NextResponse | null> => {
+  if (request.nextUrl.pathname.startsWith('/__/') && options.firebaseOptions?.authDomain) {
+    const newURL = new URL(request.nextUrl);
+    newURL.host = options.firebaseOptions.authDomain;
+    newURL.port = '';
+    console.log('Rewriting to Firebase auth domain:', newURL.toString());
+    console.log('host:', newURL.host, 'pathname:', newURL.pathname);
+    return NextResponse.rewrite(newURL);
+  }
+
+  console.log('Checking for __cookies__ path');
+
+  const isDevMode = process.env.NODE_ENV === 'development';
+  const ID_TOKEN_COOKIE_NAME = isDevMode ? `__dev_FIREBASE_[DEFAULT]` : `__HOST-FIREBASE_[DEFAULT]`;
+  const REFRESH_TOKEN_COOKIE_NAME = isDevMode
+    ? '__dev_FIREBASEID_[DEFAULT]'
+    : `__HOST-FIREBASEID_[DEFAULT]`;
+  const ID_TOKEN_COOKIE = {
+    path: '/',
+    secure: !isDevMode,
+    sameSite: 'strict',
+    partitioned: true,
+    name: ID_TOKEN_COOKIE_NAME,
+    maxAge: 34560000,
+    priority: 'high',
+  } as const;
+  const REFRESH_TOKEN_COOKIE = {
+    ...ID_TOKEN_COOKIE,
+    httpOnly: true,
+    name: REFRESH_TOKEN_COOKIE_NAME,
+  } as const;
+
+  if (request.nextUrl.pathname === '/__cookies__') {
+    console.log('Handling /__cookies__ request');
+    const method = request.method;
+    if (method === 'DELETE') {
+      const response = new NextResponse('');
+      response.cookies.delete({ ...ID_TOKEN_COOKIE, maxAge: 0 });
+      response.cookies.delete({ ...REFRESH_TOKEN_COOKIE, maxAge: 0 });
+      return response;
+    }
+
+    const headers = Object.fromEntries(
+      [
+        'content-type',
+        'X-Firebase-Client',
+        'X-Firebase-gmpid',
+        'X-Firebase-AppCheck',
+        'X-Client-Version',
+      ]
+        .filter(header => request.headers.has(header))
+        .map(header => [header, request.headers.get(header)!]),
+    );
+
+    const url = new URL(request.nextUrl.searchParams.get('finalTarget')!);
+    let body: ReadableStream<any> | string | null = request.body;
+
+    const isTokenRequest = !!url.pathname.match(/^(\/securetoken\.googleapis\.com)?\/v1\/token/);
+    const isSignInRequest = !!url.pathname.match(
+      /^(\/identitytoolkit\.googleapis\.com)?\/v1\/accounts:signInWith/,
+    );
+
+    if (!isTokenRequest && !isSignInRequest)
+      throw new Error('Could not determine the request type to proxy');
+
+    if (isTokenRequest) {
+      body = await request.text();
+      const bodyParams = new URLSearchParams(body!.trim());
+      if (bodyParams.has('refresh_token')) {
+        const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE.name)?.value;
+        if (refreshToken) {
+          bodyParams.set('refresh_token', refreshToken);
+          body = bodyParams.toString();
+        }
+      }
+    }
+
+    const response = await fetch(url, { method, body, headers });
+    const json = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json(json, { status: response.status, statusText: response.statusText });
+    }
+
+    let refreshToken, idToken, maxAge;
+    if (isSignInRequest) {
+      refreshToken = json.refreshToken;
+      idToken = json.idToken;
+      maxAge = json.expiresIn;
+      json.refreshToken = 'REDACTED';
+    } else {
+      refreshToken = json.refresh_token;
+      idToken = json.id_token;
+      maxAge = json.expires_in;
+      json.refresh_token = 'REDACTED';
+    }
+
+    const nextResponse = NextResponse.json(json);
+    if (idToken) nextResponse.cookies.set({ ...ID_TOKEN_COOKIE, maxAge, value: idToken });
+    if (refreshToken) nextResponse.cookies.set({ ...REFRESH_TOKEN_COOKIE, value: refreshToken });
+    return nextResponse;
+  }
+  return null;
 };

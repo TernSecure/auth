@@ -31,7 +31,8 @@ export default async function RootLayout({
         <TernSecureProvider 
           requiresVerification={true}
           isTernSecureDev={true}
-          persistence="session"
+          persistence="browserCookie"
+          useEmulator={true}
         > 
         {children}
         </TernSecureProvider>
