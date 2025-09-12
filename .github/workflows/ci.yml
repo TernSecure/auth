@@ -1,0 +1,83 @@
+name: CI
+on:
+  merge_group:
+  pull_request:
+    branches:
+      - main
+      - changeset-release/*
+    types:  [opened, synchronize, reopened]
+
+  push:
+    branches:
+      - '**'
+      - '!main'
+      - '!changeset-release/**'
+
+jobs:
+  #check-permissions:
+  check:
+    name: Validate PR
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch main branch
+        run: |
+          git fetch origin main:main
+          git fetch origin changeset-release/main:changeset-release/main || true
+      
+      - name: Install PNPM
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'pnpm'
+          #turbo-team: ${{ vars.TURBO_TEAM }}
+          #turbo-token: ${{ secrets.TURBO_TOKEN }}
+        env:
+          TURBO_TOKEN: ${{ secrets.TURBO_TOKEN }}
+          TURBO_TEAM: ${{ vars.TURBO_TEAM }}
+          
+      - name: Install PNPM dependencies
+        env:
+          CYPRESS_INSTALL_BINARY: 0
+        run: pnpm install
+        shell: bash
+        
+      - name: Build
+        run: pnpm turbo build --filter=!./apps/auth-test
+        
+      - name: Lint
+        run: pnpm turbo lint
+
+      - name: Check branch status
+        run: |
+          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+          if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == changeset-release/* ]]; then
+            echo "Skipping changeset check on protected branch"
+            exit 0
+          fi
+        
+      - name: Check changeset
+        run: |
+          # Check if changes are from changeset
+          if git log --format=%B -n 1 | grep -q "chore: version packages"; then
+            echo "Skipping changeset check for version bump commit"
+            exit 0
+          fi
+
+          # Check if .changeset directory exists
+          if [ ! -d ".changeset" ]; then
+            echo "Creating .changeset directory"
+            npx changeset init
+          fi
+
+          # Verify changes against main branch
+          npx changeset status --since=main
+        continue-on-error: true

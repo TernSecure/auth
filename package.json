@@ -10,7 +10,9 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "lint": "turbo run lint",
     "release": "changeset publish",
-    "version-packages": "changeset version"
+    "release:canary": "changeset publish --tag canary --no-git-tag",
+    "version-packages": "changeset version",
+    "version-packages:canary": "changeset version --tag canary"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.4",
