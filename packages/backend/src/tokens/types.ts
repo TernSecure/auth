@@ -1,6 +1,6 @@
-import type { CheckRevokedOptions } from "../adapters";
-import type { ApiClient } from "../api";
-import type { VerifyTokenVOptions } from "./verify";
+import type { CheckRevokedOptions } from '../adapters';
+import type { ApiClient } from '../api';
+import type { VerifyTokenVOptions, TernSecureConfig } from './verify';
 
 export type SessionCookieAttributes = {
   path?: string;
@@ -9,7 +9,7 @@ export type SessionCookieAttributes = {
   maxAge?: number;
   secure?: boolean;
   httpOnly?: boolean;
-  sameSite?: "lax" | "strict" | "none";
+  sameSite?: 'lax' | 'strict' | 'none';
 };
 
 export type SessionCookieFromMiddleware = {
@@ -31,4 +31,15 @@ export type RequestOptions = {
   apiClient?: ApiClient;
   apiUrl?: string;
   apiVersion?: string;
- } & VerifyTokenVOptions;
+} & VerifyTokenVOptions;
+
+export type AuthenticateFireRequestOptions = {
+  signInUrl?: string;
+  signUpUrl?: string;
+  checkRevoked?: CheckRevokedOptions;
+  cookies?: MiddlewareCookiesOptions;
+  apiClient?: ApiClient;
+  apiUrl?: string;
+  apiVersion?: string;
+  firebaseConfig?: TernSecureConfig
+} & VerifyTokenVOptions;

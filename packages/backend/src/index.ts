@@ -13,6 +13,8 @@ export {
   createBackendInstanceClient
 } from "./instance/backendInstanceEdge";
 
+export { createFireClient } from "./instance/backendFireInstance";
+
 export type {
   BackendInstance,
 } from "./instance/backendInstanceEdge";

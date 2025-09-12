@@ -108,7 +108,6 @@ export type TernSecureAuthOptions = {
   ternSecureConfig?: TernSecureConfig;
   persistence?: Persistence;
   enableServiceWorker?: boolean;
-  useEmulator?: boolean;
 } & SignInRedirectUrl &
   SignUpRedirectUrl &
   AfterSignOutUrl;

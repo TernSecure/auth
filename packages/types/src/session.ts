@@ -8,7 +8,7 @@ export type SessionStatus = 'active' | 'expired' | 'revoked' | 'pending';
  */
 //claims: { [key: string]: any } | null
 
-export declare interface ParsedToken {
+export interface ParsedToken {
     /** Expiration time of the token. */
     'exp'?: string;
     /** UID of the user. */

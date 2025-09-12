@@ -37,6 +37,7 @@ import {
   initializeAuth,
   setPersistence,
 } from 'firebase/auth';
+import type { Auth as TernAuth } from 'firebase/auth';
 import { browserCookiePersistence } from 'firebase/auth/web-extension';
 import { getInstallations } from 'firebase/installations';
 import { FirebaseApp, initializeApp, getApps } from 'firebase/app';
@@ -47,6 +48,8 @@ import { buildURL } from '../utils/construct';
 export function inBrowser(): boolean {
   return typeof window !== 'undefined';
 }
+
+export { TernAuth }
 
 /**
  * Firebase implementation of the TernSecureAuth interface
@@ -129,7 +132,9 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return this.#instanceType;
   }
 
-  public constructor() {
+  public constructor(options?: TernSecureAuthOptions) {
+    this.#domain = options?.ternSecureConfig?.authDomain;
+    this.#apiUrl = options?.apiUrl || '';
     this.#instanceType = (process.env.NODE_ENV as InstanceType) || 'production';
     this.#publicEventBus.emit(ternEvents.Status, 'loading');
     TernSecureBase.ternsecure = this;
@@ -143,10 +148,11 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return this.#authCookieManager;
   }
 
-  static getorCreateInstance(): TernSecureAuth {
+  static getorCreateInstance(options?: TernSecureAuthOptions): TernSecureAuth {
     if (!this.instance) {
-      this.instance = new TernSecureAuth();
+      this.instance = new TernSecureAuth(options);
     }
+    console.log('[TernSecureAuth] TernSecureAuth instance:', this.instance);
     return this.instance;
   }
 
@@ -161,7 +167,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   }
 
   public static initialize(options: TernSecureAuthOptions): TernSecureAuth {
-    const instance = this.getorCreateInstance();
+    const instance = this.getorCreateInstance(options);
     instance.#initialize(options);
     return instance;
   }
@@ -178,10 +184,9 @@ export class TernSecureAuth implements TernSecureAuthInterface {
         throw new Error('apiUrl is required to initialize TernSecureAuth');
       }
 
-      this.#apiUrl = this.#options.apiUrl;
-
       this.initializeFirebaseApp(this.#options.ternSecureConfig);
       this.authStateUnsubscribe = this.initAuthStateListener();
+      this._onIdTokenChanged();
 
       this.#authCookieManager = new AuthCookieManager();
       this.csrfToken = this.#authCookieManager.getCSRFToken();
@@ -204,11 +209,12 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   private initializeFirebaseApp(config: TernSecureConfig) {
     const appName = config.appName || '[DEFAULT]';
     this.firebaseClientApp = getApps().length === 0 ? initializeApp(config, appName) : getApps()[0];
+    
+    const persistence = this.#setPersistence();
     const auth = initializeAuth(this.firebaseClientApp, {
       persistence: browserCookiePersistence,
     });
 
-    //this.auth = getAuth(this.firebaseClientApp);
     this.auth = auth;
 
     if (config.tenantId) {
@@ -216,13 +222,8 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
 
     this.#configureEmulator();
-    getInstallations(this.firebaseClientApp);
-    //const persistence = this.#setPersistence();
-    //console.log('TernAuth: Setting auth persistence to', persistence);
 
-    //setPersistence(this.auth, browserCookiePersistence).catch(error =>
-    //  console.error('TernAuth: Error setting auth persistence:', error),
-    //);
+    getInstallations(this.firebaseClientApp);
   }
 
   public signOut: SignOut = async (options?: SignOutOptions) => {
@@ -240,9 +241,11 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       window.location.href = redirectUrl;
     }
     eventBus.emit(events.UserSignOut, null);
+    eventBus.emit(events.TokenRefreshed, { token: null });
+    this.#emit();
   };
 
-  currentSession = async (): Promise<SignedInSession | null> => {
+  public currentSession = async (): Promise<SignedInSession | null> => {
     if (!this._currentUser) {
       return null;
     }
@@ -266,6 +269,16 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       this._currentUser = user;
 
       eventBus.emit(events.UserChanged, this._currentUser);
+      this.#emit();
+    });
+  }
+
+  private _onIdTokenChanged(): () => void {
+    return onIdTokenChanged(this.auth, async (user: TernSecureUser | null) => {
+      await this.auth.authStateReady();
+      this._currentUser = user;
+
+      eventBus.emit(events.TokenRefreshed, { token: user ? await user.getIdTokenResult() : null });
       this.#emit();
     });
   }
@@ -304,6 +317,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     if (this._currentUser) {
       listener({
         user: this._currentUser,
+        session: this.signedInSession,
       });
     }
 
@@ -523,7 +537,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
   }
 
-  #setPersistence = async () => {
+  #setPersistence = () => {
     const persistenceType = this.#options.persistence || 'none';
 
     switch (persistenceType) {
@@ -541,14 +555,13 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
   #emulatorHost = (): string | undefined => {
     if (typeof process === 'undefined') return undefined;
-    return process.env.FIREBASE_AUTH_EMULATOR_HOSTT;
+    return process.env.FIREBASE_AUTH_EMULATOR_HOST;
   };
 
   #configureEmulator = (): void => {
-    const { useEmulator = false } = this.#options;
     const host = this.#emulatorHost();
     const isDev = this.#instanceType === 'development';
-    const shouldUseEmulator = useEmulator || (isDev && !!host);
+    const shouldUseEmulator = isDev && !!host;
     if (!shouldUseEmulator || !host) {
       return;
     }
@@ -556,7 +569,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     const emulatorUrl = host.startsWith('http') ? host : `http://${host}`;
 
     try {
-      (this.auth as unknown as any)._canInitEmulator = true;
+      //(this.auth as unknown as any)._canInitEmulator = true;
       connectAuthEmulator(this.auth, emulatorUrl, { disableWarnings: true });
       console.warn(`[TernSecure] Firebase Auth Emulator connected at ${emulatorUrl}`);
     } catch (error) {

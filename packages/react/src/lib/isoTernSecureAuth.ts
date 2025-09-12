@@ -131,6 +131,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
 
   constructor(options: IsoTernSecureAuthOptions) {
     const { TernSecureAuth = null } = options || {};
+    this.#domain = options.ternSecureConfig?.authDomain;
     this.options = { ...options };
     this._mode = inBrowser() ? 'browser' : 'server';
     this.#apiUrl = this.options.apiUrl;

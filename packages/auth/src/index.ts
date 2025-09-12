@@ -1,4 +1,5 @@
 export { TernSecureAuth } from './instance/TernAuth';
+export type { TernAuth } from './instance/TernAuth';
 export { TernServerAuth } from './instance/TernAuthServer';
 export type { TernServerAuthOptions, AuthenticatedApp } from './instance/TernAuthServer';
 

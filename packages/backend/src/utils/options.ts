@@ -1,4 +1,4 @@
-import type { RequestOptions } from "../tokens/types";
+import type { RequestOptions, AuthenticateFireRequestOptions } from "../tokens/types";
 
 export type RuntimeOptions = Omit<RequestOptions, "apiUrl">;
 

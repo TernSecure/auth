@@ -19,7 +19,6 @@ export const allNextProviderPropsWithEnv = (
     isTernSecureDev: propsIsTernSecureDev,
     enableServiceWorker: propsEnableServiceWorker,
     loadingComponent: propsLoadingComponent,
-    useEmulator: propsUseEmulator,
     ...baseProps 
   } = nextProps;
 
@@ -80,8 +79,7 @@ export const allNextProviderPropsWithEnv = (
     signUpUrl: finalSignUpUrl,
     mode: baseProps.mode,
     apiUrl: finalApiUrl,
-    persistence: finalPersistence,
-    useEmulator: propsUseEmulator
+    persistence: finalPersistence
   };
 
   // Clean up undefined keys that might have resulted from spreading if not present in baseProps

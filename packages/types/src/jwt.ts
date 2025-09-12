@@ -30,8 +30,23 @@ export interface VerifiedTokens {
   DecodedIdToken: DecodedIdToken;
 }
 
+export interface JWTProtectedHeader {
+  alg?: string
+  kid?: string
+  x5t?: string
+  x5c?: string[]
+  x5u?: string
+  jku?: string
+  typ?: string
+  cty?: string
+  crit?: string[]
+  b64?: boolean
+  enc?: string
+  [propName: string]: unknown
+}
 
-export interface JWTPayloadBase {
+
+export interface JWTPayload {
   iss?: string
   sub?: string
   aud?: string | string[]
@@ -41,3 +56,15 @@ export interface JWTPayloadBase {
   iat?: number
   [propName: string]: unknown
 }
+
+export type Jwt = {
+  header: JWTProtectedHeader;
+  payload: JWTPayload;
+  signature: Uint8Array;
+  raw: {
+    header: string;
+    payload: string;
+    signature: string;
+    text: string;
+  };
+};

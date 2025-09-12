@@ -40,7 +40,6 @@ import type {
 } from '@tern-secure/types';
 import { createEdgeCompatibleLogger } from '../utils/withLogger';
 import { decorateRequest } from './utils';
-import { N } from 'vitest/dist/chunks/environment.d.cL3nLXbE.js';
 
 export type MiddlewareAuthObject = AuthObject & {
   redirectToSignIn: RedirectFun<Response>;
@@ -160,22 +159,6 @@ export const ternSecureMiddleware = ((
         redirectToSignIn,
       );
 
-      //const createAuthHandler = (): MiddlewareAuth => {
-      //  const getAuth = async (): Promise<MiddlewareAuthObject> => {
-      //    return {
-      //     ...authObject,
-      //     redirectToSignIn,
-      //      redirectToSignUp,
-      //   };
-      // };
-
-      // const authHandler = Object.assign(getAuth, {
-      //   protect,
-      // });
-
-      //  return authHandler as MiddlewareAuth;
-      // };
-
       const authObj: MiddlewareAuthObject = Object.assign(authObjectClient, {
         redirectToSignIn,
         redirectToSignUp,
@@ -187,7 +170,6 @@ export const ternSecureMiddleware = ((
       let handlerResult: Response = NextResponse.next();
 
       try {
-        //const auth = createAuthHandler();
         const userHandlerResult = await handler?.(authHandler, request, event);
         handlerResult = userHandlerResult || handlerResult;
       } catch (error: any) {
@@ -208,12 +190,19 @@ export const ternSecureMiddleware = ((
       return handlerResult;
     };
 
-    const withFirePersistence: NextMiddleware = async (request) => {
-      const resolvedParams = typeof params === 'function' ? await params(request) : params;
-      return handleFirebaseAuthRequest(request, resolvedParams);
+    const fireNextMiddleware: NextMiddleware = async (request) => {
+      console.log('[TernSecureMiddleware] Firebase Request URL:', request.url);
+      if (isFirebaseCookieRequest(request)) {
+        const options = typeof params === 'function' ? await params(request) : params;
+        rewriteFirebaseRequest(options, request);
+        return handleFirebaseAuthRequest(request);
+      }
     };
 
     const nextMiddleware: NextMiddleware = async (request, event) => {
+       if (isFirebaseRequest(request)) {
+        return fireNextMiddleware(request, event);
+       }
       return withAuthNextMiddleware(request, event);
     };
 
@@ -239,6 +228,24 @@ const parseHandlerAndOptions = (args: unknown[]) => {
     (args.length === 2 ? args[1] : typeof args[0] === 'function' ? {} : args[0]) || {},
   ] as [MiddlewareHandler | undefined, MiddlewareOptions | MiddlewareOptionsCallback];
 };
+
+const isFirebaseRequest = (request: NextMiddlewareRequestParam) =>
+  request.nextUrl.pathname.startsWith('/__/');
+
+const rewriteFirebaseRequest = (options: MiddlewareOptions, request: NextMiddlewareRequestParam) => {
+  const newUrl = new URL(request.url);
+  newUrl.host = options.firebaseOptions?.authDomain || '';
+  newUrl.port = '';
+  return NextResponse.rewrite(newUrl);
+}
+
+const finalTarget = (request: NextMiddlewareRequestParam) => {
+  const finalTargetUrl = request.nextUrl.searchParams.get('finalTarget');
+  return finalTargetUrl ? new URL(finalTargetUrl, request.url) : undefined;
+};
+
+const isFirebaseCookieRequest = (request: NextMiddlewareRequestParam) =>
+  request.nextUrl.pathname === '/__cookies__';
 
 /**
  * Create middleware redirect functions
@@ -329,16 +336,7 @@ const handleControlError = (
 
 const handleFirebaseAuthRequest = async (
   request: NextRequest,
-  options: MiddlewareOptions,
 ): Promise<NextResponse | null> => {
-  if (request.nextUrl.pathname.startsWith('/__/') && options.firebaseOptions?.authDomain) {
-    const newURL = new URL(request.nextUrl);
-    newURL.host = options.firebaseOptions.authDomain;
-    newURL.port = '';
-    console.log('Rewriting to Firebase auth domain:', newURL.toString());
-    console.log('host:', newURL.host, 'pathname:', newURL.pathname);
-    return NextResponse.rewrite(newURL);
-  }
 
   console.log('Checking for __cookies__ path');
 

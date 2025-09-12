@@ -1,5 +1,6 @@
 import { createEventBus } from "@tern-secure/shared/eventBus";
-import { TernSecureUser } from "@tern-secure/types";
+import type { TernSecureUser } from "@tern-secure/types";
+import type { IdTokenResult } from "firebase/auth";
 
 export const events = {
   UserChanged: "user:userChanged",
@@ -8,11 +9,14 @@ export const events = {
   TokenRefreshed: "token:tokenRefreshed",
 } as const;
 
+type TokenUpdatePayload = { token: IdTokenResult | null };
+
+
 type InternalEvents = {
   [events.UserChanged]: TernSecureUser | null;
   [events.UserSignOut]: null;
   [events.SessionChanged]: null;
-  [events.TokenRefreshed]: null;
+  [events.TokenRefreshed]: TokenUpdatePayload;
 };
 
 export const eventBus = createEventBus<InternalEvents>();

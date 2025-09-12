@@ -1,12 +1,11 @@
 import {
-  JWTPayload,
   ProtectedHeaderParameters,
   decodeProtectedHeader,
   decodeJwt,
   jwtVerify,
 } from 'jose';
 import { importKey } from './cryptoKeys';
-import type { DecodedIdToken } from '@tern-secure/types';
+import type { DecodedIdToken, JWTPayload, Jwt } from '@tern-secure/types';
 import { TokenVerificationError, TokenVerificationErrorReason } from '../utils/errors';
 import { base64url } from '../utils/rfc4648';
 import { JwtReturnType } from './types';
@@ -24,18 +23,6 @@ export type VerifyJwtOptions = {
   audience?: string | string[];
   clockSkewInMs?: number;
   key: JsonWebKey | string;
-};
-
-export type Jwt = {
-  header: ProtectedHeaderParameters;
-  payload: JWTPayload;
-  signature: Uint8Array;
-  raw: {
-    header: string;
-    payload: string;
-    signature: string;
-    text: string;
-  };
 };
 
 export async function verifySignature(
