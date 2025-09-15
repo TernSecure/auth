@@ -1,12 +1,10 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
-import { 
-  useTernSecureAuthCtx
-} from '@tern-secure/shared/react'
 import type { TernSecureUser } from '@tern-secure/types'
+import { useCallback, useEffect,useState } from 'react'
+
 import { useAssertWrappedByTernSecureAuthProvider } from './useAssertWrappedTernSecureProvider'
-//import { useAuthProviderCtx } from '../ctx/AuthProvider'
+import { useAuth } from './useAuth'
 
 interface IdTokenResult {
   token: string | null
@@ -24,13 +22,11 @@ interface IdTokenState {
 }
 
 export function useIdTokenInternal() {
-  const ternSecureAuthCtx = useTernSecureAuthCtx()
+  //const ternSecureAuthCtx = useAuthProviderCtx()
   useAssertWrappedByTernSecureAuthProvider('useIdToken')
-  const instance = ternSecureAuthCtx
-  const authState  = instance.internalAuthState
+  //const instance = ternSecureAuthCtx
 
-  const isLoaded = authState.isLoaded
-  const user = authState.user
+  const { isLoaded, user } = useAuth()
 
   const [tokenState, setTokenState] = useState<IdTokenState>({
     tokenResult: null,

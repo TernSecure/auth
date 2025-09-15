@@ -1,9 +1,8 @@
-import { 
-  TernSecureConfig, 
+import type { 
+  AdminConfigValidationResult, 
   ConfigValidationResult, 
   TernSecureAdminConfig, 
-  AdminConfigValidationResult 
-} from '@tern-secure/types'
+  TernSecureConfig} from '@tern-secure/types'
 
 /**
  * Loads Firebase configuration from environment variables

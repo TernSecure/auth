@@ -1,55 +1,54 @@
-"use client"
+"use client";
 
-import { useCallback } from 'react';
-import { useAssertWrappedByTernSecureAuthProvider } from './useAssertWrappedTernSecureProvider'
-import type { 
-  SignInResource,
+import type {
+  ResendEmailVerification,
   SignInFormValuesTree,
   SignInResponseTree,
-  ResendEmailVerification
-} from '@tern-secure/types'
-import { useAuthSignInCtx} from '../ctx/TernSecureAuthResourcesCtx'
+  UseSignInReturn,
+} from "@tern-secure/types";
 
-type UseSignInReturnType = | {isLoaded: false; signIn: undefined;} | {isLoaded: true; signIn: SignInResource;}
+import { useAuthSignInCtx } from "../ctx/TernSecureAuthResourcesCtx";
+import { useAssertWrappedByTernSecureAuthProvider } from "./useAssertWrappedTernSecureProvider";
 
 /**
  * Hook to access the SignInResource methods from TernSecureAuth
  * Provides type-safe access to all sign-in related functionality
  */
-export const useSignIn = (): UseSignInReturnType => {
-  useAssertWrappedByTernSecureAuthProvider('useSignIn');
+export const useSignIn = (): UseSignInReturn => {
+  useAssertWrappedByTernSecureAuthProvider("useSignIn");
   const auth = useAuthSignInCtx();
 
   if (!auth) {
     return {
       isLoaded: false,
-      signIn: undefined
+      signIn: undefined,
     };
   }
 
   return {
-    isLoaded: true, 
-    signIn: auth
+    isLoaded: true,
+    signIn: auth,
   };
 };
 
-
 export const signIn = {
-  withEmailAndPassword: async (params: SignInFormValuesTree): Promise<SignInResponseTree> => {
+  withEmailAndPassword: async (
+    params: SignInFormValuesTree
+  ): Promise<SignInResponseTree> => {
     const auth = useAuthSignInCtx();
     if (!auth) {
-      throw new Error('SignIn methods not available - auth not initialized');
+      throw new Error("SignIn methods not available - auth not initialized");
     }
     return auth.withEmailAndPassword(params);
   },
 
   withSocialProvider: async (
-    provider: string, 
-    options?: { mode?: 'popup' | 'redirect' }
+    provider: string,
+    options?: { mode?: "popup" | "redirect" }
   ): Promise<SignInResponseTree | void> => {
     const auth = useAuthSignInCtx();
     if (!auth) {
-      throw new Error('SignIn methods not available - auth not initialized');
+      throw new Error("SignIn methods not available - auth not initialized");
     }
     return auth.withSocialProvider(provider, options);
   },
@@ -57,7 +56,7 @@ export const signIn = {
   resendEmailVerification: async (): Promise<ResendEmailVerification> => {
     const auth = useAuthSignInCtx();
     if (!auth) {
-      throw new Error('SignIn methods not available - auth not initialized');
+      throw new Error("SignIn methods not available - auth not initialized");
     }
     return auth.resendEmailVerification();
   },
@@ -65,9 +64,8 @@ export const signIn = {
   checkRedirectResult: async (): Promise<SignInResponseTree | null> => {
     const auth = useAuthSignInCtx();
     if (!auth) {
-      throw new Error('SignIn methods not available - auth not initialized');
+      throw new Error("SignIn methods not available - auth not initialized");
     }
     return auth.checkRedirectResult();
-  }
+  },
 };
-

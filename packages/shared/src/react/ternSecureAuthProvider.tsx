@@ -1,9 +1,10 @@
 'use client'
 
-import { useContext } from 'react';
 import type { 
   TernSecureAuth,
 } from '@tern-secure/types';
+import { useContext } from 'react';
+
 import { createContextAndHook } from './ternsecureCtx';
 
 
@@ -19,7 +20,7 @@ function useAssertWrappedByTernSecureAuthProvider(displayNameOrFn: string | (() 
       displayNameOrFn();
       return;
     }
-
+    
     throw new Error(
       `${displayNameOrFn} can only be used within the <TernSecureProvider /> component.
       

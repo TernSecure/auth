@@ -1,6 +1,7 @@
 import React from 'react'
-import { TernSecureCtxProvider } from './TernSecureCtxProvider'
+
 import type { TernSecureProviderProps } from '../types'
+import { TernSecureCtxProvider } from './TernSecureCtxProvider'
 
 function TernSecureProviderBase(props: TernSecureProviderProps) {
     const { 

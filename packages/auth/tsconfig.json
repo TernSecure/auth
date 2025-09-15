@@ -7,7 +7,7 @@
     "forceConsistentCasingInFileNames": true,
     "importHelpers": true,
     "isolatedModules": true,
-    "lib": ["es2020"],
+    "lib": ["DOM", "es2020"],
     "module": "NodeNext",
     "moduleResolution": "nodenext",
     "noImplicitReturns": true,

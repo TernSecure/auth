@@ -1,9 +1,10 @@
-import { 
-  TernSecureConfig, 
+import type { 
+  AdminConfigValidationResult,
   ConfigValidationResult, 
-  TernSecureAdminConfig, 
-  AdminConfigValidationResult
-} from '@tern-secure/types'
+  ServerConfigValidationResult,
+  TernSecureAdminConfig,
+  TernSecureConfig, 
+  TernSecureServerConfig} from '@tern-secure/types'
 
 /**
  * Loads Firebase configuration from environment variables
@@ -115,6 +116,62 @@ export const initializeAdminConfig = (): TernSecureAdminConfig => {
   if (!validationResult.isValid) {
     throw new Error(
       `Firebase Admin configuration validation failed:\n${validationResult.errors.join('\n')}`
+    )
+  }
+
+  return config
+}
+
+
+
+/**
+ * Loads Firebase Server configuration from environment variables
+ * @returns {ServerConfig} Firebase Server configuration object
+ */
+export const loadServerConfig = (): TernSecureServerConfig => ({
+  apiKey: process.env.FIREBASE_SERVER_API_KEY || '',
+
+})
+
+
+/**
+ * Validates Firebase Admin configuration
+ * @param {AdminConfig} config - Firebase Admin configuration object
+ * @returns {ConfigValidationResult} Validation result
+ */
+export const validateServerConfig = (config: TernSecureServerConfig): ServerConfigValidationResult => {
+  const requiredFields: (keyof TernSecureServerConfig)[] = [
+    'apiKey'
+  ]
+
+  const errors: string[] = []
+  
+  requiredFields.forEach(field => {
+    if (!config[field]) {
+      errors.push(`Missing required field: FIREBASE_SERVER_${String(field).toUpperCase()}`)
+    }
+  })
+
+  return {
+    isValid: errors.length === 0,
+    errors,
+    config
+  }
+}
+
+
+
+/**
+ * Initializes admin configuration with validation
+ * @throws {Error} If configuration is invalid
+ */
+export const initializeServerConfig = (): TernSecureServerConfig => {
+  const config = loadServerConfig()
+  const validationResult = validateServerConfig(config)
+
+  if (!validationResult.isValid) {
+    throw new Error(
+      `Firebase Server configuration validation failed:\n${validationResult.errors.join('\n')}`
     )
   }
 

@@ -1,5 +1,5 @@
+import type { CookieOptions,CookieStore } from '@tern-secure/types';
 import { cookies } from 'next/headers';
-import { CookieStore, CookieOptions } from '@tern-secure/types';
 
 export class NextCookieStore implements CookieStore {
   async get(name: string): Promise<{ value: string | undefined }> {

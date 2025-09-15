@@ -31,6 +31,7 @@ export default async function RootLayout({
         <TernSecureProvider 
           requiresVerification={true}
           isTernSecureDev={true}
+          persistence="local"
         > 
         {children}
         </TernSecureProvider>

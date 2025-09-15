@@ -11,9 +11,11 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "build": "pnpm clean && tsup && tsc -p tsconfig.add.json",
+    "build": "pnpm clean && tsup",
+    "build:add": "tsc -p tsconfig.add.json",
     "dev": "tsup --watch",
     "lint": "eslint src",
+    "check-types": "pnpm exec tsc --noEmit",
     "format": "prettier --write \"src/**/*.{ts,tsx}\""
   },
   "author": "Pacifique Kamugisha",
@@ -25,13 +27,16 @@
     "derivedAuthState",
     "eventBus",
     "loadScript",
+    "pathToRegexp",
+    "pathMatcher",
     "loadTernUIScript",
     "react",
     "resolveVersion",
-    "retry"
+    "retry",
+    "url",
+    "utils"
   ],
   "exports": {
-    "./package.json": "./package.json",
     ".": {
       "import": {
         "types": "./dist/index.d.mts",
@@ -61,7 +66,18 @@
         "types": "./dist/react/index.d.ts",
         "default": "./dist/react/index.js"
       }
-    }
+    },
+    "./utils": {
+      "import": {
+        "types": "./dist/utils/index.d.mts",
+        "default": "./dist/utils/index.mjs"
+      },
+      "require": {
+        "types": "./dist/utils/index.d.ts",
+        "default": "./dist/utils/index.js"
+      }
+    },
+    "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
   "devDependencies": {

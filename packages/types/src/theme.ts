@@ -62,7 +62,6 @@ export interface Appearance {
 }
 
 
-
 /**
  * Base UI configuration shared between SignIn and SignUp
  */

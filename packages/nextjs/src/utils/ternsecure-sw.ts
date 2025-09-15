@@ -1,8 +1,8 @@
 'use client';
 
-import { useEffect } from 'react';
-import type { TernSecureConfig } from '@tern-secure/types';
 import { reg } from '@tern-secure/shared/serviceWorker';
+import type { TernSecureConfig } from '@tern-secure/types';
+import { useEffect } from 'react';
 
 interface TernUIServiceWorkerProps {
     ternSecureConfig?: TernSecureConfig;

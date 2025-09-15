@@ -2,12 +2,15 @@
 
 import { useAuth } from "@tern-secure/nextjs"
 import { useRouter } from "next/navigation"
+import { clearNextSessionCookie } from "./actions";
 
 export default function Home() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
+  const { user, isLoaded, signOut } = useAuth();
 
-  console.log('isAuthenticated:', isAuthenticated);
+  if (!isLoaded) {
+    return <div>Loading...</div>;
+  }
 
   if (!user) return null;
 
@@ -23,13 +26,24 @@ export default function Home() {
     router.push('/protected');
   };
 
+  const createSignOut = async () => {
+    await signOut({
+      redirectUrl: '/dashboard',
+      async onBeforeSignOut() {
+        await clearNextSessionCookie().catch((error) => {
+          console.error('Error clearing session cookie:', error);
+        });
+      },
+    });
+  }
+
 
   return (
     <div>
       <h1>Welcome, {user?.displayName || user?.email}</h1>
-          <button onClick={redirectToMoPage}>
-            Visit Mo Page
-          </button>
+      <button onClick={redirectToMoPage}>
+        Visit Mo Page
+      </button>
 
       <button
         onClick={redirectToDashboard}
@@ -43,6 +57,14 @@ export default function Home() {
       >
         Server Side Page
       </button>
+
+      <button
+        onClick={createSignOut}
+        className="ml-4 bg-red-500 text-white px-4 py-2 rounded"
+      >
+        Sign Out
+      </button>
+
     </div>
   );
 }

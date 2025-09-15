@@ -1,105 +1,86 @@
-'use client'
+'use client';
 
-import React, { useEffect, useState, useMemo, use } from "react"
-import type { 
-  IsoTernSecureAuthOptions
-} from '../types'
-import { IsoTernSecureAuth } from '../lib/isoTernSecureAuth'
-import {
-  DEFAULT_TERN_SECURE_STATE,
-  type TernSecureState
-} from '@tern-secure/types'
-import { 
-  TernSecureAuthCtx,
-} from '@tern-secure/shared/react'
+import { deriveAuthState } from '@tern-secure/shared/derivedAuthState';
+import { type InitialState, type TernSecureResources } from '@tern-secure/types';
+import React, { useEffect, useMemo,useState } from 'react';
 
+import { IsoTernSecureAuth } from '../lib/isoTernSecureAuth';
+import type { IsoTernSecureAuthOptions } from '../types';
+import { AuthProviderCtx } from './AuthProvider';
+import { IsoTernSecureAuthCtx } from './IsomorphicTernSecureCtx';
 
 type TernSecureCtxProviderProps = {
-  children: React.ReactNode
-  instanceOptions: IsoTernSecureAuthOptions
-  initialState: TernSecureState | undefined
-}
+  children: React.ReactNode;
+  instanceOptions: IsoTernSecureAuthOptions;
+  initialState: InitialState | undefined;
+};
 
-export type AuthStateProps = {
-  authState: TernSecureState
-}
-
+export type TernSecureCtxProviderState = TernSecureResources;
 
 export function TernSecureCtxProvider(props: TernSecureCtxProviderProps) {
-  const { 
-    children,
-    initialState, 
-    instanceOptions
-  } = props;
-  
-  
-  const [currentAuthState, setCurrentAuthState] = useState<TernSecureState>(
-    initialState || DEFAULT_TERN_SECURE_STATE
-  );
+  const { children, initialState, instanceOptions } = props;
 
-  const { isoTernSecureAuth: instance, instanceStatus} = useInitTernSecureAuth(instanceOptions);
+  const { isoTernSecureAuth: instance, instanceStatus } = useInitTernSecureAuth(instanceOptions);
 
+  const [authState, setAuthState] = useState<TernSecureCtxProviderState>({
+    user: instance.user,
+  });
 
-  useEffect(() => {
-    const unsubscribe = instance.onAuthStateChanged((user) => {
-      console.log('[TernSecureCtxProvider] - Auth state changed:', user);
-      setCurrentAuthState(instance.internalAuthState);
-    });
-    return () => unsubscribe();
+  React.useEffect(() => {
+    return instance.addListener(e => setAuthState({ ...e }));
   }, []);
 
+  const derivedState = deriveAuthState(authState, initialState);
+  const { token, email, user, userId } = derivedState;
 
-  const ternAuthCtx = useMemo(() => ({
-    value: instance,
-    instanceStatus,
-    internalAuthState: currentAuthState,
-  }), [instance, instanceStatus, currentAuthState]);
+  const authCtx = useMemo(() => {
+    const value = {
+      userId: userId,
+      token: token,
+      email: email,
+      user: user,
+    };
+    return { value };
+  }, [userId, token, email, user]);
 
-  const loadingComponent = useMemo(() => (
-      <div aria-live="polite" aria-busy="true">
-        <span className="sr-only">Loading authentication state...</span>
-      </div>
-  ), [ternAuthCtx]);
-
-
-  if (instanceStatus === 'loading' && !instance.internalAuthState.isLoaded) {
-    return loadingComponent;
-  }
-
-  console.log('[TernSecureCtxProvider] - TernSecureAuth instance initialized:', instance);
-  console.log('[TernSecureCtxProvider] - Auth state:', currentAuthState);
-  console.log('[TernSecureCtxProvider] - Internal status:', instance.internalAuthState);
-
+  const ternAuthCtx = useMemo(
+    () => ({
+      value: instance,
+      instanceStatus,
+    }),
+    [instance, instanceStatus],
+  );
 
   return (
-    <TernSecureAuthCtx.Provider value={ternAuthCtx}>
-      {children}
-    </TernSecureAuthCtx.Provider>
-  )
+    <IsoTernSecureAuthCtx.Provider value={ternAuthCtx}>
+      <AuthProviderCtx.Provider value={authCtx}>{children}</AuthProviderCtx.Provider>
+    </IsoTernSecureAuthCtx.Provider>
+  );
 }
 
-
 const useInitTernSecureAuth = (options: IsoTernSecureAuthOptions) => {
-
   const isoTernSecureAuth = useMemo(() => {
     return IsoTernSecureAuth.getOrCreateInstance(options);
   }, []);
 
-  
-  const [instanceStatus, setInstanceStatus] = useState(isoTernSecureAuth.status)
-
+  const [instanceStatus, setInstanceStatus] = useState(isoTernSecureAuth.status);
 
   useEffect(() => {
-    const unsubscribeStatus = isoTernSecureAuth.events.onStatusChanged((newStatus) => {
-      setInstanceStatus(newStatus);
-      console.warn('[useInitTernSecureAuth] Status changed:', newStatus);
-    });
+    void isoTernSecureAuth.on('status', setInstanceStatus);
+    console.warn('[useInitTernSecureAuth] Status changed:', instanceStatus);
 
-    return () => unsubscribeStatus();
+    return () => isoTernSecureAuth.off('status', setInstanceStatus);
   }, [isoTernSecureAuth]);
 
   useEffect(() => {
-    isoTernSecureAuth.initialize()
+    const un = isoTernSecureAuth.addListener(event => {
+      console.warn('[useInitTernSecureAuth] Event received:', event);
+    });
+    return () => un();
+  }, [isoTernSecureAuth]);
+
+  useEffect(() => {
+    isoTernSecureAuth.initialize();
   }, [isoTernSecureAuth]);
 
   useEffect(() => {
@@ -110,6 +91,6 @@ const useInitTernSecureAuth = (options: IsoTernSecureAuthOptions) => {
 
   return {
     isoTernSecureAuth,
-    instanceStatus
+    instanceStatus,
   };
-}
+};

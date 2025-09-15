@@ -1,5 +1,6 @@
-import { TernSecureTenantManager } from "../utils/admin-init";
 import type { SignInResponse } from '@tern-secure/types';
+
+import { TernSecureTenantManager } from "../utils/admin-init";
 
 
 export async function createTenant(

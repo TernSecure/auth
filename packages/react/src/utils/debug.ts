@@ -1,8 +1,8 @@
-import { TernSecureUser } from '@tern-secure/types'
+import type { TernSecureUser } from '@tern-secure/types'
 
 const DEBUG = process.env.NODE_ENV !== 'production'
 
-type LogLevel = 'info' | 'warn' | 'error' | 'debug'
+//type LogLevel = 'info' | 'warn' | 'error' | 'debug'
 
 interface LogContext {
   component: string

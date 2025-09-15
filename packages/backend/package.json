@@ -10,29 +10,76 @@
     "access": "public"
   },
   "files": [
-    "dist"
+    "dist",
+    "admin",
+    "internal",
+    "jwt"
   ],
-  "exports": {
-    ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
+  "imports": {
+    "#crypto": {
+      "edge-light": "./dist/runtime/browser/crypto.mjs",
+      "worker": "./dist/runtime/browser/crypto.mjs",
+      "browser": "./dist/runtime/browser/crypto.mjs",
+      "node": {
+        "require": "./dist/runtime/node/crypto.js",
+        "import": "./dist/runtime/node/crypto.mjs"
+      },
+      "default": "./dist/runtime/browser/crypto.mjs"
     }
   },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      }
+    },
+    "./admin": {
+      "import": {
+        "types": "./dist/admin/index.d.ts",
+        "default": "./dist/admin/index.mjs"
+      },
+      "require": {
+        "types": "./dist/admin/index.d.ts",
+        "default": "./dist/admin/index.js"
+      }
+    },
+    "./jwt": {
+      "import": {
+        "types": "./dist/jwt/index.d.ts",
+        "default": "./dist/jwt/index.mjs"
+      },
+      "require": {
+        "types": "./dist/jwt/index.d.ts",
+        "default": "./dist/jwt/index.js"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "main": "./dist/index.js",
   "scripts": {
     "clean": "rimraf dist",
-    "build": "pnpm clean && tsup && tsc -p tsconfig.add.json",
+    "build": "pnpm clean && tsup",
+    "build:add": "tsc -p tsconfig.add.json",
     "dev": "tsup --watch",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "check-types": "pnpm exec tsc --noEmit"
   },
   "dependencies": {
-    "@tern-secure/types": "workspace:*",
     "@tern-secure/shared": "workspace:*",
-    "tslib": "2.4.1"
+    "@tern-secure/types": "workspace:*",
+    "cookie": "1.0.2",
+    "jose": "^5.10.0",
+    "tslib": "2.4.1",
+    "@upstash/redis": "^1.35.2"
   },
   "devDependencies": {
+    "@types/js-cookie": "^3.0.6",
     "firebase-admin": "^12.7.0",
-    "jose": "^5.0.0",
     "next": "15.3.2"
   },
   "peerDependencies": {

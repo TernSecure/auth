@@ -3,5 +3,7 @@
     {
       "mode": "auto"
     }
-  ]
+  ],
+  "chat.agent.maxRequests": 100,
+  "chat.tools.autoApprove": true
 }

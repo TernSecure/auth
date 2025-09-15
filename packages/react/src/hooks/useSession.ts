@@ -1,15 +1,20 @@
 'use client'
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
 import { 
   useTernSecureAuthCtx
 } from '@tern-secure/shared/react'
-//import { useAuthProviderCtx } from '../ctx/AuthProvider'
+import { 
+  useCallback,
+  useEffect,
+  useMemo, 
+  useState} from 'react'
+
 import { useAssertWrappedByTernSecureAuthProvider } from './useAssertWrappedTernSecureProvider'
+import { useAuth } from './useAuth'
 
 interface SessionData {
   accessToken: string | null
-  expirationTime: string | null // Use string to handle potential null values
+  expirationTime: string | null
   error: Error | null
   isLoading: boolean
 }
@@ -17,17 +22,17 @@ interface SessionData {
 type SessionStatus = 'active' | 'expired' | 'refreshing' | 'inactive'
 
 export function useSession() {
-  const ternSecureAuthCtx = useTernSecureAuthCtx()
+  const instanceCtx = useTernSecureAuthCtx()
 
   useAssertWrappedByTernSecureAuthProvider('useSession')
-
-  const instance = ternSecureAuthCtx
-  const user = instance.internalAuthState.user
+  
+  const { user, token } = useAuth()
+  const instance = instanceCtx
   const session = instance.currentSession
 
   const [sessionData, setSessionData] = useState<SessionData>({
-    accessToken: ternSecureAuthCtx.internalAuthState.token || null, // Use session token if available
-    expirationTime: session?.expirationTime || null, // Default to a future time for initial state
+    accessToken: token || null,
+    expirationTime: session?.expirationTime|| null, 
     error: null,
     isLoading: true
   })
@@ -41,11 +46,9 @@ export function useSession() {
   }, [sessionData])
 
   const refreshSession = useCallback(async () => {
-
-
     try {
       setSessionData(prev => ({ ...prev, isLoading: true }))
-      if (!ternSecureAuthCtx.internalAuthState.isAuthenticated) throw new Error('No authenticated user')
+      //if (!isAuthenticated) throw new Error('No authenticated user')
 
       const token = await user?.getIdToken()
       if (!token) throw new Error('Failed to get ID token')

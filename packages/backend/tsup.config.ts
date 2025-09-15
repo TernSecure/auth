@@ -1,20 +1,17 @@
-import { defineConfig } from 'tsup';
-import type { Options } from 'tsup';
+import type { Options } from "tsup";
+import { defineConfig } from "tsup";
 
-import { name, version } from './package.json';
+import { runAfterLast } from '../../scripts/utils';
+import { name, version } from "./package.json";
 
 const config: Options = {
-  entry: ['./src/**/*.{ts,tsx,js,jsx}'],
-  bundle: false,
+  entry: ['src/index.ts', 'src/admin/index.ts', 'src/jwt/index.ts'],
+  onSuccess: `cpy 'src/runtime/**/*.{mjs,js,cjs}' dist/runtime`,
+  bundle: true,
   sourcemap: true,
   clean: true,
   minify: false,
-  legacyOutput: true,
-  external: [
-    'react',
-    'react-dom',
-    'firebase-admin'
-  ],
+  external: ['#crypto', 'next', 'firebase-admin'],
   define: {
     PACKAGE_NAME: `"${name}"`,
     PACKAGE_VERSION: `"${version}"`,
@@ -23,13 +20,14 @@ const config: Options = {
 
 const esmConfig: Options = {
   ...config,
-  format: 'esm'
+  format: "esm",
 };
 
 const cjsConfig: Options = {
   ...config,
-  format: 'cjs', 
-  outDir: './dist/cjs'
+  format: "cjs",
 };
 
-export default defineConfig([esmConfig, cjsConfig]);
+export default defineConfig(() => {
+  return runAfterLast(['pnpm build:add'])(esmConfig, cjsConfig);
+});

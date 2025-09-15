@@ -1,6 +1,6 @@
 //v2: redict with taking priority from the sign-in page
 
-import { isInternalRoute, isAuthRoute } from "../route-handler/internal-route"
+import { isAuthRoute,isInternalRoute } from "../route-handler/internal-route"
 
 /**
  * Constructs a full URL with the current origin

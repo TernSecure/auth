@@ -1,6 +1,6 @@
 {
   "name": "@tern-secure/auth",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TernSecure/typescript.git",
@@ -19,23 +19,30 @@
       "types": "./dist/types/index.d.ts",
       "import": "./dist/esm/index.js",
       "require": "./dist/cjs/index.js"
-    }
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "clean": "rimraf dist",
-    "build": "pnpm clean && tsup && tsc -p tsconfig.add.json",
+    "build": "pnpm clean && tsup",
+    "build:add": "tsc -p tsconfig.add.json",
     "dev": "tsup --watch",
-    "lint": "eslint src"
+    "lint": "eslint src",
+    "check-types": "pnpm exec tsc --noEmit"
   },
   "dependencies": {
-    "@tern-secure/types": "workspace:*",
     "@tern-secure/shared": "workspace:*",
+    "@tern-secure/types": "workspace:*",
+    "server-only": "^0.0.1",
     "tslib": "2.4.1"
   },
   "devDependencies": {
-    "firebase": "^11.0.0",
-    "jose": "^5.0.0",
+    "firebase": "^12.0.0",
+    "jose": "^5.10.0",
     "next": "15.3.2"
+  },
+  "peerDependencies": {
+    "firebase": "^11.0.0"
   },
   "engines": {
     "node": ">=20"

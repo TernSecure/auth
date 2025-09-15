@@ -30,15 +30,15 @@ const getServiceWorkerUrl = (options: ServiceWorkerOptions): string => {
 };
 
 export const reg = (opt: ServiceWorkerOptions) => {
-    const { firebaseConfig } = opt;
-    if ("serviceWorker" in navigator) {
-        const serializedFirebaseConfig = encodeURIComponent(JSON.stringify(firebaseConfig));
-        const serviceWorkerUrl = getServiceWorkerUrl(opt);
-        
-        navigator.serviceWorker
-          .register(serviceWorkerUrl)
-          .then((registration) => console.log("scope is: ", registration.scope));
-        }
+  const { firebaseConfig } = opt;
+  if ("serviceWorker" in navigator) {
+    encodeURIComponent(JSON.stringify(firebaseConfig));
+    const serviceWorkerUrl = getServiceWorkerUrl(opt);
+    
+    navigator.serviceWorker
+    .register(serviceWorkerUrl)
+    .then((registration) => console.log("scope is: ", registration.scope));
+  }
 }
 
 export const registerServiceWorker = async (options: ServiceWorkerOptions): Promise<ServiceWorkerRegistration | null> => {
