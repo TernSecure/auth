@@ -1,18 +1,19 @@
-import { notFound, redirect } from 'next/navigation';
-import type { BaseUser, RequestLike } from '../../server/types';
+import type { AuthObject } from '@tern-secure/backend';
 import {
   AuthStatus,
-  signedOutAuthObject,
-  signedInAuthObject,
   createTernSecureRequest,
+  signedInAuthObject,
+  signedOutAuthObject,
 } from '@tern-secure/backend';
-import type { AuthObject } from '@tern-secure/backend';
 import { ternDecodeJwt } from '@tern-secure/backend/jwt';
-import { createRedirect, type RedirectFun } from '../../server/redirect';
-import { createProtect, type AuthProtect } from '../../server/protect';
-import { buildRequestLike } from './utils';
-import { getAuthKeyFromRequest } from '../../server/headers-utils';
+import { notFound, redirect } from 'next/navigation';
+
 import { SIGN_IN_URL, SIGN_UP_URL } from '../../server/constant';
+import { getAuthKeyFromRequest } from '../../server/headers-utils';
+import { type AuthProtect,createProtect } from '../../server/protect';
+import { createRedirect, type RedirectFun } from '../../server/redirect';
+import type { BaseUser, RequestLike } from '../../server/types';
+import { buildRequestLike } from './utils';
 
 export interface AuthResult {
   user: BaseUser | null;

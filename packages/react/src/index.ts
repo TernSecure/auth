@@ -28,6 +28,5 @@ export type {
     TernSecureProviderProps,
 } from './types'
 
-export { TernSecureServer} from './server/server'
 export type  { TernServerAuthOptions, AuthenticatedApp } from './server/server'
 

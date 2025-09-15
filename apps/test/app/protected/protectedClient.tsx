@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
 import type { BaseUser } from "@tern-secure/nextjs/server";
+import { useRouter } from "next/navigation";
 
 interface ProtectedPageClientProps {
   user: BaseUser;

@@ -1,10 +1,36 @@
 {
-    "$schema": "https://turborepo.com/schema.json",
-    "ui": "tui",
-    "tasks": {
-      "build": {
-        "dependsOn": ["^build"],
-        "inputs": [
+  "$schema": "https://turborepo.com/schema.json",
+  "ui": "tui",
+  "globalDependencies": [
+    ".npmrc",
+    "eslint.config.mjs",
+    "package.json",
+    "pnpm-lock.yaml",
+    "pnpm-workspace.yaml",
+    "tsconfig.json",
+    "tsconfig.*.json"
+  ],
+  "globalEnv": [
+    "NODE_ENV",
+    "FIREBASE_AUTH_EMULATOR_HOST",
+    "FIREBASE_PROJECT_ID",
+    "FIREBASE_CLIENT_EMAIL",
+    "FIREBASE_PRIVATE_KEY",
+    "FIREBASE_SERVER_API_KEY",
+    "GOOGLE_CLIENT_ID",
+    "KV_REST_API_URL",
+    "KV_REST_API_TOKEN",
+    "REDIS_KEY_PREFIX",
+    "TERN_UI_HOST",
+    "TERN_UI_PORT",
+    "TERNSECURE_API_URL",
+    "TERNSECURE_API_VERSION",
+    "TERN_ENCRYPTION_KEY"
+  ],
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "inputs": [
         "*.d.ts",
         "src/**",
         "tsconfig.json",
@@ -13,18 +39,15 @@
         "!dist/**",
         "!node_modules/**"
       ],
-        "outputs": [
-          "dist/**",
-          "*/package.json"
-        ]
-      },
-      "dev": {
-        "cache": false,
-        "persistent": true
-      },
-      "lint": {
-        "dependsOn": ["^build"],
-        "inputs": [
+      "outputs": ["dist/**", "*/package.json"]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    },
+    "lint": {
+      "dependsOn": ["^build"],
+      "inputs": [
         "**/*.js",
         "**/*.jsx",
         "**/*.ts",
@@ -33,13 +56,14 @@
         "**/*.md",
         "**/*.mdx",
         ".github/**",
+        "!apps",
         "!*/package.json",
         "!CHANGELOG.md",
         "!dist/**",
         "!examples/**",
         "!node_modules/**"
       ],
-        "outputs": []
-      }
+      "outputs": []
     }
   }
+}

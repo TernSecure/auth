@@ -1,4 +1,4 @@
-import { ErrorCode} from "./errors";
+import type { ErrorCode} from "./errors";
 
 export type SignInStatus =
   | 'idle'

@@ -1,7 +1,7 @@
-import { 
-    TernSecureUser,
-    TernSecureResources,
+import type { 
     InitialState,
+    TernSecureResources,
+    TernSecureUser,
 } from "@tern-secure/types";
 
 

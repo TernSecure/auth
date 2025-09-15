@@ -1,5 +1,5 @@
-import type { DisabledUserAdapter, DisabledUserRecord, PostgresConfig } from "./types";
 import { authLogger } from "../utils/logger";
+import type { DisabledUserAdapter, DisabledUserRecord, PostgresConfig } from "./types";
 
 export class PostgresAdapter implements DisabledUserAdapter {
   private config: PostgresConfig;

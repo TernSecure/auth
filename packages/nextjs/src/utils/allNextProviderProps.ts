@@ -1,8 +1,8 @@
-import type { TernSecureNextProps } from "../types";
 import type { 
-  TernSecureProviderProps, 
-  IsoTernSecureAuthOptions
-} from "@tern-secure/react";
+  IsoTernSecureAuthOptions,
+  TernSecureProviderProps} from "@tern-secure/react";
+
+import type { TernSecureNextProps } from "../types";
 
 // Helper type for the return value, as children are handled by the consuming component
 type NextProviderProcessedProps = Omit<TernSecureProviderProps, 'children'>;

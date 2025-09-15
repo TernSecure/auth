@@ -1,9 +1,10 @@
 import type { DecodedIdToken, TernSecureConfig } from '@tern-secure/types';
+
 import type { JwtReturnType } from '../jwt/types';
 import { ternDecodeJwt, verifyJwt, type VerifyJwtOptions } from '../jwt/verifyJwt';
 import { TokenVerificationError, TokenVerificationErrorReason } from '../utils/errors';
-import { loadJWKFromRemote } from './keys';
 import type { LoadJWKFromRemoteOptions } from './keys';
+import { loadJWKFromRemote } from './keys';
 
 export type VerifyTokenVOptions = Omit<VerifyJwtOptions, 'key'> & Omit<LoadJWKFromRemoteOptions, 'kid'> & {
   jwtKey?: string;

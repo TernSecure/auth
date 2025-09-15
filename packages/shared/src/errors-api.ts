@@ -70,7 +70,7 @@ export class TernSecureAPIResponseError extends Error {
   }
 
   public toString = () => {
-    let message = `[${this.name}]\nMessage:${this.message}\nStatus:${this.status}\nSerialized errors: ${this.errors.map(
+    const message = `[${this.name}]\nMessage:${this.message}\nStatus:${this.status}\nSerialized errors: ${this.errors.map(
       e => JSON.stringify(e),
     )}`;
 

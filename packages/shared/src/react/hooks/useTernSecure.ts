@@ -1,10 +1,11 @@
 import type { 
     TernSecureInstanceTree
 } from "@tern-secure/types";
+
 import { 
     useAssertWrappedByTernSecureProvider, 
     useTernSecureInstanceContext 
-} from "../ternsecureProvider";
+} from "../ternSecureProvider";
 
 export const useTernSecure = (): TernSecureInstanceTree => {
     /**

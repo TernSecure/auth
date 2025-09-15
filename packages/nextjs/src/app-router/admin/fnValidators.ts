@@ -1,14 +1,15 @@
 import { type NextRequest, NextResponse } from 'next/server';
-import type {
-  CorsOptions,
-  SecurityOptions,
-  AuthEndpoint,
-  SessionSubEndpoint,
-  EndpointConfig,
-  ValidationConfig,
-  ComprehensiveValidationResult,
-} from './types';
+
 import { createApiErrorResponse } from './responses';
+import type {
+  AuthEndpoint,
+  ComprehensiveValidationResult,
+  CorsOptions,
+  EndpointConfig,
+  SecurityOptions,
+  SessionSubEndpoint,
+  ValidationConfig,
+} from './types';
 
 export interface RequestContext {
   request: NextRequest;

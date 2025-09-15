@@ -1,6 +1,6 @@
 import type { CheckRevokedOptions } from '../adapters';
 import type { ApiClient } from '../api';
-import type { VerifyTokenVOptions, TernSecureConfig } from './verify';
+import type { TernSecureConfig,VerifyTokenVOptions } from './verify';
 
 export type SessionCookieAttributes = {
   path?: string;

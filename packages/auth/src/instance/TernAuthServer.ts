@@ -1,10 +1,12 @@
-import {
-  initializeServerApp,
-  FirebaseServerApp,
-  FirebaseServerAppSettings,
-} from "firebase/app";
-import { Auth, getAuth, getIdToken } from "firebase/auth";
 import type { TernSecureConfig, TernSecureUser } from "@tern-secure/types";
+import type {
+  FirebaseServerApp,
+  FirebaseServerAppSettings} from "firebase/app";
+import {
+  initializeServerApp
+} from "firebase/app";
+import type { Auth} from "firebase/auth";
+import { getAuth, getIdToken } from "firebase/auth";
 
 type TernSecureServerConfig = {
   apiKey: string;
@@ -58,8 +60,8 @@ export class TernServerAuth {
   getAuthenticatedAppFromHeaders = async (headers: {
     get: (key: string) => string | null;
   }): Promise<AuthenticatedApp> => {
-    let authHeader = headers.get("Authorization");
-    let idToken = authHeader?.split("Bearer ")[1];
+    const authHeader = headers.get("Authorization");
+    const idToken = authHeader?.split("Bearer ")[1];
 
     let appSettings: FirebaseServerAppSettings = {};
 

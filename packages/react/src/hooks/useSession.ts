@@ -1,16 +1,15 @@
 'use client'
 
 import { 
-  useState,
-  useEffect,
-  useCallback,
-  useMemo 
-} from 'react'
-import { 
   useTernSecureAuthCtx
 } from '@tern-secure/shared/react'
+import { 
+  useCallback,
+  useEffect,
+  useMemo, 
+  useState} from 'react'
+
 import { useAssertWrappedByTernSecureAuthProvider } from './useAssertWrappedTernSecureProvider'
-import { useAuthProviderCtx } from '../ctx/AuthProvider'
 import { useAuth } from './useAuth'
 
 interface SessionData {
@@ -23,12 +22,11 @@ interface SessionData {
 type SessionStatus = 'active' | 'expired' | 'refreshing' | 'inactive'
 
 export function useSession() {
-  const ctx = useAuthProviderCtx()
   const instanceCtx = useTernSecureAuthCtx()
 
   useAssertWrappedByTernSecureAuthProvider('useSession')
   
-  const { user, token, isAuthenticated } = useAuth()
+  const { user, token } = useAuth()
   const instance = instanceCtx
   const session = instance.currentSession
 

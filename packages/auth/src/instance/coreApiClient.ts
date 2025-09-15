@@ -1,6 +1,6 @@
-import type { TernSecureAPIError, TernSecureApiErrorJSON } from '@tern-secure/types';
+import type { TernSecureApiErrorJSON } from '@tern-secure/types';
 
-import { stringifyQueryParams, buildURL as buildUrlUtil } from '../utils';
+import { buildURL as buildUrlUtil,stringifyQueryParams } from '../utils';
 
 export type HTTPMethod =
   | 'CONNECT'

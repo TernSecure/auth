@@ -1,9 +1,10 @@
-import { TernSecureAuth, AuthCookieManager } from './internal';
-import { coreApiClient } from '../instance/coreApiClient';
-import type { ApiRequestInit, ApiResponse, ApiResponseJSON } from '../instance/coreApiClient';
-import type { TernSecureApiErrorJSON } from '@tern-secure/types';
 import { isValidBrowserOnline } from '@tern-secure/shared/browser';
+import type { TernSecureApiErrorJSON } from '@tern-secure/types';
+
+import type { ApiRequestInit, ApiResponse, ApiResponseJSON } from '../instance/coreApiClient';
+import { coreApiClient } from '../instance/coreApiClient';
 import { TernSecureAPIResponseError } from './Error';
+import type { AuthCookieManager,TernSecureAuth } from './internal';
 
 export type HTTPMethod =
   | 'CONNECT'

@@ -1,9 +1,10 @@
 import { type RemoteJWKSetOptions } from 'jose';
+
 import {
-  SESSION_COOKIE_PUBLIC_KEYS_URL,
-  MAX_CACHE_LAST_UPDATED_AT_SECONDS,
-  DEFAULT_CACHE_DURATION,
   CACHE_CONTROL_REGEX,
+  DEFAULT_CACHE_DURATION,
+  MAX_CACHE_LAST_UPDATED_AT_SECONDS,
+  SESSION_COOKIE_PUBLIC_KEYS_URL,
 } from '../constants';
 import { TokenVerificationError, TokenVerificationErrorReason } from '../utils/errors';
 
@@ -112,11 +113,10 @@ function isCacheExpired() {
 }
 
 function getExpiresAt(res: Response) {
-  if (!res.headers.has('cache-control')) {
+  const cacheControlHeader = res.headers.get('cache-control');
+  if (!cacheControlHeader) {
     return Date.now() + DEFAULT_CACHE_DURATION;
   }
-
-  const cacheControlHeader = res.headers.get('cache-control')!;
   const maxAgeMatch = cacheControlHeader.match(CACHE_CONTROL_REGEX);
   const maxAge = maxAgeMatch ? parseInt(maxAgeMatch[1], 10) : DEFAULT_CACHE_DURATION / 1000;
 

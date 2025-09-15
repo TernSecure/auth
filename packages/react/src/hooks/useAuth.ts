@@ -1,11 +1,12 @@
 "use client";
 
+import type { SignOut, SignOutOptions, UseAuthReturn } from "@tern-secure/types";
 import { useCallback } from "react";
-import { useAssertWrappedByTernSecureAuthProvider } from "./useAssertWrappedTernSecureProvider";
-import { SignOut, SignOutOptions, UseAuthReturn } from "@tern-secure/types";
+
 import { useAuthProviderCtx } from "../ctx/AuthProvider";
 import { useIsoTernSecureAuthCtx } from "../ctx/IsomorphicTernSecureCtx";
-import { IsoTernSecureAuth } from "../lib/isoTernSecureAuth";
+import type { IsoTernSecureAuth } from "../lib/isoTernSecureAuth";
+import { useAssertWrappedByTernSecureAuthProvider } from "./useAssertWrappedTernSecureProvider";
 
 const handleSignOut = (instance: IsoTernSecureAuth) => {
   return async (options?: SignOutOptions) => {

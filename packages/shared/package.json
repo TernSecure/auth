@@ -36,7 +36,6 @@
     "utils"
   ],
   "exports": {
-    "./package.json": "./package.json",
     ".": {
       "import": {
         "types": "./dist/index.d.mts",
@@ -76,7 +75,8 @@
         "types": "./dist/utils/index.d.ts",
         "default": "./dist/utils/index.js"
       }
-    }
+    },
+    "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
   "devDependencies": {

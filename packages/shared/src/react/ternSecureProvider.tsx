@@ -1,11 +1,12 @@
 'use client'
 
-import { useContext } from 'react';
 import type { 
   TernSecureAuthProvider,
   TernSecureInstanceTree,
   TernSecureState,
 } from '@tern-secure/types';
+import { useContext } from 'react';
+
 import { createContextAndHook } from './ternsecureCtx';
 
 export type TernSecureAuthContextType = {

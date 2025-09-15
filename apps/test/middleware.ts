@@ -11,7 +11,7 @@ export const config = {
 
 export default ternSecureMiddleware(
   async (auth, request) => {
-    const url = new URL('/unauthorized', request.url);
+    //const url = new URL('/unauthorized', request.url);
     if (!publicPaths(request)) {
       await auth.protect()
     }

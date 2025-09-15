@@ -1,17 +1,18 @@
-import type {
-  DomainOrProxyUrl,
-  TernSecureAuth,
-  SignOutOptions,
-  SignedInSession,
-  SignInResource,
-  SignUpResource,
-  TernSecureAuthStatus,
-  ListenerCallback,
-  UnsubscribeCallback,
-} from '@tern-secure/types';
+import { TernSecureAuth as TernSecureAuthImpl } from '@tern-secure/auth';
 import { createTernAuthEventBus, ternEvents } from '@tern-secure/shared/ternStatusEvent';
 import { handleValueOrFn } from '@tern-secure/shared/utils';
-import { TernSecureAuth as TernSecureAuthImpl } from '@tern-secure/auth';
+import type {
+  DomainOrProxyUrl,
+  ListenerCallback,
+  SignedInSession,
+  SignInResource,
+  SignOutOptions,
+  SignUpResource,
+  TernSecureAuth,
+  TernSecureAuthStatus,
+  UnsubscribeCallback,
+} from '@tern-secure/types';
+
 import type { IsoTernSecureAuthOptions, TernSecureAuthProps } from '../types';
 
 const SDK_METADATA = {
@@ -252,7 +253,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
 
   #awaitForTernSecureAuth(): Promise<TernSecureAuthProps> {
     return new Promise<TernSecureAuthProps>(resolve => {
-      resolve(this.ternauth!);
+      resolve(this.ternauth);
     });
   }
 

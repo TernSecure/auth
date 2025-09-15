@@ -1,20 +1,20 @@
+import {createTernSecureRequest,  type TernSecureRequest } from "@tern-secure/backend";
 import {
   createBackendInstance,
 } from "@tern-secure/backend/admin";
-import {createTernSecureRequest,  type TernSecureRequest } from "@tern-secure/backend";
+import type { NextMiddleware,NextRequest } from "next/server";
+import {NextResponse } from "next/server";
+
 import { SIGN_IN_URL, SIGN_UP_URL } from "../constant";
-import type { NextRequest } from "next/server";
-import { NextResponse, NextMiddleware } from "next/server";
-import type { BaseUser } from "../types";
 import {
   isNextjsNotFoundError,
-  redirectToSignInError,
-  redirectToSignUpError,
   isRedirectToSignInError,
   isRedirectToSignUpError,
+  redirectToSignInError,
+  redirectToSignUpError,
 } from "../nextErrors";
 import { createRedirect } from "../redirect";
-import type {
+import type { BaseUser ,
   NextMiddlewareEvtParam,
   NextMiddlewareRequestParam,
   NextMiddlewareReturn,
@@ -171,7 +171,7 @@ export const ternSecureMiddleware = ((
                 "redirect",
                 request.nextUrl.pathname
               );
-              throw NextResponse.redirect(redirectUrl);
+              redirectToSignInError(redirectUrl.toString());
             }
           };
 

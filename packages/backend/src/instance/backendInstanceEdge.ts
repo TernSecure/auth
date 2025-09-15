@@ -1,11 +1,11 @@
-import {
+import type { ApiClient,CreateBackendApiOptions} from "../api";
+import { createBackendApi } from "../api";
+import type { RequestState } from "../tokens/authstate";
+import type { CreateAuthenticateRequestOptions } from "../tokens/request";
+import { createAuthenticateRequest } from "../tokens/request";
+import type {
   TernSecureRequest,
 } from "../tokens/ternSecureRequest";
-import type { RequestState } from "../tokens/authstate";
-import { createAuthenticateRequest } from "../tokens/request";
-import type { CreateAuthenticateRequestOptions } from "../tokens/request";
-import { createBackendApi } from "../api";
-import type { CreateBackendApiOptions, ApiClient} from "../api";
 
 export type TernSecureBackendOptions = CreateBackendApiOptions & CreateAuthenticateRequestOptions['options']
 

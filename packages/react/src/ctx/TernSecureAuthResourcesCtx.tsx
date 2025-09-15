@@ -3,7 +3,6 @@ import {
     TernSecureAuthCtx,
     useTernSecureAuthCtx
  } from "@tern-secure/shared/react"
-
 import type {
     SignInResource,
     SignUpResource,

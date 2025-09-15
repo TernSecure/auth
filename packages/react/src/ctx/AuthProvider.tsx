@@ -1,9 +1,9 @@
 import { createContextAndHook } from "@tern-secure/shared/react";
-import { TernSecureUser } from "@tern-secure/types";
+import type { TernSecureUser } from "@tern-secure/types";
 
 export type AuthProviderCtxValue = {
   userId: string | null | undefined;
-  token: any | null;
+  token: string | null;
   email: string | null;
   user?: TernSecureUser | null;
 };

@@ -1,10 +1,11 @@
 import { Redis } from "@upstash/redis";
+
+import { authLogger } from "../utils/logger";
 import type {
   DisabledUserAdapter,
   DisabledUserRecord,
   RedisConfig,
 } from "./types";
-import { authLogger } from "../utils/logger";
 
 interface CacheEntry<T> {
   value: T;

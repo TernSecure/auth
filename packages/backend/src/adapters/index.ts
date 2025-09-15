@@ -1,6 +1,6 @@
-import { RedisAdapter } from "./RedisAdapter";
 import { PostgresAdapter } from "./PostgresAdapter";
-import type { DisabledUserAdapter, AdapterConfiguration } from "./types";
+import { RedisAdapter } from "./RedisAdapter";
+import type { AdapterConfiguration,DisabledUserAdapter } from "./types";
 
 export function createAdapter(
   config: AdapterConfiguration

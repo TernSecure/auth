@@ -1,7 +1,8 @@
 import { parse } from "cookie";
+
+import { constants } from "../constants";
 import type { TernUrl } from "./ternUrl";
 import { createTernUrl } from "./ternUrl";
-import { constants } from "../constants";
 
 class TernSecureRequest extends Request {
   readonly ternUrl: TernUrl;

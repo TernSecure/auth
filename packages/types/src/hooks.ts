@@ -1,6 +1,6 @@
-import { SignInResource } from "./signIn";
-import { SignOut } from './auth'
-import { TernSecureUser } from "./all";
+import type { TernSecureUser } from "./all";
+import type { SignOut } from './auth'
+import type { SignInResource } from "./signIn";
 
 export type UseAuthReturn = {
     userId: string | null | undefined

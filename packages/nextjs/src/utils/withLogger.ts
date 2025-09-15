@@ -1,5 +1,6 @@
 import type { NextMiddleware } from "next/server"
-import { middlewareLogger, LogLevel } from "./logger"
+
+import { LogLevel,middlewareLogger } from "./logger"
 
 export interface WithLoggerOptions {
   debug?: boolean

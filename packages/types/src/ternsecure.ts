@@ -1,7 +1,7 @@
-import { 
+import type { 
     TernSecureUser 
 } from './all';
-import { Appearance } from './theme';
+import type { Appearance } from './theme';
 
 export interface TernSecureSession {
   token: string | null;

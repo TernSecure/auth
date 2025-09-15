@@ -1,42 +1,39 @@
-import { notFound as nextjsNotFound } from 'next/navigation';
+import type {
+  AuthObject,
+  RequestOptions,
+  TernSecureRequest,
+} from '@tern-secure/backend';
 import {
   constants,
-  createTernSecureRequest,
-  createBackendInstanceClient,
   createFireClient,
-  enableDebugLogging,
-  validateCheckRevokedOptions,
+  createTernSecureRequest,
 } from '@tern-secure/backend';
 import type {
-  TernSecureRequest,
-  AuthObject,
-  CheckRevokedOptions,
-  RequestOptions,
-} from '@tern-secure/backend';
-import { SIGN_IN_URL, SIGN_UP_URL, API_URL, API_VERSION } from './constant';
-import { NextRequest } from 'next/server';
-import { NextResponse, NextMiddleware } from 'next/server';
+  TernSecureConfig,
+} from '@tern-secure/types';
+import { notFound as nextjsNotFound } from 'next/navigation';
+import type { NextMiddleware,NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+
+import { isRedirect, setHeader } from '../utils/response';
+import { serverRedirectWithAuth } from '../utils/serverRedirectAuth';
+import { API_URL, API_VERSION,SIGN_IN_URL, SIGN_UP_URL } from './constant';
 import {
   isNextjsNotFoundError,
+  isNextjsRedirectError,
+  isRedirectToSignInError,
+  isRedirectToSignUpError,
   nextjsRedirectError,
   redirectToSignInError,
   redirectToSignUpError,
-  isRedirectToSignInError,
-  isRedirectToSignUpError,
-  isNextjsRedirectError,
 } from './nextErrors';
+import { type AuthProtect,createProtect } from './protect';
 import { createRedirect, type RedirectFun } from './redirect';
-import { isRedirect, setHeader } from '../utils/response';
-import { serverRedirectWithAuth } from '../utils/serverRedirectAuth';
 import type {
   NextMiddlewareEvtParam,
   NextMiddlewareRequestParam,
   NextMiddlewareReturn,
 } from './types';
-import { createProtect, type AuthProtect } from './protect';
-import type {
-  TernSecureConfig,
-} from '@tern-secure/types';
 import { decorateRequest } from './utils';
 
 export type MiddlewareAuthObject = AuthObject & {

@@ -1,8 +1,8 @@
-import {
-  constants
-} from "@tern-secure/backend";
 import type {
   TernSecureRequest,
+} from "@tern-secure/backend";
+import {
+  constants
 } from "@tern-secure/backend";
 import { NextResponse } from 'next/server';
 

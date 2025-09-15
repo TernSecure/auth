@@ -2,9 +2,10 @@ import type {
   TernSecureAPIError,
   TernSecureApiErrorJSON,
 } from "@tern-secure/types";
-import { joinPaths } from "../utils/path";
-import { runtime } from "../runtime";
+
 import { constants } from "../constants";
+import { runtime } from "../runtime";
+import { joinPaths } from "../utils/path";
 
 export type HTTPMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
 export type BackendApiRequestOptions = {
@@ -50,8 +51,8 @@ export function createRequest(options: CreateRequestOptions) {
 
     if (queryParams) {
       Object.entries(queryParams).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          finalUrl.searchParams.append(key, String(value));
+        if (value) {
+          [value].flat().forEach(v => finalUrl.searchParams.append(key, v as string));
         }
       });
     }

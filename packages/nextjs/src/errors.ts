@@ -1,4 +1,4 @@
-import { SignInResponse } from "@tern-secure/types"
+import type { SignInResponse } from "@tern-secure/types"
 
 export type ErrorCode = keyof typeof ERRORS
 

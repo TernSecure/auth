@@ -1,12 +1,10 @@
-//import { FirebaseOptions } from 'firebase/app'
-//import { User as FirebaseUser } from 'firebase/auth'
 import type {
-  TernSecureInstanceTree,
-  TernSecureInstanceTreeOptions,
-  TernSecureConfig,
-  TernSecureState,
   TernSecureAuth,
   TernSecureAuthOptions,
+  TernSecureConfig,
+  TernSecureInstanceTree,
+  TernSecureInstanceTreeOptions,
+  TernSecureState,
 } from "@tern-secure/types";
 
 declare global {

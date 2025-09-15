@@ -1,20 +1,12 @@
 import type { RequestState } from './authstate';
 import { AuthErrorReason, signedIn, signedOut } from './authstate';
-import { verifyToken } from './verify';
-import type { RequestOptions, AuthenticateFireRequestOptions } from './types';
 import { getSessionConfig } from './sessionConfig';
+import type { AuthenticateFireRequestOptions, RequestOptions } from './types';
+import { verifyToken } from './verify';
 
-type RuntimeOptions = Omit<
-  AuthenticateFireRequestOptions,
-  'firebaseConfig'
->;
+type RuntimeOptions = Omit<AuthenticateFireRequestOptions, 'firebaseConfig'>;
 
-type FirebaseOptions = Partial<
-  Pick<
-    AuthenticateFireRequestOptions,
-    'firebaseConfig'
-  >
->;
+type FirebaseOptions = Partial<Pick<AuthenticateFireRequestOptions, 'firebaseConfig'>>;
 
 const defaultFirebaseOptions = {
   apiKey: '',
@@ -77,42 +69,34 @@ export async function authenticateRequest(
   options: AuthenticateFireRequestOptions,
 ): Promise<RequestState> {
   async function authenticateRequestWithTokenInCookie() {
-    try {
-      const token = extractTokenFromCookie(request, options);
-      if (!token) {
-        return signedOut(AuthErrorReason.SessionTokenMissing);
-      }
-      const { data, errors } = await verifyToken(token, options);
-
-      if (errors) {
-        throw errors[0];
-      }
-
-      const signedInRequestState = signedIn(data, undefined, token);
-      return signedInRequestState;
-    } catch (error) {
-      throw error;
+    const token = extractTokenFromCookie(request, options);
+    if (!token) {
+      return signedOut(AuthErrorReason.SessionTokenMissing);
     }
+    const { data, errors } = await verifyToken(token, options);
+
+    if (errors) {
+      throw errors[0];
+    }
+
+    const signedInRequestState = signedIn(data, undefined, token);
+    return signedInRequestState;
   }
 
   async function authenticateRequestWithTokenInHeader() {
-    try {
-      const token = extractTokenFromHeader(request);
-      if (!token) {
-        return signedOut(AuthErrorReason.SessionTokenMissing);
-      }
-
-      const { data, errors } = await verifyToken(token, options);
-
-      if (errors) {
-        throw errors[0];
-      }
-
-      const signedInRequestState = signedIn(data, undefined, token);
-      return signedInRequestState;
-    } catch (error) {
-      throw error;
+    const token = extractTokenFromHeader(request);
+    if (!token) {
+      return signedOut(AuthErrorReason.SessionTokenMissing);
     }
+
+    const { data, errors } = await verifyToken(token, options);
+
+    if (errors) {
+      throw errors[0];
+    }
+
+    const signedInRequestState = signedIn(data, undefined, token);
+    return signedInRequestState;
   }
 
   if (hasAuthorizationHeader(request)) {

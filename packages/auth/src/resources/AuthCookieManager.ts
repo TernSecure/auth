@@ -1,7 +1,6 @@
 import { 
-  cookieHandler, 
-  type CookieAttributes
-} from '@tern-secure/shared/cookie';
+  type CookieAttributes,
+  cookieHandler} from '@tern-secure/shared/cookie';
 
 const CSRF_COOKIE_NAME = '_session_terncf';
 

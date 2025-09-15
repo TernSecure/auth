@@ -2,7 +2,7 @@
   "name": "@tern-secure/auth",
   "private": true,
   "scripts": {
-    "build": "turbo build",
+    "build": "turbo build --filter=!./apps/test",
     "changeset": "changeset",
     "check-types": "turbo run check-types",
     "clean": "turbo run clean && rm -rf node_modules",
@@ -36,6 +36,7 @@
     "eslint-plugin-import": "2.31.0",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "5.2.0",
+    "eslint-plugin-simple-import-sort": "12.1.1",
     "eslint-plugin-turbo": "2.5.0",
     "eslint-plugin-unused-imports": "4.1.4",
     "globals": "^15.14.0",

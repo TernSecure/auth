@@ -87,7 +87,7 @@ export function buildURL(params: BuildURLParams, options: BuildURLOptions<boolea
 
     // Handle hash-related parameters
     if (hashPath || hashSearch || hashSearchParams) {
-      let finalHashPath = hashPath || '';
+      const finalHashPath = hashPath || '';
       const queryForHash = new URLSearchParams(hashSearch || '');
 
       if (hashSearchParams) {

@@ -1,8 +1,8 @@
 
-import { createFireAuthenticateRequest } from "../tokens/requestFire";
-import type { CreateFireAuthenticateRequestOptions } from "../tokens/requestFire";
+import type { ApiClient,CreateBackendApiOptions} from "../api";
 import { createBackendApi } from "../api";
-import type { CreateBackendApiOptions, ApiClient} from "../api";
+import type { CreateFireAuthenticateRequestOptions } from "../tokens/requestFire";
+import { createFireAuthenticateRequest } from "../tokens/requestFire";
 
 export type TernSecureFireOptions = CreateBackendApiOptions & CreateFireAuthenticateRequestOptions['options']
 

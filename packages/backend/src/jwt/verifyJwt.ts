@@ -1,21 +1,21 @@
+import type { DecodedIdToken, Jwt,JWTPayload } from '@tern-secure/types';
 import {
-  ProtectedHeaderParameters,
-  decodeProtectedHeader,
   decodeJwt,
+  decodeProtectedHeader,
   jwtVerify,
 } from 'jose';
-import { importKey } from './cryptoKeys';
-import type { DecodedIdToken, JWTPayload, Jwt } from '@tern-secure/types';
+
 import { TokenVerificationError, TokenVerificationErrorReason } from '../utils/errors';
-import { base64url } from '../utils/rfc4648';
-import { JwtReturnType } from './types';
-import {
-  verifyHeaderKid,
-  verifySubClaim,
-  verifyExpirationClaim,
-  verifyIssuedAtClaim,
-} from './verifyContent';
 import { mapJwtPayloadToDecodedIdToken } from '../utils/mapDecode';
+import { base64url } from '../utils/rfc4648';
+import { importKey } from './cryptoKeys';
+import type { JwtReturnType } from './types';
+import {
+  verifyExpirationClaim,
+  verifyHeaderKid,
+  verifyIssuedAtClaim,
+  verifySubClaim,
+} from './verifyContent';
 
 const DEFAULT_CLOCK_SKEW_IN_MS = 5 * 1000;
 

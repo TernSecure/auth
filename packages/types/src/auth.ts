@@ -1,13 +1,14 @@
-import { SignedInSession } from "session";
-import type { TernSecureUser, TernSecureConfig, InstanceType } from "./all";
-import type { SignInResource, AuthErrorResponse } from "./signIn";
-import { SignUpResource } from "signUp";
+import type { SignedInSession } from "session";
+import type { SignUpResource } from "signUp";
+
+import type { InstanceType,TernSecureConfig, TernSecureUser } from "./all";
+import type { DecodedIdToken } from "./jwt";
 import type {
   AfterSignOutUrl,
   SignInRedirectUrl,
   SignUpRedirectUrl,
 } from "./redirect";
-import type { DecodedIdToken } from "./jwt";
+import type { AuthErrorResponse,SignInResource } from "./signIn";
 
 export interface InitialState {
   userId: string | null;

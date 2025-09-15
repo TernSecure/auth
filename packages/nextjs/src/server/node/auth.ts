@@ -1,8 +1,9 @@
-import { cache } from "react";
 import { cookies } from "next/headers";
+import { cache } from "react";
+
+import { TernSecureError } from "../../errors";
 import type { BaseUser } from "../../types";
 import { verifyFirebaseToken } from "./SessionTernSecure";
-import { TernSecureError } from "../../errors";
 
 export interface AuthResult {
   user: BaseUser | null;

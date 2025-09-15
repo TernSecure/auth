@@ -1,23 +1,25 @@
-import {
-  SignInResource,
-  SignInStatus,
-  SignInFormValuesTree,
-  SignInResponseTree,
+import { handleFirebaseAuthError } from "@tern-secure/shared/errors";
+import type {
   ResendEmailVerification,
+  SignInFormValuesTree,
+  SignInResource,
+  SignInResponseTree,
+  SignInStatus,
   TernSecureUser,
 } from "@tern-secure/types";
-import { handleFirebaseAuthError } from "@tern-secure/shared/errors";
-import {
+import type {
   Auth,
-  signInWithEmailAndPassword,
-  signInWithRedirect,
-  signInWithPopup,
+  UserCredential} from "firebase/auth";
+import {
   getRedirectResult,
   GoogleAuthProvider,
   OAuthProvider,
   sendEmailVerification,
-  UserCredential,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signInWithRedirect
 } from "firebase/auth";
+
 import { TernSecureBase } from "./Base";
 
 interface ProviderConfig {
@@ -196,7 +198,7 @@ export class SignIn extends TernSecureBase implements SignInResource {
 
   private getProviderConfig(providerName: string): ProviderConfig {
     switch (providerName.toLowerCase()) {
-      case "google":
+      case "google": {
         const googleProvider = new GoogleAuthProvider();
         return {
           provider: googleProvider,
@@ -205,7 +207,8 @@ export class SignIn extends TernSecureBase implements SignInResource {
             prompt: "select_account",
           },
         };
-      case "microsoft":
+      }
+      case "microsoft": {
         const microsoftProvider = new OAuthProvider("microsoft.com");
         return {
           provider: microsoftProvider,
@@ -213,6 +216,7 @@ export class SignIn extends TernSecureBase implements SignInResource {
             prompt: "consent",
           },
         };
+      }
       default:
         throw new Error(`Unsupported provider: ${providerName}`);
     }

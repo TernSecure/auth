@@ -1,11 +1,12 @@
-import { NextResponse, NextRequest } from 'next/server';
-import type { User } from "./types"
-import { constants } from "@tern-secure/backend";
 import type {
-  TernSecureRequest,
   RequestState,
+  TernSecureRequest,
 } from "@tern-secure/backend";
+import { constants } from "@tern-secure/backend";
+import { NextRequest,NextResponse } from 'next/server';
+
 import { constants as nextConstants } from "../constants";
+import type { User } from "./types"
 
 const OVERRIDE_HEADERS = 'x-middleware-override-headers';
 const MIDDLEWARE_HEADER_PREFIX = 'x-middleware-request' as string;

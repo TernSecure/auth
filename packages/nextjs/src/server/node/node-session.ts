@@ -1,7 +1,7 @@
-import { verifyFirebaseToken } from "./SessionTernSecure";
 import type { NextRequest } from "next/server";
+
 import type { SessionResult } from "../types";
-import { redis, type DisabledUserRecord } from "../../utils/redis";
+import { verifyFirebaseToken } from "./SessionTernSecure";
 
 export async function verifySession(
   request: NextRequest

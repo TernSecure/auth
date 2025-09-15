@@ -1,55 +1,54 @@
+import { handleFirebaseAuthError } from '@tern-secure/shared/errors';
 import { createTernAuthEventBus, ternEvents } from '@tern-secure/shared/ternStatusEvent';
+import { stripScheme } from '@tern-secure/shared/url';
+import { handleValueOrFn } from '@tern-secure/shared/utils';
 import type {
   DomainOrProxyUrl,
   InstanceType,
-  TernSecureAuth as TernSecureAuthInterface,
-  TernSecureAuthOptions,
-  TernSecureUser,
-  TernSecureSDK,
-  SignInResponseTree,
-  SignedInSession,
-  TernSecureConfig,
-  TernSecureAuthStatus,
-  SignInResource,
-  SignUpResource,
   ListenerCallback,
-  UnsubscribeCallback,
+  RedirectOptions,
+  SignedInSession,
+  SignInRedirectOptions,
+  SignInResource,
+  SignInResponseTree,
   SignOut,
   SignOutOptions,
-  SignInRedirectOptions,
   SignUpRedirectOptions,
+  SignUpResource,
+  TernSecureAuth as TernSecureAuthInterface,
+  TernSecureAuthOptions,
+  TernSecureAuthStatus,
+  TernSecureConfig,
   TernSecureResources,
-  RedirectOptions,
+  TernSecureSDK,
+  TernSecureUser,
+  UnsubscribeCallback,
 } from '@tern-secure/types';
-import { handleFirebaseAuthError } from '@tern-secure/shared/errors';
-import { stripScheme } from '@tern-secure/shared/url';
-import { handleValueOrFn } from '@tern-secure/shared/utils';
+import type { FirebaseApp } from 'firebase/app';
+import { getApps, initializeApp } from 'firebase/app';
+import type { Auth, Auth as TernAuth } from 'firebase/auth';
 import {
-  Auth,
-  browserSessionPersistence,
   browserLocalPersistence,
+  browserSessionPersistence,
   connectAuthEmulator,
-  getAuth,
+  getRedirectResult,
+  initializeAuth,
+  inMemoryPersistence,
   onAuthStateChanged,
   onIdTokenChanged,
-  getRedirectResult,
-  inMemoryPersistence,
-  initializeAuth,
-  setPersistence,
 } from 'firebase/auth';
-import type { Auth as TernAuth } from 'firebase/auth';
 import { browserCookiePersistence } from 'firebase/auth/web-extension';
 import { getInstallations } from 'firebase/installations';
-import { FirebaseApp, initializeApp, getApps } from 'firebase/app';
-import { TernSecureBase, SignIn, SignUp, AuthCookieManager } from '../resources/internal';
-import { eventBus, events } from './events';
+
+import { AuthCookieManager, SignIn, SignUp, TernSecureBase } from '../resources/internal';
 import { buildURL } from '../utils/construct';
+import { eventBus, events } from './events';
 
 export function inBrowser(): boolean {
   return typeof window !== 'undefined';
 }
 
-export { TernAuth }
+export { TernAuth };
 
 /**
  * Firebase implementation of the TernSecureAuth interface
@@ -72,7 +71,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   public error: Error | null = null;
   public user: TernSecureUser | null | undefined = null;
   public __internal_country?: string | null;
-  #proxyUrl: DomainOrProxyUrl['proxyUrl'];
   #domain: DomainOrProxyUrl['domain'];
   #apiUrl!: string;
   #instanceType?: InstanceType;
@@ -209,10 +207,10 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   private initializeFirebaseApp(config: TernSecureConfig) {
     const appName = config.appName || '[DEFAULT]';
     this.firebaseClientApp = getApps().length === 0 ? initializeApp(config, appName) : getApps()[0];
-    
+
     const persistence = this.#setPersistence();
     const auth = initializeAuth(this.firebaseClientApp, {
-      persistence: browserCookiePersistence,
+      persistence,
     });
 
     this.auth = auth;
@@ -392,7 +390,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     const defaultPagePath = key === 'signInUrl' ? '/sign-in' : '/sign-up';
     const base = baseUrlConfig || defaultPagePath;
 
-    let effectiveRedirectUrl: string | null | undefined = undefined;
+    let effectiveRedirectUrl: string | null | undefined;
 
     // Priority 1: Get redirect URL from options (signInForceRedirectUrl or signUpForceRedirectUrl)
     if (key === 'signInUrl' && 'signInForceRedirectUrl' in options) {
@@ -459,11 +457,11 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       // Check if a redirect URL was determined
       if (inBrowser()) {
         const absoluteRedirectUrl = new URL(effectiveRedirectUrl, window.location.origin).href;
-        paramsForBuildUrl.searchParams!.set('redirect', absoluteRedirectUrl);
+        paramsForBuildUrl.searchParams?.set('redirect', absoluteRedirectUrl);
       } else {
         // If not in browser, use the effectiveRedirectUrl as is.
         // This assumes it's either absolute or a path the server can interpret.
-        paramsForBuildUrl.searchParams!.set('redirect', effectiveRedirectUrl);
+        paramsForBuildUrl.searchParams?.set('redirect', effectiveRedirectUrl);
       }
     }
 

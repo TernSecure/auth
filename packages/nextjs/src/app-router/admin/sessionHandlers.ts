@@ -1,15 +1,16 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { createSessionCookie, clearSessionCookie } from '@tern-secure/backend/admin';
-import { RequestOptions } from '@tern-secure/backend';
+import type { RequestOptions } from '@tern-secure/backend';
+import { clearSessionCookie, createSessionCookie } from '@tern-secure/backend/admin';
 import { ternDecodeJwtUnguarded } from '@tern-secure/backend/jwt';
+import type { NextRequest, NextResponse } from 'next/server';
+
 import { NextCookieStore } from '../../utils/NextCookieAdapter';
-import type { SessionSubEndpoint, TernSecureHandlerOptions, TernSecureInternalHandlerConfig} from './types';
-import {
-  createApiErrorResponse,
-  SessionResponseHelper,
-  HttpResponseHelper
-} from './responses';
-import { CsrfValidator, RequestValidator} from './validators' 
+import { createApiErrorResponse, HttpResponseHelper, SessionResponseHelper } from './responses';
+import type {
+  SessionSubEndpoint,
+  TernSecureHandlerOptions,
+  TernSecureInternalHandlerConfig,
+} from './types';
+import { CsrfValidator, RequestValidator } from './validators';
 
 /**
  * Session GET request handlers
@@ -67,7 +68,7 @@ export class SessionPostHandler {
 
     const options = {
       tenantId: _config.tenantId,
-    }
+    };
 
     switch (subEndpoint) {
       case 'createsession':
@@ -84,13 +85,16 @@ export class SessionPostHandler {
   private static async handleCreateSession(
     options: RequestOptions,
     idToken: string | undefined,
-    cookieStore: NextCookieStore
+    cookieStore: NextCookieStore,
   ): Promise<NextResponse> {
     const validationError = RequestValidator.validateIdToken(idToken);
     if (validationError) return validationError;
+    if (!idToken) {
+      return createApiErrorResponse('ID_TOKEN_REQUIRED', 'ID token is required', 400);
+    }
 
     try {
-      const res = await createSessionCookie(idToken!, cookieStore, options);
+      const res = await createSessionCookie(idToken, cookieStore, options);
       return SessionResponseHelper.createSessionCreationResponse(res);
     } catch (error) {
       return createApiErrorResponse('SESSION_CREATION_FAILED', 'Session creation failed', 500);
@@ -99,7 +103,7 @@ export class SessionPostHandler {
 
   private static async handleRefreshSession(
     request: NextRequest,
-    cookieStore: NextCookieStore
+    cookieStore: NextCookieStore,
   ): Promise<NextResponse> {
     const currentSessionCookie = request.cookies.get('__session')?.value;
     if (!currentSessionCookie) {
@@ -140,7 +144,12 @@ export class SessionEndpointHandler {
     config: Required<TernSecureHandlerOptions>,
   ): Promise<NextResponse> {
     const sessionsConfig = config.endpoints.sessions;
-    const subEndpointConfig = sessionsConfig?.subEndpoints?.[subEndpoint!];
+
+    if (!subEndpoint) {
+      return createApiErrorResponse('SUB_ENDPOINT_REQUIRED', 'Session sub-endpoint required', 400);
+    }
+
+    const subEndpointConfig = sessionsConfig?.subEndpoints?.[subEndpoint];
 
     const subEndpointValidation = this.validateSubEndpoint(subEndpoint, subEndpointConfig, method);
     if (subEndpointValidation) return subEndpointValidation;
@@ -153,9 +162,9 @@ export class SessionEndpointHandler {
 
     switch (method) {
       case 'GET':
-        return SessionGetHandler.handle(request, subEndpoint!, config);
+        return SessionGetHandler.handle(request, subEndpoint, config);
       case 'POST':
-        return SessionPostHandler.handle(request, subEndpoint!, config);
+        return SessionPostHandler.handle(request, subEndpoint, config);
       default:
         return HttpResponseHelper.createMethodNotAllowedResponse();
     }
@@ -164,7 +173,7 @@ export class SessionEndpointHandler {
   private static validateSubEndpoint(
     subEndpoint: SessionSubEndpoint | undefined,
     subEndpointConfig: any,
-    method: string
+    method: string,
   ): NextResponse | null {
     if (!subEndpoint) {
       return createApiErrorResponse('SUB_ENDPOINT_REQUIRED', 'Session sub-endpoint required', 400);

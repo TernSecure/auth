@@ -1,4 +1,4 @@
-import { KeyLike, importX509, importJWK, importSPKI } from 'jose';
+import { importJWK, importSPKI,importX509, type KeyLike } from 'jose';
 
 export async function importKey(key: JsonWebKey | string, algorithm: string): Promise<KeyLike> {
   if (typeof key === 'object') {

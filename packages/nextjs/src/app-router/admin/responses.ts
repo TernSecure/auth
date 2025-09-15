@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
 import type { TernSecureApiErrorJSON } from '@tern-secure/types';
+import { NextResponse } from 'next/server';
 
 /**
  * Standardized error response creation

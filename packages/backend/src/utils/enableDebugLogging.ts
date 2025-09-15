@@ -1,5 +1,4 @@
-import { authLogger, redisLogger } from "./logger"
-import { LogLevel } from "./logger"
+import { authLogger, LogLevel,redisLogger  } from "./logger"
 
 export function enableDebugLogging(): void {
   authLogger.enable()

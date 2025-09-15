@@ -32,7 +32,7 @@ const getServiceWorkerUrl = (options: ServiceWorkerOptions): string => {
 export const reg = (opt: ServiceWorkerOptions) => {
   const { firebaseConfig } = opt;
   if ("serviceWorker" in navigator) {
-    const serializedFirebaseConfig = encodeURIComponent(JSON.stringify(firebaseConfig));
+    encodeURIComponent(JSON.stringify(firebaseConfig));
     const serviceWorkerUrl = getServiceWorkerUrl(opt);
     
     navigator.serviceWorker

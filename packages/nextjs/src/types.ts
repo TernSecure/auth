@@ -1,7 +1,6 @@
-//import { FirebaseOptions } from 'firebase/app'
-//import { User as FirebaseUser } from 'firebase/auth'
-import { ERRORS } from './errors'
 import type { TernSecureProviderProps } from '@tern-secure/react'
+
+import type { ERRORS } from './errors'
 
 
 /**

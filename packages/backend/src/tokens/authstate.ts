@@ -1,9 +1,10 @@
-import type { JWTPayload } from 'jose';
-import { constants } from '../constants';
-import { TernSecureRequest } from './ternSecureRequest';
 import type { CheckAuthorizationFromSessionClaims, DecodedIdToken } from '@tern-secure/types';
+import type { JWTPayload } from 'jose';
+
+import { constants } from '../constants';
+import type { TokenVerificationErrorReason } from '../utils/errors';
 import { mapJwtPayloadToDecodedIdToken } from '../utils/mapDecode';
-import { TokenVerificationErrorReason } from '../utils/errors';
+import type { TernSecureRequest } from './ternSecureRequest';
 
 export const AuthStatus = {
   SignedIn: 'signed-in',

@@ -1,9 +1,9 @@
-import {
+import type {
     SignUpResource,
     SignUpStatus,
     TernSecureConfig
 } from '@tern-secure/types';
-import { Auth } from 'firebase/auth';
+import type { Auth } from 'firebase/auth';
 
 export class SignUp implements SignUpResource {
     status?: SignUpStatus | null = null;

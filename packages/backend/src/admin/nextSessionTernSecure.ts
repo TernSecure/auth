@@ -1,9 +1,10 @@
 "use server";
 
-import { cookies } from "next/headers";
-import { adminTernSecureAuth as adminAuth, getAuthForTenant } from "../utils/admin-init";
 import { handleFirebaseAuthError } from "@tern-secure/shared/errors";
 import type { TernVerificationResult } from "@tern-secure/types";
+import { cookies } from "next/headers";
+
+import { adminTernSecureAuth as adminAuth, getAuthForTenant } from "../utils/admin-init";
 
 
 const SESSION_CONSTANTS = {

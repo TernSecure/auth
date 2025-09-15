@@ -1,44 +1,41 @@
-import { notFound as nextjsNotFound } from 'next/navigation';
+import type {
+  AuthObject,
+  RequestOptions,
+  TernSecureRequest,
+} from '@tern-secure/backend';
 import {
   constants,
-  createTernSecureRequest,
   createBackendInstanceClient,
+  createTernSecureRequest,
   enableDebugLogging,
-  validateCheckRevokedOptions,
 } from '@tern-secure/backend';
 import type {
-  TernSecureRequest,
-  AuthObject,
-  CheckRevokedOptions,
-  RequestOptions,
-} from '@tern-secure/backend';
-import { SIGN_IN_URL, SIGN_UP_URL, API_URL, API_VERSION } from './constant';
-import { NextRequest } from 'next/server';
-import { NextResponse, NextMiddleware } from 'next/server';
+  TernSecureConfig,
+} from '@tern-secure/types';
+import { notFound as nextjsNotFound } from 'next/navigation';
+import type { NextMiddleware,NextRequest } from 'next/server';
+import { NextResponse } from 'next/server';
+
+import { isRedirect, setHeader } from '../utils/response';
+import { serverRedirectWithAuth } from '../utils/serverRedirectAuth';
+import { createEdgeCompatibleLogger } from '../utils/withLogger';
+import { API_URL, API_VERSION,SIGN_IN_URL, SIGN_UP_URL } from './constant';
 import {
   isNextjsNotFoundError,
+  isNextjsRedirectError,
+  isRedirectToSignInError,
+  isRedirectToSignUpError,
   nextjsRedirectError,
   redirectToSignInError,
   redirectToSignUpError,
-  isRedirectToSignInError,
-  isRedirectToSignUpError,
-  isNextjsRedirectError,
 } from './nextErrors';
+import { type AuthProtect,createProtect } from './protect';
 import { createRedirect, type RedirectFun } from './redirect';
-import { isRedirect, setHeader } from '../utils/response';
-import { serverRedirectWithAuth } from '../utils/serverRedirectAuth';
 import type {
   NextMiddlewareEvtParam,
   NextMiddlewareRequestParam,
   NextMiddlewareReturn,
 } from './types';
-import { createProtect, type AuthProtect } from './protect';
-import type {
-  CheckAuthorizationFromSessionClaims,
-  CookieOptions,
-  TernSecureConfig,
-} from '@tern-secure/types';
-import { createEdgeCompatibleLogger } from '../utils/withLogger';
 import { decorateRequest } from './utils';
 
 export type MiddlewareAuthObject = AuthObject & {
@@ -370,19 +367,25 @@ const handleFirebaseAuthRequest = async (
       return response;
     }
 
-    const headers = Object.fromEntries(
-      [
-        'content-type',
-        'X-Firebase-Client',
-        'X-Firebase-gmpid',
-        'X-Firebase-AppCheck',
-        'X-Client-Version',
-      ]
-        .filter(header => request.headers.has(header))
-        .map(header => [header, request.headers.get(header)!]),
-    );
+    const headers: Record<string, string> = {};
+        const headerNames = [
+      'content-type',
+      'X-Firebase-Client',
+      'X-Firebase-gmpid',
+      'X-Firebase-AppCheck',
+      'X-Client-Version',
+    ];
 
-    const url = new URL(request.nextUrl.searchParams.get('finalTarget')!);
+    headerNames.forEach(headerName => {
+      const headerValue = request.headers.get(headerName);
+      if (headerValue) {
+        headers[headerName] = headerValue;
+      }
+    });
+
+    const finalTargetParam = request.nextUrl.searchParams.get('finalTarget');
+
+    const url = new URL(finalTargetParam || '');
     let body: ReadableStream<any> | string | null = request.body;
 
     const isTokenRequest = !!url.pathname.match(/^(\/securetoken\.googleapis\.com)?\/v1\/token/);
@@ -395,7 +398,7 @@ const handleFirebaseAuthRequest = async (
 
     if (isTokenRequest) {
       body = await request.text();
-      const bodyParams = new URLSearchParams(body!.trim());
+      const bodyParams = new URLSearchParams(body.trim());
       if (bodyParams.has('refresh_token')) {
         const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE.name)?.value;
         if (refreshToken) {

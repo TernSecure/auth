@@ -1,7 +1,8 @@
-import React from "react"
 import { 
   TernSecureProvider as TernSecureReactProvider 
 } from "@tern-secure/react"
+import React from "react"
+
 import type { TernSecureNextProps } from "../../types"
 import { allNextProviderPropsWithEnv } from "../../utils/allNextProviderProps"
 

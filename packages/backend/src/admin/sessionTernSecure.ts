@@ -1,14 +1,15 @@
 "use server";
 
-import {  getAuthForTenant } from "../utils/admin-init";
+import { handleFirebaseAuthError } from "@tern-secure/shared/errors";
 import type {
+  CookieStore,
   SessionParams,
   SessionResult,
-  CookieStore,
 } from "@tern-secure/types";
-import { handleFirebaseAuthError } from "@tern-secure/shared/errors";
-import type { RequestOptions } from "../tokens/types";
+
 import { getCookieOptions, getSessionConfig } from "../tokens/sessionConfig";
+import type { RequestOptions } from "../tokens/types";
+import {  getAuthForTenant } from "../utils/admin-init";
 
 const SESSION_CONSTANTS = {
   COOKIE_NAME: "_session_cookie",

@@ -1,8 +1,8 @@
-import { jwtVerify, createRemoteJWKSet, decodeJwt } from "jose";
 import type {
   DecodedIdToken,
   TernVerificationResult,
 } from "@tern-secure/types";
+import { createRemoteJWKSet, decodeJwt,jwtVerify } from "jose";
 
 
 export type FirebaseIdTokenPayload = DecodedIdToken;
@@ -13,7 +13,7 @@ const FIREBASE_ID_TOKEN_URL =
 const FIREBASE_SESSION_CERT_URL =
   "https://identitytoolkit.googleapis.com/v1/sessionCookiePublicKeys";
 
-const FIREBASE_NEW_SESSION_PK = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/publicKeys"
+//const FIREBASE_NEW_SESSION_PK = "https://www.googleapis.com/identitytoolkit/v3/relyingparty/publicKeys"
 
 // Simple in-memory cache for JWKS
 let idTokenJWKS: ReturnType<typeof createRemoteJWKSet> | null = null;

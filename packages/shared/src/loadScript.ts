@@ -1,6 +1,4 @@
-  import { retry } from './retry'
-
-  type LoadScriptOptions = {
+type LoadScriptOptions = {
     async?: boolean;
     defer?: boolean;
     crossOrigin?: 'anonymous' | 'use-credentials';
@@ -54,7 +52,7 @@
           cleanup();
           script.remove();
           console.error(`[loadScript] Failed to load script: ${src}`, error);
-          reject(new Error(`Failed to load script: ${src}, Error: ${error.message || error}`));
+          reject(new Error(`Failed to load script: ${src}, Error: ${error.message}`));
         };
         
         script.addEventListener('load', handleLoad);
