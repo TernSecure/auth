@@ -1,5 +1,16 @@
 # @tern-secure/nextjs
 
+## 5.1.9
+
+### Patch Changes
+
+- aeb1f5a: Canary Release
+- Updated dependencies [aeb1f5a]
+  - @tern-secure/backend@1.1.7
+  - @tern-secure/shared@1.2.1
+  - @tern-secure/react@1.1.6
+  - @tern-secure/types@1.0.5
+
 ## 5.1.8
 
 ### Patch Changes
@@ -94,7 +105,6 @@
 - 2603f2b: Initial stable release of TernSecure Authentication SDK
 
   This marks the first major release of the TernSecure Authentication monorepo, introducing a complete TypeScript SDK built on Firebase Authentication. The release includes:
-
   - Core authentication utilities and types
   - React hooks and components for seamless integration
   - UI components library with form handling
@@ -115,7 +125,6 @@
 ### Patch Changes
 
 - a711aef: feat: Enhance authentication state management and middleware
-
   - Add auth state cookie for server-side authentication tracking
   - Update auth middleware to set secure auth state cookie
   - Modify server-side auth check to validate auth state
@@ -127,7 +136,6 @@
 ### Patch Changes
 
 - 1757b10: refactor: Improve TernSecure middleware type definitions and error handling
-
   - Update import types from 'next/server'
   - Modify function signatures to improve type safety
   - Enhance error handling with explicit redirect URL creation
@@ -138,7 +146,6 @@
 ### Patch Changes
 
 - 6240f3a: refactor: Improve TernSecure middleware response handling
-
   - Update middleware to return Response or undefined
   - Modify authentication flow to use NextResponse.redirect
   - Simplify error handling and callback processing
@@ -150,7 +157,6 @@
 ### Patch Changes
 
 - 45aadf2: refactor: Simplify TernSecure middleware and error handling
-
   - Remove unused imports and error classes
   - Modify route matching regex pattern
   - Streamline authentication middleware logic
@@ -163,7 +169,6 @@
 ### Patch Changes
 
 - b0e8300: refactor: Enhance authentication and session management
-
   - Improve token verification and error handling in JWT modules
   - Update authentication methods to use centralized error handling
   - Modify session verification to support more flexible token checks
@@ -175,7 +180,6 @@
 ### Patch Changes
 
 - 496c2a9: refactor: Centralize types and improve JWT token verification
-
   - Create new `types.ts` file to centralize shared type definitions
   - Enhance JWT verification with more robust error handling and logging
   - Add caching for JWKS using React cache
@@ -187,7 +191,6 @@
 ### Patch Changes
 
 - 942b66f: refactor: Restructure server authentication and session management
-
   - Move server-side authentication files to a new `admin` directory
   - Update package.json exports to reflect new file structure
   - Simplify ESLint configuration by removing unused variable rules
@@ -199,7 +202,6 @@
 ### Minor Changes
 
 - 1496d6e: chore: Enhance authentication middleware and session management
-
   - Update auth mechanism to support edge runtime
   - Implement flexible route matching for public paths
   - Add robust session verification using multiple methods
@@ -211,7 +213,6 @@
 ### Minor Changes
 
 - 1f4f6f0: feat: Enhance error handling and authentication flow
-
   - Modify `getErrorAlertVariant` to handle undefined error cases and simplify error variant selection logic, removing redundant success checks.
   - Enhance error code extraction and mapping mechanisms with comprehensive error pattern matching for Firebase authentication errors, improving error response generation with default messages.
   - Rename `ErrorAlertVariant` to `getErrorAlertVariant` and update Turbo to version 2.4.0 in package.json and package-lock.json.
@@ -254,7 +255,6 @@
 ### Minor Changes
 
 - 8f40361: feat: add sign-up functionality and email verification
-
   - Implement createUser function for user registration
   - Add resendEmailVerification function
   - Update TernSecureClientProvider to handle email state
@@ -278,7 +278,6 @@
 ### Patch Changes
 
 - a1fa601: fix: remove auth token and update sign-in signup link
-
   - Remove hardcoded NPM registry authentication token from .npmrc
   - Delete unused TypeScript declaration file in dist/types
   - Update sign-in component to link to signup page with '/signup' href
@@ -288,7 +287,6 @@
 ### Patch Changes
 
 - ba72742: chore: enhance release workflow with NPM authentication
-
   - Add NPM authentication step to the GitHub Actions workflow for secure publishing.
   - Update the publish command to use 'npm publish --access public' instead of 'npm run release'.
   - Improve clarity and organization of the release process.
@@ -298,7 +296,6 @@
 ### Minor Changes
 
 - 7335e8f: chore: update package-lock.json and enhance release workflow
-
   - Update multiple package versions in package-lock.json, including @esbuild and @eslint dependencies.
   - Remove outdated dependencies from package-lock.json to streamline the project.
   - Modify GitHub Actions release workflow to use 'npm run release' for publishing instead of direct npm publish command.
@@ -309,6 +306,5 @@
 ### Minor Changes
 
 - cf2af23: New authentication providers have been added:
-
   - Integration with Google sign-in
   - Integration with Microsoft sign-in
