@@ -1,6 +1,7 @@
-import { defineConfig } from "tsup";
 import type { Options } from "tsup";
+import { defineConfig } from "tsup";
 
+import { runAfterLast } from '../../scripts/utils';
 import { name, version } from "./package.json";
 
 const config: Options = {
@@ -27,4 +28,6 @@ const cjsConfig: Options = {
   format: "cjs",
 };
 
-export default defineConfig([esmConfig, cjsConfig]);
+export default defineConfig(() => {
+  return runAfterLast(['pnpm build:add'])(esmConfig, cjsConfig);
+});

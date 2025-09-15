@@ -1,4 +1,4 @@
-import { TernSecureAuth as TernSecureAuthImpl } from '@tern-secure/auth';
+import { TernSecureAuth as TernSecureAuthImpl } from '@tern-secure/auth'
 import { createTernAuthEventBus, ternEvents } from '@tern-secure/shared/ternStatusEvent';
 import { handleValueOrFn } from '@tern-secure/shared/utils';
 import type {
