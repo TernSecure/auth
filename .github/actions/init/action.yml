@@ -1,6 +1,10 @@
 name: Setup action
 description: Checkout, setup node and dependencies
 inputs:
+  node-version:
+    description: 'The node version to use'
+    required: false
+    default: '22'
   turbo-summarize:
     description: 'The token to use for Turbo task summaries'
     required: false
@@ -90,3 +94,21 @@ runs:
   - name: Turbo CLI ARGS
     shell: bash
     run: echo $TURBO_ARGS
+
+  - name: Install PNPM
+    uses: pnpm/action-setup@v4
+
+  - name: Setup Node.js
+    uses: actions/setup-node@v4
+    with:
+      node-version: ${{ inputs.node-version }}
+      registry-url: '${{ inputs.registry-url }}
+      cache: 'pnpm'
+
+  - name: Install PNPM Dependencies
+    env:
+      CYPRESS_INSTALL_BINARY: 0
+    run: pnpm install
+    shell: bash
+
+  
