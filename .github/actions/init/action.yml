@@ -103,7 +103,7 @@ runs:
     with:
       cache: pnpm
       node-version: ${{ inputs.node-version }}
-      registry-url: '${{ inputs.registry-url }}
+      registry-url: ${{ inputs.registry-url }}
 
   - name: Install PNPM Dependencies
     env:
