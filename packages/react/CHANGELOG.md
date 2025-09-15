@@ -1,5 +1,25 @@
 # @tern-secure/react
 
+## 1.1.8
+
+### Patch Changes
+
+- canary
+- Updated dependencies
+  - @tern-secure/shared@1.2.3
+  - @tern-secure/types@1.0.7
+  - @tern-secure/auth@1.0.3
+
+## 1.1.7
+
+### Patch Changes
+
+- Canary Release version 2
+- Updated dependencies
+  - @tern-secure/shared@1.2.2
+  - @tern-secure/types@1.0.6
+  - @tern-secure/auth@1.0.2
+
 ## 1.1.6
 
 ### Patch Changes

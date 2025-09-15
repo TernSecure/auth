@@ -1,5 +1,27 @@
 # @tern-secure/nextjs
 
+## 5.1.11
+
+### Patch Changes
+
+- canary
+- Updated dependencies
+  - @tern-secure/backend@1.1.9
+  - @tern-secure/shared@1.2.3
+  - @tern-secure/react@1.1.8
+  - @tern-secure/types@1.0.7
+
+## 5.1.10
+
+### Patch Changes
+
+- Canary Release version 2
+- Updated dependencies
+  - @tern-secure/backend@1.1.8
+  - @tern-secure/shared@1.2.2
+  - @tern-secure/react@1.1.7
+  - @tern-secure/types@1.0.6
+
 ## 5.1.9
 
 ### Patch Changes

@@ -61,6 +61,7 @@ export default tseslint.config([
       '**/.turbo/*',
       '**/dist/*',
       'test',
+      'apps',
       'packages/*/dist/**',
       'pnpm-lock.json',
       'eslint.config.mjs',

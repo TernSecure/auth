@@ -162,7 +162,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
   }
 
   async initTernSecureAuth() {
-    if (this._mode !== 'browser' || this.isReady) {
+    if (this._mode !== 'browser' && this.isReady) {
       return;
     }
 
