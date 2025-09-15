@@ -243,21 +243,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     this.#emit();
   };
 
-  public currentSession = async (): Promise<SignedInSession | null> => {
-    if (!this._currentUser) {
-      return null;
-    }
-
-    const res = await this._currentUser.getIdTokenResult();
-    this.signedInSession = {
-      status: 'active',
-      token: res.token,
-      claims: res.claims,
-      issuedAtTime: res.issuedAtTime,
-      expirationTime: res.expirationTime,
-      authTime: res.authTime,
-      signInProvider: res.signInProvider || 'unknown',
-    };
+  get currentSession(): SignedInSession | null {
     return this.signedInSession;
   };
 
@@ -265,6 +251,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return onAuthStateChanged(this.auth, async (user: TernSecureUser | null) => {
       await this.auth.authStateReady();
       this._currentUser = user;
+      await this.updateCurrentSession();
 
       eventBus.emit(events.UserChanged, this._currentUser);
       this.#emit();
@@ -275,6 +262,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return onIdTokenChanged(this.auth, async (user: TernSecureUser | null) => {
       await this.auth.authStateReady();
       this._currentUser = user;
+      await this.updateCurrentSession();
 
       eventBus.emit(events.TokenRefreshed, { token: user ? await user.getIdTokenResult() : null });
       this.#emit();
@@ -287,6 +275,29 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
   public onIdTokenChanged(callback: (cb: any) => void): () => void {
     return onIdTokenChanged(this.auth, callback);
+  }
+
+  private async updateCurrentSession(): Promise<void> {
+    if (!this._currentUser) {
+      this.signedInSession = null;
+      return;
+    }
+
+    try {
+      const res = await this._currentUser.getIdTokenResult();
+      this.signedInSession = {
+        status: 'active',
+        token: res.token,
+        claims: res.claims,
+        issuedAtTime: res.issuedAtTime,
+        expirationTime: res.expirationTime,
+        authTime: res.authTime,
+        signInProvider: res.signInProvider || 'unknown',
+      };
+    } catch (error) {
+      console.error('[TernSecureAuth] Error updating session:', error);
+      this.signedInSession = null;
+    }
   }
 
   public async checkRedirectResult(): Promise<SignInResponseTree | null> {

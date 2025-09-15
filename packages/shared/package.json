@@ -11,7 +11,8 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "build": "pnpm clean && tsup && tsc -p tsconfig.add.json",
+    "build": "pnpm clean && tsup",
+    "build:add": "tsc -p tsconfig.add.json",
     "dev": "tsup --watch",
     "lint": "eslint src",
     "check-types": "pnpm exec tsc --noEmit",

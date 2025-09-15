@@ -4,18 +4,13 @@ import type { Options } from 'tsup';
 import { name, version } from './package.json';
 
 const config: Options = {
-  entry: ['./src/**/*.{ts,tsx,js,jsx}'],
+  entry: ['./src/**/*.{ts,tsx,js,jsx}', '!./src/**/*.test.{ts,tsx}'],
   bundle: false,
   sourcemap: true,
   clean: true,
   minify: false,
   legacyOutput: true,
-  external: [
-    'react',
-    'react-dom',
-    'firebase-admin',
-    'firebase'
-  ],
+  external: ['react', 'react-dom', 'firebase-admin', 'firebase'],
   define: {
     PACKAGE_NAME: `"${name}"`,
     PACKAGE_VERSION: `"${version}"`,
@@ -24,13 +19,13 @@ const config: Options = {
 
 const esmConfig: Options = {
   ...config,
-  format: 'esm'
+  format: 'esm',
 };
 
 const cjsConfig: Options = {
   ...config,
-  format: 'cjs', 
-  outDir: './dist/cjs'
+  format: 'cjs',
+  outDir: './dist/cjs',
 };
 
 export default defineConfig([esmConfig, cjsConfig]);

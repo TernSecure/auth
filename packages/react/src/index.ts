@@ -1,5 +1,4 @@
 export { useAuth } from "./hooks/useAuth"
-export { useSignUp } from "./hooks/useSignUp"
 export { useIdToken } from "./hooks/useIdToken"
 export { useSession } from "./hooks/useSession"
 export { useSignIn, signIn } from "./hooks/useSignIn"
@@ -27,6 +26,4 @@ export type {
     Browser,
     TernSecureProviderProps,
 } from './types'
-
-export type  { TernServerAuthOptions, AuthenticatedApp } from './server/server'
 

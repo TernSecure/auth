@@ -1,5 +1,8 @@
 {
   "$schema": "https://turborepo.com/schema.json",
+  "remoteCache": {
+    "signature": true
+  },
   "ui": "tui",
   "globalDependencies": [
     ".npmrc",
@@ -34,12 +37,28 @@
         "*.d.ts",
         "src/**",
         "tsconfig.json",
+        "tsconfig.build.json",
         "tsconfig.add.json",
         "tsup.config.ts",
+        "!**/*.test.*",
+        "!**/test/**",
+        "!**/tests/**",
+        "!**/__tests__/**",
+        "!**/__snapshots__/**",
+        "!CHANGELOG.md",
+        "!coverage/**",
         "!dist/**",
+        "!examples/**",
         "!node_modules/**"
       ],
+      "outputLogs": "new-only",
       "outputs": ["dist/**", "*/package.json"]
+    },
+    "build:add": {
+      "dependsOn": ["^build"],
+      "inputs": ["tsconfig.add.json"],
+      "outputLogs": "new-only",
+      "outputs": ["dist/**/*.d.ts", "dist/**/*.d.ts.map"]
     },
     "dev": {
       "cache": false,

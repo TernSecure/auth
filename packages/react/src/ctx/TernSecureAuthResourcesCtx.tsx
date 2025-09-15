@@ -15,7 +15,7 @@ export function useAuthSignInCtx(): SignInResource | undefined | null {
     return ctx.signIn;
 }
 
-export function useAuthSignUpCtx(): SignUpResource {
+export function useAuthSignUpCtx(): SignUpResource | undefined | null {
     const ctx = useTernSecureAuthCtx();
     assertContextExists(ctx, TernSecureAuthCtx)
     return ctx.signUp;

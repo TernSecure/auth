@@ -234,11 +234,11 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     await this.ternauth.signOut();
   };
 
-  currentSession = async (): Promise<SignedInSession | null> => {
+  get currentSession(): SignedInSession | null {
     if (!this.ternauth) {
       return null;
     }
-    return this.ternauth.currentSession();
+    return this.ternauth.currentSession;
   };
 
   onAuthStateChanged(callback: (user: any) => void): () => void {
