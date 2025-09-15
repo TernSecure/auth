@@ -44,7 +44,7 @@ jobs:
         shell: bash
 
       - name: Build
-        run: pnpm turbo build --filter=!./apps/auth-test --force
+        run: pnpm turbo build
 
       - name: NPM Authentication
         run: |
