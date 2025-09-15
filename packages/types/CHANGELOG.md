@@ -1,16 +1,5 @@
 # @tern-secure/types
 
-## 1.0.7
-
-### Patch Changes
-
-- canary
-
-## 1.0.6
-
-### Patch Changes
-
-- Canary Release version 2
 
 ## 1.0.5
 

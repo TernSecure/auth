@@ -1,23 +1,5 @@
 # @tern-secure/backend
 
-## 1.1.9
-
-### Patch Changes
-
-- canary
-- Updated dependencies
-  - @tern-secure/shared@1.2.3
-  - @tern-secure/types@1.0.7
-
-## 1.1.8
-
-### Patch Changes
-
-- Canary Release version 2
-- Updated dependencies
-  - @tern-secure/shared@1.2.2
-  - @tern-secure/types@1.0.6
-
 ## 1.1.7
 
 ### Patch Changes
