@@ -58,6 +58,7 @@ export default tseslint.config([
       '.vscode',
       '!.*.js',
       '**/node_modules/**',
+      '*.snap',
       '**/.turbo/*',
       '**/dist/*',
       'test',
@@ -191,6 +192,13 @@ export default tseslint.config([
     rules: {
       ...pluginReactHooks.configs.recommended.rules,
       'react-hooks/rules-of-hooks': 'warn',
+    },
+  },
+  {
+    name: 'repo/scripts',
+    files: ['scripts/**/*'],
+    rules: {
+      'turbo/no-undeclared-env-vars': 'off',
     },
   },
   configPrettier,

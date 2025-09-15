@@ -12,13 +12,16 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "lint": "turbo run lint",
     "lint:fix": "turbo lint -- --fix",
-    "release": "changeset publish",
+    "release": "changeset publish && git push --follow-tags",
     "release:canary": "changeset publish --tag canary --no-git-tag",
-    "version-packages": "changeset version",
-    "version-packages:canary": "changeset version --tag canary"
+    "release:snapshot": "changeset publish --tag snapshot --no-git-tag",
+    "version-packages": "changeset version && pnpm install --lockfile-only --engine-strict=false",
+    "version-packages:canary": "./scripts/canary.mjs",
+    "version-packages:snapshot": "./scripts/snapshot.mjs"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.4",
+    "@changesets/get-github-info": "^0.6.0",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.28.0",
     "@google-cloud/storage": "^7.16.0",
@@ -53,7 +56,8 @@
     "turbo": "^2.5.6",
     "typescript": "^5.8.3",
     "typescript-eslint": "8.30.1",
-    "vitest": "^3.2.4"
+    "vitest": "^3.2.4",
+    "zx": "catalog:repo"
   },
   "packageManager": "pnpm@10.13.1",
   "engines": {

@@ -1,5 +1,13 @@
 # @tern-secure/nextjs
 
+## 5.1.12
+
+### Patch Changes
+
+- fix: Canary release, fixed auth
+- Updated dependencies
+  - @tern-secure/react@1.1.9
+
 ## 5.1.11
 
 ### Patch Changes

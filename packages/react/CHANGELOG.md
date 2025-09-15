@@ -1,5 +1,13 @@
 # @tern-secure/react
 
+## 1.1.9
+
+### Patch Changes
+
+- fix: Canary release, fixed auth
+- Updated dependencies
+  - @tern-secure/auth@1.0.4
+
 ## 1.1.8
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @tern-secure/auth
 
+## 1.0.4
+
+### Patch Changes
+
+- fix: Canary release, fixed auth
+
 ## 1.0.3
 
 ### Patch Changes
