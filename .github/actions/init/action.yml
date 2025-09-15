@@ -101,9 +101,9 @@ runs:
   - name: Setup Node.js
     uses: actions/setup-node@v4
     with:
+      cache: pnpm
       node-version: ${{ inputs.node-version }}
       registry-url: '${{ inputs.registry-url }}
-      cache: 'pnpm'
 
   - name: Install PNPM Dependencies
     env:
