@@ -56,13 +56,15 @@
         "**/*.md",
         "**/*.mdx",
         ".github/**",
-        "!apps",
+        "!**/test/**",
+        "!**/apps/**",
         "!*/package.json",
         "!CHANGELOG.md",
         "!dist/**",
         "!examples/**",
         "!node_modules/**"
       ],
+      "outputLogs": "new-only",
       "outputs": []
     }
   }
