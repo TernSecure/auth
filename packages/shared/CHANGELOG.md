@@ -1,5 +1,13 @@
 # @tern-secure/shared
 
+## 1.2.1
+
+### Patch Changes
+
+- aeb1f5a: Canary Release
+- Updated dependencies [aeb1f5a]
+  - @tern-secure/types@1.0.5
+
 ## 1.2.0
 
 ### Minor Changes
@@ -45,7 +53,6 @@
 - 2603f2b: Initial stable release of TernSecure Authentication SDK
 
   This marks the first major release of the TernSecure Authentication monorepo, introducing a complete TypeScript SDK built on Firebase Authentication. The release includes:
-
   - Core authentication utilities and types
   - React hooks and components for seamless integration
   - UI components library with form handling
