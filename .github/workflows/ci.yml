@@ -5,20 +5,16 @@ on:
     branches:
       - main
       - changeset-release/*
-    types:  [opened, synchronize, reopened]
-
-  push:
-    branches:
-      - '**'
-      - '!main'
-      - '!changeset-release/**'
 
 jobs:
   #check-permissions:
-  check:
+  pre-checks:
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
     name: Validate PR
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.draft == false }}
+    defaults:
+      run:
+        shell: bash
 
     env:
       TURBO_SUMMARIZE: false
@@ -39,40 +35,12 @@ jobs:
           turbo-team: ${{ vars.TURBO_TEAM }}
           turbo-token: ${{ secrets.TURBO_TOKEN }}
 
-      - name: Fetch main branch
-        run: |
-          git fetch origin main:main
-          git fetch origin changeset-release/main:changeset-release/main || true
-      
-    
+      - name: Require changeset
+        if: ${{ !(github.event_name == 'merge_group') }}
+        run: pnpm changeset status --since=origin/main
+
       - name: Turbo Build
         run: pnpm turbo build $TURBO_ARGS --only
         
       - name: Lint
         run: pnpm turbo lint
-
-      - name: Check branch status
-        run: |
-          CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-          if [[ "$CURRENT_BRANCH" == "main" || "$CURRENT_BRANCH" == changeset-release/* ]]; then
-            echo "Skipping changeset check on protected branch"
-            exit 0
-          fi
-        
-      - name: Check changeset
-        run: |
-          # Check if changes are from changeset
-          if git log --format=%B -n 1 | grep -q "chore: version packages"; then
-            echo "Skipping changeset check for version bump commit"
-            exit 0
-          fi
-
-          # Check if .changeset directory exists
-          if [ ! -d ".changeset" ]; then
-            echo "Creating .changeset directory"
-            npx changeset init
-          fi
-
-          # Verify changes against main branch
-          npx changeset status --since=main
-        continue-on-error: true
