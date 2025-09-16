@@ -97,6 +97,7 @@ export default tseslint.config([
       'no-label-var': 'error',
       'no-undef-init': 'warn',
       'no-restricted-imports': 'error',
+
       'react/button-has-type': 'warn',
       'react/function-component-definition': 'off',
       'react/hook-use-state': 'warn',
@@ -114,9 +115,13 @@ export default tseslint.config([
       'react/self-closing-comp': 'warn',
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
+      
       'simple-import-sort/imports': 'error',
+
       'sort-imports': 'off',
+
       ...pluginTurbo.configs['flat/recommended'].rules,
+
       'unused-imports/no-unused-imports': 'error',
 
       '@typescript-eslint/no-explicit-any': 'off',
@@ -163,6 +168,15 @@ export default tseslint.config([
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/prefer-promise-reject-errors': 'warn',
       '@typescript-eslint/require-await': 'warn',
+      
+      'import/no-unresolved': ['error', { ignore: ['^#', '^~'] }],
+
+      'react/button-has-type': 'warn',
+      'react/display-name': 'off',
+      'react/jsx-curly-brace-presence': 'off',
+      'react/jsx-no-leaked-render': 'off',
+      'react/jsx-no-useless-fragment': 'warn',
+      'react/jsx-sort-props': 'off',
     },
   },
   {
