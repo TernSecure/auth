@@ -4,7 +4,7 @@
   "description": "Type definitions for TernSecure packages",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TernSecure/typescript.git",
+    "url": "git+https://github.com/TernSecure/auth.git",
     "directory": "packages/types"
   },
   "main": "dist/index.js",
