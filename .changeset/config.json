@@ -1,11 +1,23 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@3.0.5/schema.json",
-  "changelog": ["./changelog.js", { "repo": "tern-secure/auth-ts" }],
+  "changelog": [
+    "./changelog.js", 
+    { 
+      "repo": "tern-secure/auth-ts" 
+    }
+  ],
   "commit": false,
   "fixed": [],
   "linked": [],
   "access": "public", 
-  "baseBranch": "main",
+  "baseBranch": "origin/main",
   "updateInternalDependencies": "patch",
-  "ignore": []
+  "snapshot": {
+    "useCalculatedVersion": true,
+    "prereleaseTemplate": "{tag}.v{datetime}"
+  },
+  "___experimentalUnsafeOptions_WILL_CHANGE_IN_PATCH": {
+    "onlyUpdatePeerDependentsWhenOutOfRange": true,
+    "updateInternalDependents": "always"
+  }
 }
