@@ -1,10 +1,10 @@
 {
   "$schema": "https://unpkg.com/@changesets/config@3.0.5/schema.json",
-  "changelog": "@changesets/cli/changelog",
+  "changelog": ["./changelog.js", { "repo": "tern-secure/auth-ts" }],
   "commit": false,
   "fixed": [],
   "linked": [],
-  "access": "public",
+  "access": "public", 
   "baseBranch": "main",
   "updateInternalDependencies": "patch",
   "ignore": []

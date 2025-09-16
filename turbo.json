@@ -80,6 +80,7 @@
         "!*/package.json",
         "!**/__snapshots__/**",
         "!CHANGELOG.md",
+        "!coverage/**",
         "!dist/**",
         "!examples/**",
         "!node_modules/**"
