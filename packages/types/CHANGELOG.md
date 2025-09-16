@@ -1,5 +1,6 @@
 # @tern-secure/types
 
+
 ## 1.0.5
 
 ### Patch Changes

@@ -78,6 +78,7 @@
         "!**/test/**",
         "!**/apps/**",
         "!*/package.json",
+        "!**/__snapshots__/**",
         "!CHANGELOG.md",
         "!dist/**",
         "!examples/**",

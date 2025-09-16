@@ -28,5 +28,9 @@
     "tailwindcss": "^4",
     "tw-animate-css": "^1.3.3",
     "typescript": "^5"
+  },
+  "packageManager": "npm@11.3.0",
+  "engines": {
+    "node": "^22"
   }
 }

@@ -150,7 +150,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     if (!this.instance) {
       this.instance = new TernSecureAuth(options);
     }
-    console.log('[TernSecureAuth] TernSecureAuth instance:', this.instance);
     return this.instance;
   }
 
