@@ -5,6 +5,7 @@
   },
   "ui": "tui",
   "globalDependencies": [
+   ".github/.cache-version",
     ".npmrc",
     "eslint.config.mjs",
     "package.json",
@@ -61,8 +62,10 @@
       "outputs": ["dist/**/*.d.ts", "dist/**/*.d.ts.map"]
     },
     "dev": {
-      "cache": false,
-      "persistent": true
+      "cache": false
+    },
+    "clean": {
+      "cache": false
     },
     "lint": {
       "dependsOn": ["^build"],
@@ -85,7 +88,6 @@
         "!examples/**",
         "!node_modules/**"
       ],
-      "outputLogs": "new-only",
       "outputs": []
     }
   }
