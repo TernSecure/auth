@@ -6,13 +6,13 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TernSecure/typescript.git",
+    "url": "git+https://github.com/TernSecure/auth.git",
     "directory": "packages/nextjs"
   },
   "bugs": {
-    "url": "https://github.com/TernSecure/typescript/issues"
+    "url": "https://github.com/TernSecure/auth/issues"
   },
-  "homepage": "https://github.com/TernSecure/nextjs#readme",
+  "homepage": "https://github.com/TernSecure/auth#readme",
   "scripts": {
     "clean": "rimraf dist",
     "build": "pnpm clean && tsup",

@@ -3,7 +3,7 @@
   "version": "1.2.3",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/TernSecure/typescript.git",
+    "url": "git+https://github.com/TernSecure/auth.git",
     "directory": "packages/shared"
   },
   "publishConfig": {
