@@ -5,3 +5,4 @@ export const ternDecodeJwt = createJwtGuard(_ternDecodeJwt);
 export { ternDecodeJwt as ternDecodeJwtUnguarded } from './verifyJwt';
 
 export * from './jwt';
+export type { JwtReturnType } from './types';

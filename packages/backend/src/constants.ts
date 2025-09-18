@@ -18,6 +18,7 @@ const Attributes = {
 const Cookies = {
   Session: '__session',
   IdToken: '_tern',
+  CsrfToken: '_session_terncf',
   SessionCookie: '_session_cookie',
   SessionToken: '_session_token',
   Refresh: '__refresh',

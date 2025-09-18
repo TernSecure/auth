@@ -1,6 +1,6 @@
 export { createTernSecureNextJsHandler } from './ternsecureNextjsHandler'
 
-export { 
+export {
     clearSessionCookieServer,
     clearNextSessionCookie,
     createSessionCookieServer,
@@ -9,4 +9,8 @@ export {
     setNextServerToken
 } from './actions'
 
-export type { TernSecureHandlerOptions } from './types'
+export { EndpointRouter } from './endpointRouter'
+export { RequestContextBuilder, ValidationPipeline } from './handlerUtils'
+export type { HandlerContext } from './handlerUtils'
+
+export type { TernSecureHandlerOptions, TernSecureInternalHandlerConfig } from './types'

@@ -14,7 +14,8 @@ const authHandlerOptions: TernSecureHandlerOptions = {
     httpOnly: true,
     name: '_session_cookie',
     sameSite: 'strict',
-    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: 5 * 60, // 5 minutes
   },
   security: {
     requireCSRF: true,

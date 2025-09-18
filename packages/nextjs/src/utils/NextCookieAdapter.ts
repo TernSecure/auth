@@ -1,4 +1,4 @@
-import type { CookieOptions,CookieStore } from '@tern-secure/types';
+import type { CookieOptions, CookieStore } from '@tern-secure/types';
 import { cookies } from 'next/headers';
 
 export class NextCookieStore implements CookieStore {

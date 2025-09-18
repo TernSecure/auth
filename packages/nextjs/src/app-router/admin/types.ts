@@ -13,7 +13,6 @@ export interface CookieOptions {
   name?: string;
   domain?: string;
   path?: string;
-  secure?: boolean;
   httpOnly?: boolean;
   sameSite?: 'strict' | 'lax' | 'none';
   maxAge?: number;
@@ -88,7 +87,6 @@ export const DEFAULT_CORS_OPTIONS: CorsOptions = {
 export const DEFAULT_COOKIE_OPTIONS: CookieOptions = {
   name: '__session',
   path: '/',
-  secure: true,
   httpOnly: true,
   sameSite: 'lax',
   maxAge: 3600 * 24 * 7, // 7 days
@@ -194,8 +192,8 @@ export interface ValidationConfig {
 
 export interface ComprehensiveValidationResult {
   isValid: boolean;
-  error?: NextResponse;
-  corsResponse?: NextResponse;
+  error?: Response;
+  corsResponse?: Response;
   sessionData?: {
     body: any;
     idToken?: string;

@@ -4,7 +4,7 @@ export { constants } from "./constants";
 export type { TernSecureRequest } from "./tokens/ternSecureRequest";
 export { createTernSecureRequest } from "./tokens/ternSecureRequest";
 
-export type { RequestOptions } from "./tokens/types";
+export type { RequestOptions, AuthenticateRequestOptions } from "./tokens/types";
 
 export type { AuthObject, RequestState, SignedInAuthObject, SignedOutAuthObject } from "./tokens/authstate";
 export { signedIn, signedInAuthObject, signedOutAuthObject, AuthStatus} from './tokens/authstate'
