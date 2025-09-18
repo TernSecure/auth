@@ -1,6 +1,3 @@
-import type { NextRequest} from 'next/server';
-import { NextResponse } from 'next/server';
-
 import { createApiErrorResponse } from './responses';
 import type { AuthEndpoint, CorsOptions, SecurityOptions, SessionSubEndpoint } from './types';
 
@@ -9,9 +6,9 @@ import type { AuthEndpoint, CorsOptions, SecurityOptions, SessionSubEndpoint } f
  */
 export class CorsValidator {
   static async validate(
-    request: NextRequest,
+    request: Request,
     corsOptions: CorsOptions,
-  ): Promise<NextResponse | null> {
+  ): Promise<Response | null> {
     const origin = request.headers.get('origin');
     const host = request.headers.get('host');
 
@@ -37,8 +34,8 @@ export class CorsValidator {
     return null;
   }
 
-  static createOptionsResponse(corsOptions: CorsOptions): NextResponse {
-    const response = new NextResponse(null, { status: 204 });
+  static createOptionsResponse(corsOptions: CorsOptions): Response {
+    const response = new Response(null, { status: 204 });
 
     if (corsOptions.allowedOrigins === '*') {
       response.headers.set('Access-Control-Allow-Origin', '*');
@@ -72,9 +69,9 @@ export class CorsValidator {
  */
 export class SecurityValidator {
   static async validate(
-    request: NextRequest,
+    request: Request,
     securityOptions: SecurityOptions,
-  ): Promise<NextResponse | null> {
+  ): Promise<Response | null> {
     const origin = request.headers.get('origin');
     const host = request.headers.get('host');
     const referer = request.headers.get('referer');
@@ -96,12 +93,12 @@ export class SecurityValidator {
   }
 
   private static validateCsrf(
-    request: NextRequest,
+    request: Request,
     securityOptions: SecurityOptions,
     origin: string | null,
     host: string | null,
     referer: string | null,
-  ): NextResponse | null {
+  ): Response | null {
     if (securityOptions.requireCSRF && origin && host && !origin.includes(host)) {
       const hasCSRFHeader = request.headers.get('x-requested-with') === 'XMLHttpRequest';
       const hasValidReferer = referer && host && referer.includes(host);
@@ -120,9 +117,9 @@ export class SecurityValidator {
   }
 
   private static validateRequiredHeaders(
-    request: NextRequest,
+    request: Request,
     securityOptions: SecurityOptions,
-  ): NextResponse | null {
+  ): Response | null {
     if (securityOptions.requiredHeaders) {
       for (const [headerName, expectedValue] of Object.entries(securityOptions.requiredHeaders)) {
         const actualValue = request.headers.get(headerName);
@@ -141,7 +138,7 @@ export class SecurityValidator {
   private static validateUserAgent(
     userAgent: string,
     securityOptions: SecurityOptions,
-  ): NextResponse | null {
+  ): Response | null {
     // User Agent blocking
     if (securityOptions.userAgent?.block?.length) {
       const isBlocked = securityOptions.userAgent.block.some((blocked: string) =>
@@ -172,7 +169,7 @@ export class SecurityValidator {
  * CSRF token validation utilities
  */
 export class CsrfValidator {
-  static validate(csrfToken: string, csrfCookieValue: string | undefined): NextResponse | null {
+  static validate(csrfToken: string, csrfCookieValue: string | undefined): Response | null {
     if (!csrfToken) {
       return createApiErrorResponse('INVALID_CSRF_TOKEN', 'CSRF token is required', 400);
     }
@@ -193,7 +190,7 @@ export class CsrfValidator {
  * Route validation utilities
  */
 export class RouteValidator {
-  static validatePathStructure(pathSegments: string[]): NextResponse | null {
+  static validatePathStructure(pathSegments: string[]): Response | null {
     if (pathSegments.length < 3) {
       return createApiErrorResponse(
         'INVALID_ROUTE',
@@ -208,7 +205,7 @@ export class RouteValidator {
     _endpoint: AuthEndpoint,
     endpointConfig: any,
     method: string,
-  ): NextResponse | null {
+  ): Response | null {
     if (!endpointConfig || !endpointConfig.enabled) {
       return createApiErrorResponse('ENDPOINT_NOT_FOUND', 'Endpoint not found', 404);
     }
@@ -224,7 +221,7 @@ export class RouteValidator {
     subEndpoint: SessionSubEndpoint | undefined,
     subEndpointConfig: any,
     method: string,
-  ): NextResponse | null {
+  ): Response | null {
     if (!subEndpoint) {
       return createApiErrorResponse('SUB_ENDPOINT_REQUIRED', 'Session sub-endpoint required', 400);
     }
@@ -245,11 +242,11 @@ export class RouteValidator {
  * Request body validation utilities
  */
 export class RequestValidator {
-  static async validateSessionRequest(request: NextRequest): Promise<{
+  static async validateSessionRequest(request: Request): Promise<{
     body: any;
     idToken?: string;
     csrfToken?: string;
-    error?: NextResponse;
+    error?: Response;
   }> {
     try {
       const body = await request.json();
@@ -262,7 +259,7 @@ export class RequestValidator {
     }
   }
 
-  static validateIdToken(idToken: string | undefined): NextResponse | null {
+  static validateIdToken(idToken: string | undefined): Response | null {
     if (!idToken) {
       return createApiErrorResponse(
         'INVALID_TOKEN',

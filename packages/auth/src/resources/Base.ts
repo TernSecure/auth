@@ -2,7 +2,7 @@ import { isValidBrowserOnline } from '@tern-secure/shared/browser';
 import type { TernSecureApiErrorJSON } from '@tern-secure/types';
 
 import type { ApiRequestInit, ApiResponse, ApiResponseJSON } from '../instance/coreApiClient';
-import { coreApiClient } from '../instance/coreApiClient';
+//import { coreApiClient} from '../instance/coreApiClient';
 import { TernSecureAPIResponseError } from './Error';
 import type { AuthCookieManager,TernSecureAuth } from './internal';
 
@@ -27,8 +27,8 @@ export type PostMutateParams = {
 export abstract class TernSecureBase {
   static ternsecure: TernSecureAuth;
 
-  static get apiUrl() {
-    return TernSecureBase.ternsecure.getApiUrl();
+  static get apiClient() {
+    return TernSecureBase.ternsecure.getApiClient();
   }
 
   static get authCookieManager(): AuthCookieManager | undefined {
@@ -43,15 +43,10 @@ export abstract class TernSecureBase {
    * This method handles the complete request lifecycle including error handling
    */
   static async fetchFromCoreApi(requestInit: ApiRequestInit): Promise<ApiResponseJSON<any> | null> {
-    if (!TernSecureBase.apiUrl) {
-      throw new Error('API URL is not defined. Make sure TernSecureAuth is properly initialized.');
-    }
-
-    const apiUrl = this.ternsecure.apiUrl;
 
     let apiResponse: ApiResponse<any>;
     try {
-      apiResponse = await coreApiClient.request(requestInit, { apiUrl });
+      apiResponse = await TernSecureBase.apiClient.request(requestInit, { timeoutMs: 10000 });
     } catch (error) {
       if (!isValidBrowserOnline()) {
         console.warn(error);

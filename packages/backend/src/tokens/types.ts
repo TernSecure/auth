@@ -43,3 +43,12 @@ export type AuthenticateFireRequestOptions = {
   apiVersion?: string;
   firebaseConfig?: TernSecureConfig
 } & VerifyTokenVOptions;
+
+
+export type AuthenticateRequestOptions = {
+  signInUrl?: string;
+  signUpUrl?: string;
+  checkRevoked?: CheckRevokedOptions;
+  apiClient?: ApiClient;
+  firebaseConfig?: TernSecureConfig
+} & VerifyTokenVOptions;

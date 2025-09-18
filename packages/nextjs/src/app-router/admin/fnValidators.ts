@@ -1,4 +1,4 @@
-import { type NextRequest, NextResponse } from 'next/server';
+import { cookies } from 'next/headers';
 
 import { createApiErrorResponse } from './responses';
 import type {
@@ -10,9 +10,10 @@ import type {
   SessionSubEndpoint,
   ValidationConfig,
 } from './types';
+//import type { RequestProcessorContext } from './claude-authenticateRequestProcessor';
 
 export interface RequestContext {
-  request: NextRequest;
+  request: Request;
   origin: string | null;
   host: string | null;
   referer: string | null;
@@ -21,7 +22,7 @@ export interface RequestContext {
   pathSegments: string[];
 }
 
-export function createRequestContext(request: NextRequest): RequestContext {
+export function createRequestContext(request: Request): RequestContext {
   const url = new URL(request.url);
   const pathSegments = url.pathname.split('/').filter(Boolean);
 
@@ -43,7 +44,7 @@ export function createRequestContext(request: NextRequest): RequestContext {
 export function createValidators(context: RequestContext) {
   const { request, origin, host, referer, userAgent, method, pathSegments } = context;
 
-  async function validateCors(corsOptions: CorsOptions): Promise<NextResponse | null> {
+  async function validateCors(corsOptions: CorsOptions): Promise<Response | null> {
     if (corsOptions.skipSameOrigin) {
       if (!origin || (host && origin.includes(host))) {
         return null;
@@ -67,8 +68,8 @@ export function createValidators(context: RequestContext) {
     return null;
   }
 
-  function createCorsOptionsResponse(corsOptions: CorsOptions): NextResponse {
-    const response = new NextResponse(null, { status: 204 });
+  function createCorsOptionsResponse(corsOptions: CorsOptions): Response {
+    const response = new Response(null, { status: 204 });
 
     if (corsOptions.allowedOrigins === '*') {
       response.headers.set('Access-Control-Allow-Origin', '*');
@@ -96,7 +97,7 @@ export function createValidators(context: RequestContext) {
     return response;
   }
 
-  async function validateSecurity(securityOptions: SecurityOptions): Promise<NextResponse | null> {
+  async function validateSecurity(securityOptions: SecurityOptions): Promise<Response | null> {
     const csrfResult = validateCsrf(securityOptions);
     if (csrfResult) return csrfResult;
 
@@ -109,7 +110,7 @@ export function createValidators(context: RequestContext) {
     return null;
   }
 
-  function validateCsrf(securityOptions: SecurityOptions): NextResponse | null {
+  function validateCsrf(securityOptions: SecurityOptions): Response | null {
     if (securityOptions.requireCSRF && origin && host && !origin.includes(host)) {
       const hasCSRFHeader = request.headers.get('x-requested-with') === 'XMLHttpRequest';
       const hasValidReferer = referer && host && referer.includes(host);
@@ -127,7 +128,7 @@ export function createValidators(context: RequestContext) {
     return null;
   }
 
-  function validateRequiredHeaders(securityOptions: SecurityOptions): NextResponse | null {
+  function validateRequiredHeaders(securityOptions: SecurityOptions): Response | null {
     if (securityOptions.requiredHeaders) {
       for (const [headerName, expectedValue] of Object.entries(securityOptions.requiredHeaders)) {
         const actualValue = request.headers.get(headerName);
@@ -143,7 +144,7 @@ export function createValidators(context: RequestContext) {
     return null;
   }
 
-  function validateUserAgent(securityOptions: SecurityOptions): NextResponse | null {
+  function validateUserAgent(securityOptions: SecurityOptions): Response | null {
     if (securityOptions.userAgent?.block?.length) {
       const isBlocked = securityOptions.userAgent.block.some((blocked: string) =>
         userAgent.toLowerCase().includes(blocked.toLowerCase()),
@@ -170,7 +171,7 @@ export function createValidators(context: RequestContext) {
   function validateCsrfToken(
     csrfToken: string,
     csrfCookieValue: string | undefined,
-  ): NextResponse | null {
+  ): Response | null {
     if (!csrfToken) {
       return createApiErrorResponse('INVALID_CSRF_TOKEN', 'CSRF token is required', 400);
     }
@@ -186,7 +187,7 @@ export function createValidators(context: RequestContext) {
     return null;
   }
 
-  function validatePathStructure(): NextResponse | null {
+  function validatePathStructure(): Response | null {
     if (pathSegments.length < 3) {
       return createApiErrorResponse(
         'INVALID_ROUTE',
@@ -200,7 +201,7 @@ export function createValidators(context: RequestContext) {
   function validateEndpoint(
     _endpoint: AuthEndpoint,
     endpointConfig: EndpointConfig,
-  ): NextResponse | null {
+  ): Response | null {
     if (!endpointConfig || !endpointConfig.enabled) {
       return createApiErrorResponse('ENDPOINT_NOT_FOUND', 'Endpoint not found', 404);
     }
@@ -215,7 +216,7 @@ export function createValidators(context: RequestContext) {
   function validateSubEndpoint(
     subEndpoint: SessionSubEndpoint | undefined,
     subEndpointConfig: any,
-  ): NextResponse | null {
+  ): Response | null {
     if (!subEndpoint) {
       return createApiErrorResponse('SUB_ENDPOINT_REQUIRED', 'Session sub-endpoint required', 400);
     }
@@ -235,7 +236,7 @@ export function createValidators(context: RequestContext) {
     body: any;
     idToken?: string;
     csrfToken?: string;
-    error?: NextResponse;
+    error?: Response;
   }> {
     try {
       const body = await request.json();
@@ -248,7 +249,7 @@ export function createValidators(context: RequestContext) {
     }
   }
 
-  function validateIdToken(idToken: string | undefined): NextResponse | null {
+  function validateIdToken(idToken: string | undefined): Response | null {
     if (!idToken) {
       return createApiErrorResponse(
         'INVALID_TOKEN',
@@ -323,7 +324,8 @@ export function createValidators(context: RequestContext) {
       }
 
       if (config.requireCsrfToken && sessionData.csrfToken) {
-        const csrfCookieValue = request.cookies.get('csrfToken')?.value;
+        const cookieStore = await cookies();
+        const csrfCookieValue = cookieStore.get('csrfToken')?.value;
         const csrfError = validateCsrfToken(sessionData.csrfToken, csrfCookieValue);
         if (csrfError) {
           return { isValid: false, error: csrfError };

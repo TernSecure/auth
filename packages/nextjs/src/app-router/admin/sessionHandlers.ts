@@ -1,7 +1,7 @@
 import type { RequestOptions } from '@tern-secure/backend';
 import { clearSessionCookie, createSessionCookie } from '@tern-secure/backend/admin';
-import { ternDecodeJwtUnguarded } from '@tern-secure/backend/jwt';
-import type { NextRequest, NextResponse } from 'next/server';
+import { ternDecodeJwtUnguarded} from '@tern-secure/backend/jwt';
+import { cookies } from 'next/headers';
 
 import { NextCookieStore } from '../../utils/NextCookieAdapter';
 import { createApiErrorResponse, HttpResponseHelper, SessionResponseHelper } from './responses';
@@ -17,27 +17,27 @@ import { CsrfValidator, RequestValidator } from './validators';
  */
 export class SessionGetHandler {
   static async handle(
-    request: NextRequest,
     subEndpoint: SessionSubEndpoint,
     _config: Required<TernSecureHandlerOptions>,
-  ): Promise<NextResponse> {
+  ): Promise<Response> {
     switch (subEndpoint) {
       case 'verify':
-        return this.handleVerify(request);
+        return this.handleVerify();
       default:
         return HttpResponseHelper.createNotFoundResponse();
     }
   }
 
-  private static async handleVerify(request: NextRequest): Promise<NextResponse> {
+  private static async handleVerify(): Promise<Response> {
     try {
-      const sessionCookie = request.cookies.get('_session_cookie')?.value;
+      const cookieStore = await cookies();
+      const sessionCookie = cookieStore.get('_session_cookie')?.value;
       if (!sessionCookie) {
         return SessionResponseHelper.createUnauthorizedResponse();
       }
 
-      const decodedSession = ternDecodeJwtUnguarded(sessionCookie);
-      if (decodedSession.errors) {
+      const { data: decodedSession, errors } = ternDecodeJwtUnguarded(sessionCookie);
+      if (errors) {
         return SessionResponseHelper.createUnauthorizedResponse();
       }
 
@@ -53,17 +53,17 @@ export class SessionGetHandler {
  */
 export class SessionPostHandler {
   static async handle(
-    request: NextRequest,
+    request: Request,
     subEndpoint: SessionSubEndpoint,
     _config: TernSecureInternalHandlerConfig,
-  ): Promise<NextResponse> {
+  ): Promise<Response> {
     const cookieStore = new NextCookieStore();
 
     const { idToken, csrfToken, error } = await RequestValidator.validateSessionRequest(request);
     if (error) return error;
 
-    const csrfCookieValue = request.cookies.get('_session_terncf')?.value;
-    const csrfValidationError = CsrfValidator.validate(csrfToken || '', csrfCookieValue);
+    const csrfCookieValue = await cookieStore.get('_session_terncf');
+    const csrfValidationError = CsrfValidator.validate(csrfToken || '', csrfCookieValue.value);
     if (csrfValidationError) return csrfValidationError;
 
     const options = {
@@ -74,7 +74,7 @@ export class SessionPostHandler {
       case 'createsession':
         return this.handleCreateSession(options, idToken, cookieStore);
       case 'refresh':
-        return this.handleRefreshSession(request, cookieStore);
+        return this.handleRefreshSession(cookieStore);
       case 'revoke':
         return this.handleRevokeSession(cookieStore);
       default:
@@ -86,7 +86,7 @@ export class SessionPostHandler {
     options: RequestOptions,
     idToken: string | undefined,
     cookieStore: NextCookieStore,
-  ): Promise<NextResponse> {
+  ): Promise<Response> {
     const validationError = RequestValidator.validateIdToken(idToken);
     if (validationError) return validationError;
     if (!idToken) {
@@ -102,16 +102,15 @@ export class SessionPostHandler {
   }
 
   private static async handleRefreshSession(
-    request: NextRequest,
     cookieStore: NextCookieStore,
-  ): Promise<NextResponse> {
-    const currentSessionCookie = request.cookies.get('__session')?.value;
+  ): Promise<Response> {
+    const currentSessionCookie = await cookieStore.get('__session');
     if (!currentSessionCookie) {
       return createApiErrorResponse('NO_SESSION', 'No session to refresh', 401);
     }
 
     try {
-      const decodedSession = ternDecodeJwtUnguarded(currentSessionCookie);
+      const decodedSession = ternDecodeJwtUnguarded(currentSessionCookie.value || '');
       if (decodedSession.errors) {
         return createApiErrorResponse('INVALID_SESSION', 'Invalid session for refresh', 401);
       }
@@ -127,7 +126,7 @@ export class SessionPostHandler {
     }
   }
 
-  private static async handleRevokeSession(cookieStore: NextCookieStore): Promise<NextResponse> {
+  private static async handleRevokeSession(cookieStore: NextCookieStore): Promise<Response> {
     const res = await clearSessionCookie(cookieStore);
     return SessionResponseHelper.createRevokeResponse(res);
   }
@@ -138,11 +137,11 @@ export class SessionPostHandler {
  */
 export class SessionEndpointHandler {
   static async handle(
-    request: NextRequest,
+    request: Request,
     method: string,
     subEndpoint: SessionSubEndpoint | undefined,
     config: Required<TernSecureHandlerOptions>,
-  ): Promise<NextResponse> {
+  ): Promise<Response> {
     const sessionsConfig = config.endpoints.sessions;
 
     if (!subEndpoint) {
@@ -162,7 +161,7 @@ export class SessionEndpointHandler {
 
     switch (method) {
       case 'GET':
-        return SessionGetHandler.handle(request, subEndpoint, config);
+        return SessionGetHandler.handle(subEndpoint, config);
       case 'POST':
         return SessionPostHandler.handle(request, subEndpoint, config);
       default:
@@ -174,7 +173,7 @@ export class SessionEndpointHandler {
     subEndpoint: SessionSubEndpoint | undefined,
     subEndpointConfig: any,
     method: string,
-  ): NextResponse | null {
+  ): Response | null {
     if (!subEndpoint) {
       return createApiErrorResponse('SUB_ENDPOINT_REQUIRED', 'Session sub-endpoint required', 400);
     }

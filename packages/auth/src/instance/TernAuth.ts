@@ -31,8 +31,8 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
   connectAuthEmulator,
+  getAuth,
   getRedirectResult,
-  initializeAuth,
   inMemoryPersistence,
   onAuthStateChanged,
   onIdTokenChanged,
@@ -42,6 +42,7 @@ import { getInstallations } from 'firebase/installations';
 
 import { AuthCookieManager, SignIn, SignUp, TernSecureBase } from '../resources/internal';
 import { buildURL } from '../utils/construct';
+import { type ApiClient, createCoreApiClient } from './c_coreApiClient';
 import { eventBus, events } from './events';
 
 export function inBrowser(): boolean {
@@ -72,7 +73,8 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   public user: TernSecureUser | null | undefined = null;
   public __internal_country?: string | null;
   #domain: DomainOrProxyUrl['domain'];
-  #apiUrl!: string;
+  #apiClient: ApiClient;
+  #apiUrl: string;
   #instanceType?: InstanceType;
   #status: TernSecureAuthInterface['status'] = 'loading';
   #listeners: Array<(emission: TernSecureResources) => void> = [];
@@ -111,8 +113,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return this.#apiUrl;
   }
 
-  public getApiUrl = (): string => this.#apiUrl;
-
   get domain(): string {
     if (inBrowser()) {
       const strippedDomainString = stripScheme(
@@ -134,9 +134,18 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     this.#domain = options?.ternSecureConfig?.authDomain;
     this.#apiUrl = options?.apiUrl || '';
     this.#instanceType = (process.env.NODE_ENV as InstanceType) || 'production';
+
+    this.#apiClient = createCoreApiClient({
+      domain: this.#domain,
+      apiUrl: options?.apiUrl,
+      instanceType: this.instanceType as InstanceType,
+    });
+
     this.#publicEventBus.emit(ternEvents.Status, 'loading');
     TernSecureBase.ternsecure = this;
   }
+
+  public getApiClient = (): ApiClient => this.#apiClient;
 
   public setLoading(isLoading: boolean): void {
     this.isLoading = isLoading;
@@ -150,7 +159,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     if (!this.instance) {
       this.instance = new TernSecureAuth(options);
     }
-    console.log('[TernSecureAuth] TernSecureAuth instance:', this.instance);
+    //console.log('TernSecureAuth instance:', this.instance);
     return this.instance;
   }
 
@@ -204,14 +213,15 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
   };
 
-  private initializeFirebaseApp(config: TernSecureConfig) {
+  private async initializeFirebaseApp(config: TernSecureConfig) {
     const appName = config.appName || '[DEFAULT]';
     this.firebaseClientApp = getApps().length === 0 ? initializeApp(config, appName) : getApps()[0];
 
     const persistence = this.#setPersistence();
-    const auth = initializeAuth(this.firebaseClientApp, {
-      persistence,
-    });
+    //const auth = initializeAuth(this.firebaseClientApp, {
+    //  persistence: browserCookiePersistence,
+    //});
+    const auth = getAuth(this.firebaseClientApp);
 
     this.auth = auth;
 
@@ -222,6 +232,8 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     this.#configureEmulator();
 
     getInstallations(this.firebaseClientApp);
+
+    await auth.setPersistence(browserCookiePersistence)
   }
 
   public signOut: SignOut = async (options?: SignOutOptions) => {
@@ -245,7 +257,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
   get currentSession(): SignedInSession | null {
     return this.signedInSession;
-  };
+  }
 
   private initAuthStateListener(): () => void {
     return onAuthStateChanged(this.auth, async (user: TernSecureUser | null) => {
@@ -361,12 +373,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       if (!this.#options.ternSecureConfig) {
         throw new Error('TernSecureConfig is required to initialize TernSecureAuth');
       }
-
-      if (!this.#options.apiUrl) {
-        throw new Error('apiUrl is required to initialize TernSecureAuth');
-      }
-
-      this.#apiUrl = this.#options.apiUrl;
 
       this.initializeFirebaseApp(this.#options.ternSecureConfig);
 
