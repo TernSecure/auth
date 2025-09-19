@@ -37,7 +37,6 @@ import {
   onAuthStateChanged,
   onIdTokenChanged,
 } from 'firebase/auth';
-import { browserCookiePersistence } from 'firebase/auth/web-extension';
 import { getInstallations } from 'firebase/installations';
 
 import { AuthCookieManager, SignIn, SignUp, TernSecureBase } from '../resources/internal';
@@ -553,8 +552,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     const persistenceType = this.#options.persistence || 'none';
 
     switch (persistenceType) {
-      case 'browserCookie':
-        return browserCookiePersistence;
       case 'session':
         return browserSessionPersistence;
       case 'local':

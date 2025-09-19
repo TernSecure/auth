@@ -188,7 +188,6 @@ export const ternSecureMiddleware = ((
     };
 
     const fireNextMiddleware: NextMiddleware = async (request) => {
-      console.log('[TernSecureMiddleware] Firebase Request URL:', request.url);
       if (isFirebaseCookieRequest(request)) {
         const options = typeof params === 'function' ? await params(request) : params;
         rewriteFirebaseRequest(options, request);

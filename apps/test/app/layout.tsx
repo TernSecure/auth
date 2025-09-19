@@ -31,7 +31,7 @@ export default async function RootLayout({
         <TernSecureProvider 
           requiresVerification={true}
           isTernSecureDev={true}
-          persistence="browserCookie"
+          persistence="none"
         > 
         {children}
         </TernSecureProvider>
