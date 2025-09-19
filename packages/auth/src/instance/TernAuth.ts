@@ -31,8 +31,8 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
   connectAuthEmulator,
-  getAuth,
   getRedirectResult,
+  initializeAuth,
   inMemoryPersistence,
   onAuthStateChanged,
   onIdTokenChanged,
@@ -213,15 +213,14 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
   };
 
-  private async initializeFirebaseApp(config: TernSecureConfig) {
+  private initializeFirebaseApp(config: TernSecureConfig) {
     const appName = config.appName || '[DEFAULT]';
     this.firebaseClientApp = getApps().length === 0 ? initializeApp(config, appName) : getApps()[0];
 
     const persistence = this.#setPersistence();
-    //const auth = initializeAuth(this.firebaseClientApp, {
-    //  persistence: browserCookiePersistence,
-    //});
-    const auth = getAuth(this.firebaseClientApp);
+    const auth = initializeAuth(this.firebaseClientApp, {
+      persistence,
+    });
 
     this.auth = auth;
 
@@ -232,8 +231,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     this.#configureEmulator();
 
     getInstallations(this.firebaseClientApp);
-
-    await auth.setPersistence(browserCookiePersistence)
   }
 
   public signOut: SignOut = async (options?: SignOutOptions) => {
