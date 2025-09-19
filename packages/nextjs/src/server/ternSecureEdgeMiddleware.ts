@@ -197,7 +197,7 @@ export const ternSecureMiddleware = ((
     };
 
     const nextMiddleware: NextMiddleware = async (request, event) => {
-       if (isFirebaseRequest(request)) {
+       if (isFirebaseCookieRequest(request)) {
         return fireNextMiddleware(request, event);
        }
       return withAuthNextMiddleware(request, event);
