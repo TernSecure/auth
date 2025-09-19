@@ -1,4 +1,9 @@
-//v2: redict with taking priority from the sign-in page
+import { camelToSnake } from '@tern-secure/shared/caseUtils'
+
+import { joinPaths } from './path';
+import { getQueryParams } from './querystring';
+
+const DUMMY_URL_BASE = 'http://ternsecure-dummy';
 
 export type constructUrlWithRedirectProps = {
   signInUrl: string;
@@ -12,7 +17,10 @@ interface BuildURLParams extends Partial<URL> {
   base?: string;
   hashPath?: string;
   hashSearch?: string;
-  hashSearchParams?: URLSearchParams | Record<string, string> | Array<URLSearchParams | Record<string, string>>;
+  hashSearchParams?:
+    | URLSearchParams
+    | Record<string, string>
+    | Array<URLSearchParams | Record<string, string>>;
 }
 
 interface BuildURLOptions<T> {
@@ -48,96 +56,74 @@ export function buildURL<B extends boolean>(
  * @param options - Options for building the URL
  * @returns The constructed URL as a string or URL object
  */
-export function buildURL(params: BuildURLParams, options: BuildURLOptions<boolean> = {}): URL | string {
-  const { base, hashPath, hashSearch, searchParams, hashSearchParams, ...rest} = params;
-  const { stringify = true, skipOrigin = false } = options;
+export function buildURL(
+  params: BuildURLParams,
+  options: BuildURLOptions<boolean> = {},
+): URL | string {
+  const { base, hashPath, hashSearch, searchParams, hashSearchParams, ...rest } = params;
+  const { stringify, skipOrigin } = options;
 
-  const baseFallback =
-    typeof window !== 'undefined' && window.location ? window.location.href : 'http://react-native-fake-base-url';
+  let baseFallback = '';
+  if (typeof window !== 'undefined' && !!window.location) {
+    baseFallback = window.location.href;
+  } else {
+    baseFallback = 'http://react-native-fake-base-url';
+  }
 
-  // Helper function to append parameters to a URLSearchParams object
-  const appendToUrlSearchParams = (
-    target: URLSearchParams,
-    source: URLSearchParams | Record<string, string> | undefined | null,
-  ) => {
-    if (!source) {
-      return;
-    }
-    if (source instanceof URLSearchParams) {
-      source.forEach((value, key) => {
-        target.set(key, value);
-      });
-    } else if (typeof source === 'object') {
-      Object.entries(source).forEach(([key, value]) => {
-        target.set(key, String(value));
-      });
-    }
-  };
+  const url = new URL(base || '', baseFallback);
 
-  try {
-    const url = new URL(base || '', baseFallback);
-
-    // Handle search parameters
-    // params.searchParams comes from Partial<URL>, so it's URLSearchParams | undefined
-    if (searchParams) {
-      searchParams.forEach((value, key) => {
-        url.searchParams.set(key, value);
-      });
-    }
-
-    // Handle hash-related parameters
-    if (hashPath || hashSearch || hashSearchParams) {
-      const finalHashPath = hashPath || '';
-      const queryForHash = new URLSearchParams(hashSearch || '');
-
-      if (hashSearchParams) {
-        if (Array.isArray(hashSearchParams)) {
-          hashSearchParams.forEach(item => appendToUrlSearchParams(queryForHash, item));
-        } else {
-          appendToUrlSearchParams(queryForHash, hashSearchParams);
-        }
+  // Handle search parameters
+  // params.searchParams comes from Partial<URL>, so it's URLSearchParams | undefined
+  if (searchParams instanceof URLSearchParams) {
+    searchParams.forEach((value, key) => {
+      if (value !== null && value !== undefined) {
+        url.searchParams.set(key, value); //camelToSnake(key), value
       }
+    });
+  }
 
-      const hashQueryString = queryForHash.toString();
-      let combinedHashString = '';
+  Object.assign(url, rest);
 
-      if (finalHashPath) {
-        combinedHashString = finalHashPath;
-        if (hashQueryString) {
-          if (combinedHashString.includes('?')) {
-            combinedHashString += '&' + hashQueryString;
-          } else {
-            combinedHashString += '?' + hashQueryString;
+  // Handle hash-related parameters
+  if (hashPath || hashSearch || hashSearchParams) {
+    const dummyUrlForHash = new URL(DUMMY_URL_BASE + url.hash.substring(1));
+
+    dummyUrlForHash.pathname = joinPaths(dummyUrlForHash.pathname, hashPath || '');
+
+    const searchParamsFromHashSearchString = getQueryParams(hashSearch || '');
+
+    for (const [key, val] of Object.entries(searchParamsFromHashSearchString)) {
+      dummyUrlForHash.searchParams.append(key, val);
+    }
+    const finalHashPath = hashPath || '';
+    const queryForHash = new URLSearchParams(hashSearch || '');
+
+    if (hashSearchParams) {
+      const paramsArr = Array.isArray(hashSearchParams) ? hashSearchParams : [hashSearchParams];
+      for (const _params of paramsArr) {
+        if (!(_params instanceof URLSearchParams) && typeof _params !== 'object') {
+          continue;
+        }
+        const params = new URLSearchParams(_params);
+        params.forEach((value, key) => {
+          if (value !== null && value !== undefined) {
+            dummyUrlForHash.searchParams.set(camelToSnake(key), value);
           }
-        }
-      } else {
-        // No hashPath
-        if (hashQueryString) {
-          // If only query, it forms the hash content directly.
-          // e.g. "param=value" or "?param=value" are both valid after '#'
-          combinedHashString = hashQueryString;
-        }
-      }
-
-      if (combinedHashString) {
-        url.hash = combinedHashString;
+        });
       }
     }
 
-    if (stringify) {
-      return skipOrigin ? url.href.replace(url.origin, '') : url.href;
-    }
-    return url;
-  } catch (error) {
-    console.error('[TernSecure] Error building URL:', error);
-    const fallbackUrlString = base || '/';
-    if (stringify) {
-      return fallbackUrlString;
-    } else {
-      // Attempt to create a URL object for the fallback
-      return new URL(fallbackUrlString, baseFallback);
+    const newHash = dummyUrlForHash.href.replace(DUMMY_URL_BASE, '');
+    if (newHash !== '/') {
+      // Assign them to the hash of the main url
+      url.hash = newHash;
     }
   }
+
+  if (stringify) {
+    return skipOrigin ? url.href.replace(url.origin, '') : url.href;
+  }
+  return url;
 }
 
 /**
@@ -171,7 +157,13 @@ export const hasRedirectLoop = (currentPath: string, redirectPath: string): bool
 };
 
 export const urlWithRedirect = (options: constructUrlWithRedirectProps): string => {
-  const { signInUrl, signInPathParam = '/sign-in', currentPath, signUpUrl, signUpPathParam = '/sign-up' } = options;
+  const {
+    signInUrl,
+    signInPathParam = '/sign-in',
+    currentPath,
+    signUpUrl,
+    signUpPathParam = '/sign-up',
+  } = options;
 
   const baseUrl = window.location.origin;
 
@@ -213,7 +205,10 @@ export const getPreviousPath = (): string | null => {
  * @param searchParams - The search parameters to check for redirect
  * @returns A validated redirect URL
  */
-export const getValidRedirectUrl = (searchParams: URLSearchParams, configuredRedirect?: string): string => {
+export const getValidRedirectUrl = (
+  searchParams: URLSearchParams,
+  configuredRedirect?: string,
+): string => {
   // Check URL search param first (highest priority)
   const urlRedirect = searchParams.get('redirect');
   if (urlRedirect) {
