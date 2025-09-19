@@ -1,3 +1,4 @@
+import { camelToSnake, jitteredDelay } from '@tern-secure/shared/caseUtils'
 import type { InstanceType, TernSecureApiErrorJSON } from '@tern-secure/types';
 
 import { buildURL as buildUrlUtil, stringifyQueryParams } from '../utils';
@@ -44,6 +45,7 @@ export interface ApiClientOptions {
   apiUrl?: string;
   frontendApi?: string;
   instanceType?: InstanceType;
+  apiBasePath?: string;
 }
 
 export interface ApiClient {
@@ -104,15 +106,6 @@ interface ClientState {
   beforeRequestHooks: BeforeRequestHook[];
   afterResponseHooks: AfterResponseHook[];
   clientOptions: ApiClientOptions;
-}
-
-// Utility functions
-function camelToSnake(str: string): string {
-  return str.replace(/[A-Z]/g, letter => `_${letter.toLowerCase()}`);
-}
-
-function jitteredDelay(delay: number): number {
-  return delay * Math.random();
 }
 
 function createInitialState(clientOptions: ApiClientOptions = {}): ClientState {
@@ -240,15 +233,25 @@ async function retryWithBackoff<T>(
 
 export function createCoreApiClient(clientOptions: ApiClientOptions): ApiClient {
   function buildUrl(requestInit: ApiRequestInit): URL {
+     const isLocalhost = clientOptions.apiUrl?.includes('localhost') || clientOptions.apiUrl?.includes('127.0.0.1');
     const { path } = requestInit;
-    const domainInProd = clientOptions.instanceType === 'production' ? clientOptions.domain : '';
+    const { instanceType, domain, apiUrl, apiBasePath = '/api/auth' } = clientOptions;
+    const domainInProd = instanceType === 'production' ? domain : '';
 
-    const baseUrl = `https://${domainInProd || clientOptions.apiUrl}`;
+    let baseUrl: string;
+    if (isLocalhost) {
+      // For localhost, use http and the apiUrl directly
+      baseUrl = apiUrl?.startsWith('http') ? apiUrl : `http://${apiUrl}`;
+    } else {
+      //const domainInProd = instanceType === 'production' ? domain : '';
+      baseUrl = `https://${domainInProd || apiUrl}`;
+    }
 
+    const fullPath = `${apiBasePath}/${path}`.replace(/\/+/g, '/'); 
     return buildUrlUtil(
       {
         base: baseUrl,
-        pathname: path,
+        pathname: fullPath,
         searchParams: requestInit.search ? new URLSearchParams(requestInit.search) : undefined,
       },
       { stringify: false },
@@ -264,7 +267,7 @@ export function createCoreApiClient(clientOptions: ApiClientOptions): ApiClient 
     const { method = 'GET', body } = requestInit;
     const requestOptions = { ...opts };
 
-    requestInit.url = buildUrl({ ...init });
+    requestInit.url = buildUrl({ ...requestInit });
     checkCircuitBreaker(state, requestOptions);
 
     const shouldContinue = await runBeforeRequestHooks(state);
