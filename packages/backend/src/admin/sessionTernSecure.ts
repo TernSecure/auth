@@ -1,5 +1,4 @@
 'use server';
-
 import { handleFirebaseAuthError } from '@tern-secure/shared/errors';
 import type {
   CookieStore,
@@ -8,6 +7,7 @@ import type {
   TernSecureHandlerOptions,
 } from '@tern-secure/types';
 
+import { constants } from '../constants';
 import { getAuthForTenant } from '../utils/admin-init';
 
 const SESSION_CONSTANTS = {
@@ -92,6 +92,10 @@ export async function createSessionCookie(
     // Set the cookie
     try {
       await cookieStore.set(SESSION_CONSTANTS.COOKIE_NAME, sessionCookie, {
+        maxAge: SESSION_CONSTANTS.DEFAULT_EXPIRES_IN_SECONDS,
+        ...COOKIE_OPTIONS,
+      });
+      await cookieStore.set(constants.Cookies.IdToken, idToken, {
         maxAge: SESSION_CONSTANTS.DEFAULT_EXPIRES_IN_SECONDS,
         ...COOKIE_OPTIONS,
       });
