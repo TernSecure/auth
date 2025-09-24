@@ -1,7 +1,6 @@
 import type { RequestState } from './authstate';
 import { AuthErrorReason, signedIn, signedOut } from './authstate';
-import { getSessionConfig } from './sessionConfig';
-import type { AuthenticateFireRequestOptions, RequestOptions } from './types';
+import type { AuthenticateFireRequestOptions,  } from './types';
 import { verifyToken } from './verify';
 
 type RuntimeOptions = Omit<AuthenticateFireRequestOptions, 'firebaseConfig'>;
@@ -40,9 +39,8 @@ function extractTokenFromHeader(request: Request): string | null {
   return authHeader.slice(BEARER_PREFIX.length);
 }
 
-function extractTokenFromCookie(request: Request, opts: RequestOptions): string | null {
+function extractTokenFromCookie(request: Request): string | null {
   const cookieHeader = request.headers.get('Cookie') || undefined;
-  const sessionName = getSessionConfig(opts).COOKIE_NAME;
 
   if (!cookieHeader) {
     return null;
@@ -69,7 +67,7 @@ export async function authenticateRequest(
   options: AuthenticateFireRequestOptions,
 ): Promise<RequestState> {
   async function authenticateRequestWithTokenInCookie() {
-    const token = extractTokenFromCookie(request, options);
+    const token = extractTokenFromCookie(request);
     if (!token) {
       return signedOut(AuthErrorReason.SessionTokenMissing);
     }

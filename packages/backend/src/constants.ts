@@ -2,6 +2,7 @@ export const GOOGLE_PUBLIC_KEYS_URL =
   'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
 export const SESSION_COOKIE_PUBLIC_KEYS_URL =
   'https://www.googleapis.com/identitytoolkit/v3/relyingparty/publicKeys';
+
 export const MAX_CACHE_LAST_UPDATED_AT_SECONDS = 5 * 60;
 export const DEFAULT_CACHE_DURATION = 3600 * 1000; // 1 hour in milliseconds
 export const CACHE_CONTROL_REGEX = /max-age=(\d+)/;
@@ -17,11 +18,11 @@ const Attributes = {
 
 const Cookies = {
   Session: '__session',
-  IdToken: '_tern',
-  CsrfToken: '_session_terncf',
-  SessionCookie: '_session_cookie',
-  SessionToken: '_session_token',
+  IdToken: '__id',
+  CsrfToken: '__session_terncf',
+  SessionCookie: '__session_cookie',
   Refresh: '__refresh',
+  Custom: '__custom',
   Handshake: '__ternsecure_handshake',
   DevBrowser: '__ternsecure_db_jwt',
   RedirectCount: '__ternsecure_redirect_count',

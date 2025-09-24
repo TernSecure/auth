@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
 
+import type { RequestProcessorContext } from './c-authenticateRequestProcessor';
 import { createApiErrorResponse } from './responses';
 import type {
   AuthEndpoint,
@@ -10,39 +11,14 @@ import type {
   SessionSubEndpoint,
   ValidationConfig,
 } from './types';
-//import type { RequestProcessorContext } from './claude-authenticateRequestProcessor';
-
-export interface RequestContext {
-  request: Request;
-  origin: string | null;
-  host: string | null;
-  referer: string | null;
-  userAgent: string;
-  method: string;
-  pathSegments: string[];
-}
-
-export function createRequestContext(request: Request): RequestContext {
-  const url = new URL(request.url);
-  const pathSegments = url.pathname.split('/').filter(Boolean);
-
-  return {
-    request,
-    origin: request.headers.get('origin'),
-    host: request.headers.get('host'),
-    referer: request.headers.get('referer'),
-    userAgent: request.headers.get('user-agent') || '',
-    method: request.method,
-    pathSegments,
-  };
-}
 
 /**
  * Main validators factory function
  * Returns an object containing all validator functions and utilities
  */
-export function createValidators(context: RequestContext) {
-  const { request, origin, host, referer, userAgent, method, pathSegments } = context;
+export function createValidators(context: RequestProcessorContext) {
+  const { origin, host, referrer, userAgent, method, pathSegments } = context;
+  const request = context.request;
 
   async function validateCors(corsOptions: CorsOptions): Promise<Response | null> {
     if (corsOptions.skipSameOrigin) {
@@ -112,15 +88,15 @@ export function createValidators(context: RequestContext) {
 
   function validateCsrf(securityOptions: SecurityOptions): Response | null {
     if (securityOptions.requireCSRF && origin && host && !origin.includes(host)) {
-      const hasCSRFHeader = request.headers.get('x-requested-with') === 'XMLHttpRequest';
-      const hasValidReferer = referer && host && referer.includes(host);
+      const hasCSRFHeader = context.request.headers.get('x-requested-with') === 'XMLHttpRequest';
+      const hasValidReferer = referrer && host && referrer.includes(host);
 
       if (!hasCSRFHeader && !hasValidReferer) {
-        const isAllowedReferer = securityOptions.allowedReferers?.some((allowedRef: string) =>
-          referer?.includes(allowedRef),
+        const isAllowedReferrer = securityOptions.allowedReferers?.some((allowedRef: string) =>
+          referrer?.includes(allowedRef),
         );
 
-        if (!isAllowedReferer) {
+        if (!isAllowedReferrer) {
           return createApiErrorResponse('CSRF_PROTECTION', 'Access denied', 403);
         }
       }
@@ -131,7 +107,7 @@ export function createValidators(context: RequestContext) {
   function validateRequiredHeaders(securityOptions: SecurityOptions): Response | null {
     if (securityOptions.requiredHeaders) {
       for (const [headerName, expectedValue] of Object.entries(securityOptions.requiredHeaders)) {
-        const actualValue = request.headers.get(headerName);
+        const actualValue = context.request.headers.get(headerName);
         if (actualValue !== expectedValue) {
           return createApiErrorResponse(
             'INVALID_HEADERS',
@@ -147,7 +123,7 @@ export function createValidators(context: RequestContext) {
   function validateUserAgent(securityOptions: SecurityOptions): Response | null {
     if (securityOptions.userAgent?.block?.length) {
       const isBlocked = securityOptions.userAgent.block.some((blocked: string) =>
-        userAgent.toLowerCase().includes(blocked.toLowerCase()),
+        context.request.headers.get('user-agent')?.toLowerCase().includes(blocked.toLowerCase()),
       );
 
       if (isBlocked) {
@@ -157,7 +133,7 @@ export function createValidators(context: RequestContext) {
 
     if (securityOptions.userAgent?.allow?.length) {
       const isAllowed = securityOptions.userAgent.allow.some((allowed: string) =>
-        userAgent.toLowerCase().includes(allowed.toLowerCase()),
+        request.headers.get('user-agent')?.toLowerCase().includes(allowed.toLowerCase()),
       );
 
       if (!isAllowed) {

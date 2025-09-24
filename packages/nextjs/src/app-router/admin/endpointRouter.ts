@@ -1,8 +1,12 @@
-import type { EndpointHandler} from './api/endpoints/abstract';
-import type { HandlerContext } from './handlerUtils';
+import type { RequestProcessorContext } from './c-authenticateRequestProcessor';
 import { createApiErrorResponse } from './responses';
-import { SessionEndpointHandler } from './sessionHandlers';
-import type { AuthEndpoint, TernSecureInternalHandlerConfig } from './types';
+import { sessionEndpointHandler } from './sessionHandlers';
+import type { AuthEndpoint, TernSecureHandlerOptions } from './types';
+
+export interface EndpointHandler {
+  canHandle(endpoint: AuthEndpoint): boolean;
+  handle(context: RequestProcessorContext, config: TernSecureHandlerOptions): Promise<Response>;
+}
 
 class SessionsHandler implements EndpointHandler {
   canHandle(endpoint: AuthEndpoint): boolean {
@@ -10,11 +14,10 @@ class SessionsHandler implements EndpointHandler {
   }
 
   async handle(
-    handlerContext: HandlerContext,
-    config: TernSecureInternalHandlerConfig,
+    context: RequestProcessorContext,
+    config: TernSecureHandlerOptions,
   ): Promise<Response> {
-    const { request, subEndpoint, method } = handlerContext;
-    return await SessionEndpointHandler.handle(request, method, subEndpoint, config);
+    return await sessionEndpointHandler(context, config);
   }
 }
 
@@ -23,10 +26,7 @@ class UsersHandler implements EndpointHandler {
     return endpoint === 'users';
   }
 
-  handle(
-    _handlerContext: HandlerContext,
-    _config: TernSecureInternalHandlerConfig,
-  ): Promise<Response> {
+  handle(_context: RequestProcessorContext, _config: TernSecureHandlerOptions): Promise<Response> {
     return Promise.resolve(
       createApiErrorResponse('ENDPOINT_NOT_IMPLEMENTED', 'Users endpoint not implemented', 501),
     );
@@ -34,16 +34,17 @@ class UsersHandler implements EndpointHandler {
 }
 
 export class EndpointRouter {
-  private static readonly handlers: EndpointHandler[] = [
-    new SessionsHandler(),
-    new UsersHandler(),
-  ];
+  private static readonly handlers: EndpointHandler[] = [new SessionsHandler(), new UsersHandler()];
 
   static async route(
-    handlerContext: HandlerContext,
-    config: TernSecureInternalHandlerConfig,
+    context: RequestProcessorContext,
+    config: TernSecureHandlerOptions,
   ): Promise<Response> {
-    const { endpoint } = handlerContext;
+    const { endpoint } = context;
+
+    if (!endpoint) {
+      return createApiErrorResponse('ENDPOINT_REQUIRED', 'Endpoint is required', 400);
+    }
 
     const handler = this.handlers.find(h => h.canHandle(endpoint));
 
@@ -51,7 +52,7 @@ export class EndpointRouter {
       return createApiErrorResponse('ENDPOINT_NOT_FOUND', 'Endpoint not found', 404);
     }
 
-    return handler.handle(handlerContext, config);
+    return handler.handle(context, config);
   }
 
   static addHandler(handler: EndpointHandler): void {

@@ -144,10 +144,15 @@ export function signedIn(
   };
 }
 
-export function signedOut(reason: AuthReason, headers: Headers = new Headers()): SignedOutState {
+export function signedOut(
+  reason: AuthReason,
+  message = '',
+  headers: Headers = new Headers(),
+): SignedOutState {
   return decorateHeaders({
     status: AuthStatus.SignedOut,
     reason,
+    message,
     isSignedIn: false,
     auth: () => signedOutAuthObject(),
     token: null,

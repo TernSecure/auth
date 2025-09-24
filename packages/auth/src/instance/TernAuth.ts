@@ -154,11 +154,14 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return this.#authCookieManager;
   }
 
+  public _internal_getOption<K extends keyof TernSecureAuthOptions>(key: K): TernSecureAuthOptions[K] {
+    return this.#options[key];
+  }
+
   static getorCreateInstance(options?: TernSecureAuthOptions): TernSecureAuth {
     if (!this.instance) {
       this.instance = new TernSecureAuth(options);
     }
-    //console.log('TernSecureAuth instance:', this.instance);
     return this.instance;
   }
 
@@ -192,7 +195,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
       this.initializeFirebaseApp(this.#options.ternSecureConfig);
       this.authStateUnsubscribe = this.initAuthStateListener();
-      this._onIdTokenChanged();
+      // /this.authStateUnsubscribe = this._onIdTokenChanged();
 
       this.#authCookieManager = new AuthCookieManager();
       this.csrfToken = this.#authCookieManager.getCSRFToken();
@@ -261,7 +264,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       this._currentUser = user;
       await this.updateCurrentSession();
 
-      eventBus.emit(events.UserChanged, this._currentUser);
       this.#emit();
     });
   }
@@ -272,7 +274,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       this._currentUser = user;
       await this.updateCurrentSession();
 
-      eventBus.emit(events.TokenRefreshed, { token: user ? await user.getIdTokenResult() : null });
+      //eventBus.emit(events.TokenRefreshed, { token: user ? await user.getIdTokenResult() : null });
       this.#emit();
     });
   }
@@ -532,6 +534,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       for (const listener of this.#listeners) {
         listener({
           user: this._currentUser,
+          session: this.signedInSession,
         });
       }
     }

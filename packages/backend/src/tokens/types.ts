@@ -1,5 +1,5 @@
 import type { CheckRevokedOptions } from '../adapters';
-import type { ApiClient } from '../api';
+import type { ApiClient } from '../fireRestApi';
 import type { TernSecureConfig,VerifyTokenVOptions } from './verify';
 
 export type SessionCookieAttributes = {
@@ -22,22 +22,11 @@ export type MiddlewareCookiesOptions = {
   session_cookie: SessionCookieFromMiddleware;
 };
 
-export type RequestOptions = {
-  tenantId?: string;
-  signInUrl?: string;
-  signUpUrl?: string;
-  checkRevoked?: CheckRevokedOptions;
-  cookies?: MiddlewareCookiesOptions;
-  apiClient?: ApiClient;
-  apiUrl?: string;
-  apiVersion?: string;
-} & VerifyTokenVOptions;
 
 export type AuthenticateFireRequestOptions = {
   signInUrl?: string;
   signUpUrl?: string;
   checkRevoked?: CheckRevokedOptions;
-  cookies?: MiddlewareCookiesOptions;
   apiClient?: ApiClient;
   apiUrl?: string;
   apiVersion?: string;
@@ -50,5 +39,7 @@ export type AuthenticateRequestOptions = {
   signUpUrl?: string;
   checkRevoked?: CheckRevokedOptions;
   apiClient?: ApiClient;
+  apiUrl?: string;
+  apiVersion?: string;
   firebaseConfig?: TernSecureConfig
 } & VerifyTokenVOptions;

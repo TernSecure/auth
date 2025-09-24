@@ -3,8 +3,8 @@ import type { TernSecureApiErrorJSON } from '@tern-secure/types';
 
 import type { ApiRequestInit, ApiResponse, ApiResponseJSON } from '../instance/coreApiClient';
 //import { coreApiClient} from '../instance/coreApiClient';
-import { TernSecureAPIResponseError } from './Error';
-import type { AuthCookieManager,TernSecureAuth } from './internal';
+import { TernSecureAPIResponseError, TernSecureRuntimeError } from './Error';
+import type { AuthCookieManager, TernSecureAuth } from './internal';
 
 export type HTTPMethod =
   | 'CONNECT'
@@ -42,17 +42,23 @@ export abstract class TernSecureBase {
    * Core method to fetch data from API endpoints using coreApiClient
    * This method handles the complete request lifecycle including error handling
    */
-  static async fetchFromCoreApi(requestInit: ApiRequestInit): Promise<ApiResponseJSON<any> | null> {
-
-    let apiResponse: ApiResponse<any>;
+  protected static async fetchFromCoreApi<J>(
+    requestInit: ApiRequestInit,
+  ): Promise<ApiResponseJSON<J> | null> {
+    let apiResponse: ApiResponse<J>;
     try {
-      apiResponse = await TernSecureBase.apiClient.request(requestInit, { timeoutMs: 10000 });
+      apiResponse = await TernSecureBase.apiClient.request<J>(requestInit, { timeoutMs: 10000 });
     } catch (error) {
-      if (!isValidBrowserOnline()) {
+      if (this.shouldRethrowofflineNetworkError()) {
+        throw new TernSecureRuntimeError((error as Error)?.message || String(error), {
+          code: 'OFFLINE_NETWORK_ERROR',
+        });
+      } else if (!isValidBrowserOnline()) {
         console.warn(error);
         return null;
+      } else {
+        throw error;
       }
-      throw error;
     }
 
     const { payload, status, statusText, headers } = apiResponse;
@@ -120,7 +126,7 @@ export abstract class TernSecureBase {
   protected async _post(params: PostMutateParams): Promise<ApiResponseJSON<any> | null> {
     return this.basePost({
       path: params.path,
-      body: params.body
+      body: params.body,
     });
   }
 
@@ -132,5 +138,10 @@ export abstract class TernSecureBase {
     requestInit: ApiRequestInit,
   ): Promise<ApiResponseJSON<any> | null> {
     return this.fetchFromCoreApi(requestInit);
+  }
+
+  private static shouldRethrowofflineNetworkError(): boolean {
+    const experimental = TernSecureBase.ternsecure?._internal_getOption?.('experimental');
+    return experimental?.rethrowOfflineNetworkErrors || false;
   }
 }
