@@ -19,7 +19,7 @@ import { NextResponse } from 'next/server';
 import { isRedirect, setHeader } from '../utils/response';
 import { serverRedirectWithAuth } from '../utils/serverRedirectAuth';
 import { createEdgeCompatibleLogger } from '../utils/withLogger';
-import { API_URL, API_VERSION,SIGN_IN_URL, SIGN_UP_URL } from './constant';
+import { API_KEY, API_URL, API_VERSION,SIGN_IN_URL, SIGN_UP_URL } from './constant';
 import {
   isNextjsNotFoundError,
   isNextjsRedirectError,
@@ -89,6 +89,7 @@ interface TernSecureMiddleware {
 }
 
 const backendClientDefaultOptions = {
+  apiKey: API_KEY,
   apiUrl: API_URL,
   apiVersion: API_VERSION,
 };
@@ -187,19 +188,8 @@ export const ternSecureMiddleware = ((
       return handlerResult;
     };
 
-    const fireNextMiddleware: NextMiddleware = async (request) => {
-      console.log('[TernSecureMiddleware] Firebase Request URL:', request.url);
-      if (isFirebaseCookieRequest(request)) {
-        const options = typeof params === 'function' ? await params(request) : params;
-        rewriteFirebaseRequest(options, request);
-        return handleFirebaseAuthRequest(request);
-      }
-    };
 
     const nextMiddleware: NextMiddleware = async (request, event) => {
-       if (isFirebaseCookieRequest(request)) {
-        return fireNextMiddleware(request, event);
-       }
       return withAuthNextMiddleware(request, event);
     };
 

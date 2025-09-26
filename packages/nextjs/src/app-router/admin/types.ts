@@ -1,80 +1,15 @@
+import type {
+  AuthEndpoint,
+  CookieOpts as CookieOptions,
+  CorsOptions,
+  EndpointConfig,
+  SecurityOptions,
+  SessionEndpointConfig,
+  SessionSubEndpoint,
+  TernSecureHandlerOptions,
+  TokenCookieConfig,
+} from '@tern-secure/types';
 import { type NextResponse } from 'next/server';
-
-export interface CorsOptions {
-  allowedOrigins: string[] | '*';
-  allowedMethods?: string[];
-  allowedHeaders?: string[];
-  allowCredentials?: boolean;
-  maxAge?: number;
-  skipSameOrigin?: boolean;
-}
-
-export interface CookieOptions {
-  name?: string;
-  domain?: string;
-  path?: string;
-  httpOnly?: boolean;
-  sameSite?: 'strict' | 'lax' | 'none';
-  maxAge?: number;
-}
-
-export interface RateLimitOptions {
-  windowMs?: number;
-  maxRequests?: number;
-  skipSuccessful?: boolean;
-  skipFailedRequests?: boolean;
-}
-
-export interface SecurityOptions {
-  requireCSRF?: boolean;
-  allowedReferers?: string[];
-  requiredHeaders?: Record<string, string>;
-  ipWhitelist?: string[];
-  userAgent?: {
-    block?: string[];
-    allow?: string[];
-  };
-}
-
-export interface EndpointConfig {
-  enabled: boolean;
-  methods: ('GET' | 'POST' | 'PUT' | 'DELETE')[];
-  requireAuth?: boolean;
-  rateLimit?: RateLimitOptions;
-  security?: SecurityOptions;
-  cors?: Partial<CorsOptions>;
-}
-
-export interface SessionEndpointConfig extends EndpointConfig {
-  subEndpoints?: {
-    [K in SessionSubEndpoint]?: Partial<EndpointConfig>;
-  };
-}
-
-export interface TernSecureHandlerOptions {
-  cors?: CorsOptions;
-  cookies?: CookieOptions;
-  rateLimit?: RateLimitOptions;
-  security?: SecurityOptions;
-  endpoints?: {
-    sessions?: SessionEndpointConfig;
-  };
-
-  debug?: boolean;
-  environment?: 'development' | 'production' | 'test';
-  basePath?: string;
-}
-
-/**
- * Define an internal config type that extends the public options
- * with server-side only values like tenantId.
- */
-export type TernSecureInternalHandlerConfig = Required<TernSecureHandlerOptions> & {
-  tenantId?: string;
-};
-
-export type AuthEndpoint = 'sessions' | 'users';
-export type SessionSubEndpoint = 'verify' | 'createsession' | 'refresh' | 'revoke';
 
 export const DEFAULT_CORS_OPTIONS: CorsOptions = {
   allowedOrigins: [],
@@ -85,12 +20,41 @@ export const DEFAULT_CORS_OPTIONS: CorsOptions = {
 };
 
 export const DEFAULT_COOKIE_OPTIONS: CookieOptions = {
-  name: '__session',
+  namePrefix: '__session',
   path: '/',
   httpOnly: true,
   sameSite: 'lax',
-  maxAge: 3600 * 24 * 7, // 7 days
+  session: {
+    maxAge: 3600 * 24 * 7, // Default: 1 week (consumer can set 5 mins to 2 weeks)
+  },
 };
+
+export const FIXED_TOKEN_CONFIGS = {
+  id: {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax' as const,
+    maxAge: 3600, // 1 hour
+  },
+  refresh: {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax' as const,
+    maxAge: 3600 * 24 * 30, // 30 days (changes when user events occur)
+  },
+  signature: {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax' as const,
+    maxAge: 3600 * 24 * 7, // 1 week (as needed)
+  },
+  custom: {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax' as const,
+    maxAge: 3600 * 24 * 7, // 1 week (as needed)
+  },
+} as const;
 
 export const DEFAULT_SECURITY_OPTIONS: SecurityOptions = {
   requireCSRF: true,
@@ -164,11 +128,12 @@ export const DEFAULT_HANDLER_OPTIONS: Required<TernSecureHandlerOptions> & {
   endpoints: {
     sessions: DEFAULT_SESSIONS_CONFIG,
   },
+  tenantId: '',
+  enableCustomToken: false,
   debug: false,
   environment: 'production',
   basePath: '/api/auth',
 };
-
 
 export interface ValidationResult {
   error?: NextResponse;
@@ -200,3 +165,66 @@ export interface ComprehensiveValidationResult {
     csrfToken?: string;
   };
 }
+
+export type suffix = 'session' | 'id' | 'refresh' | 'signature' | 'custom';
+
+export class CookieUtils {
+  static getCookieName(namePrefix: string, tokenType: suffix): string {
+    return `${namePrefix}.${tokenType}`;
+  }
+
+  static getCookieNames(namePrefix: string) {
+    return {
+      session: this.getCookieName(namePrefix, 'session'),
+      id: this.getCookieName(namePrefix, 'id'),
+      refresh: this.getCookieName(namePrefix, 'refresh'),
+      signature: this.getCookieName(namePrefix, 'signature'),
+      custom: this.getCookieName(namePrefix, 'custom'),
+    };
+  }
+
+  static getSessionConfig(cookieOptions: CookieOptions): TokenCookieConfig {
+    const sessionConfig = cookieOptions.session || {};
+    const defaultSession = DEFAULT_COOKIE_OPTIONS.session || {};
+
+    return {
+      domain: sessionConfig.domain ?? cookieOptions.domain,
+      path: sessionConfig.path ?? cookieOptions.path ?? '/',
+      httpOnly: sessionConfig.httpOnly ?? cookieOptions.httpOnly ?? true,
+      sameSite: sessionConfig.sameSite ?? cookieOptions.sameSite ?? 'lax',
+      maxAge: sessionConfig.maxAge ?? defaultSession.maxAge ?? 3600 * 24 * 7,
+    };
+  }
+
+  static getFixedTokenConfig(
+    cookieOptions: CookieOptions,
+    tokenType: Exclude<suffix, 'session'>,
+  ): TokenCookieConfig {
+    const fixedConfig = FIXED_TOKEN_CONFIGS[tokenType];
+
+    return {
+      domain: cookieOptions.domain,
+      path: fixedConfig.path,
+      httpOnly: fixedConfig.httpOnly,
+      sameSite: fixedConfig.sameSite,
+      maxAge: fixedConfig.maxAge,
+    };
+  }
+
+  static validateSessionMaxAge(maxAge: number): boolean {
+    const minAge = 300; // 5 minutes
+    const maxAgeLimit = 3600 * 24 * 14; // 2 weeks
+    return maxAge >= minAge && maxAge <= maxAgeLimit;
+  }
+}
+
+export {
+  AuthEndpoint,
+  CookieOptions,
+  CorsOptions,
+  SecurityOptions,
+  SessionSubEndpoint,
+  EndpointConfig,
+  SessionEndpointConfig,
+  TernSecureHandlerOptions,
+};

@@ -12,13 +12,12 @@ const authHandlerOptions: TernSecureHandlerOptions = {
   },
   cookies: {
     httpOnly: true,
-    name: '_session_cookie',
+    namePrefix: '_session_cookie',
     sameSite: 'strict',
     path: '/',
     maxAge: 5 * 60, // 5 minutes
   },
   security: {
-    requireCSRF: true,
     allowedReferers: ['https://ternsecure.com'],
   },
   debug: process.env.NODE_ENV === 'development',

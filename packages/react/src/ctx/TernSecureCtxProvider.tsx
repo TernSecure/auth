@@ -24,6 +24,7 @@ export function TernSecureCtxProvider(props: TernSecureCtxProviderProps) {
 
   const [authState, setAuthState] = useState<TernSecureCtxProviderState>({
     user: instance.user,
+    session: instance.currentSession
   });
 
   React.useEffect(() => {

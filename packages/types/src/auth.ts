@@ -109,6 +109,10 @@ export type TernSecureAuthOptions = {
   ternSecureConfig?: TernSecureConfig;
   persistence?: Persistence;
   enableServiceWorker?: boolean;
+  experimental?: {
+    /** rethrow network errors that occur while the offline */
+    rethrowOfflineNetworkErrors?: boolean;
+  };
 } & SignInRedirectUrl &
   SignUpRedirectUrl &
   AfterSignOutUrl;

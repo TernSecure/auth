@@ -1,13 +1,15 @@
-import type { ApiClient } from '../api';
+import { constants } from '../constants';
+import type { ApiClient } from '../fireRestApi';
+import type { TokenCarrier } from '../utils/errors';
+import { TokenVerificationError, TokenVerificationErrorReason } from '../utils/errors';
 import {
   type buildTimeOptions,
   mergePreDefinedOptions,
   type RuntimeOptions,
 } from '../utils/options';
-import type { RequestState } from './authstate';
+import type { RequestState, SignedInState, SignedOutState } from './authstate';
 import { AuthErrorReason, signedIn, signedOut } from './authstate';
-import { getSessionConfig } from './sessionConfig';
-import type { RequestOptions } from './types';
+import type { AuthenticateRequestOptions } from './types';
 import { verifyToken } from './verify';
 
 const BEARER_PREFIX = 'Bearer ';
@@ -23,9 +25,8 @@ function extractTokenFromHeader(request: Request): string | null {
   return authHeader.slice(BEARER_PREFIX.length);
 }
 
-function extractTokenFromCookie(request: Request, opts: RequestOptions): string | null {
+function extractTokenFromCookie(request: Request): string | null {
   const cookieHeader = request.headers.get('Cookie') || undefined;
-  const sessionName = getSessionConfig(opts).COOKIE_NAME;
 
   if (!cookieHeader) {
     return null;
@@ -40,46 +41,87 @@ function extractTokenFromCookie(request: Request, opts: RequestOptions): string 
     {} as Record<string, string>,
   );
 
-  return cookies[AUTH_COOKIE_NAME] || null;
+  return cookies[constants.Cookies.Session] || null;
 }
 
 function hasAuthorizationHeader(request: Request): boolean {
   return request.headers.has('Authorization');
 }
 
+function isRequestForRefresh(error: TokenVerificationError, request: Request) {
+  return (
+    error.reason === TokenVerificationErrorReason.TokenExpired &&
+    request.method === 'GET'
+  );
+}
+
 export async function authenticateRequest(
   request: Request,
-  options: RequestOptions,
+  options: AuthenticateRequestOptions,
 ): Promise<RequestState> {
+
+  async function refreshToken() {
+    try {
+      const response = await options.apiClient?.tokens.refreshToken(options.firebaseConfig?.apiKey || '' , {
+        format: 'cookie',
+        refresh_token: '',
+        expired_token: '',
+        request_origin: options.apiUrl || '',
+      })
+    } catch (error) {
+      console.error('Error refreshing token:', error);
+    }
+  }
   async function authenticateRequestWithTokenInCookie() {
-    const token = extractTokenFromCookie(request, options);
+    const token = extractTokenFromCookie(request);
     if (!token) {
       return signedOut(AuthErrorReason.SessionTokenMissing);
     }
-    const { data, errors } = await verifyToken(token, options);
+    try {
+      const { data, errors } = await verifyToken(token, options);
 
-    if (errors) {
-      throw errors[0];
+      if (errors) {
+        throw errors[0];
+      }
+
+      const signedInRequestState = signedIn(data, undefined, token);
+      return signedInRequestState;
+    } catch (err) {
+      return handleError(err, 'cookie');
     }
-
-    const signedInRequestState = signedIn(data, undefined, token);
-    return signedInRequestState;
   }
 
   async function authenticateRequestWithTokenInHeader() {
     const token = extractTokenFromHeader(request);
     if (!token) {
-      return signedOut(AuthErrorReason.SessionTokenMissing);
+      return signedOut(AuthErrorReason.SessionTokenMissing, '');
     }
+    try {
+      const { data, errors } = await verifyToken(token, options);
 
-    const { data, errors } = await verifyToken(token, options);
+      if (errors) {
+        throw errors[0];
+      }
 
-    if (errors) {
-      throw errors[0];
+      const signedInRequestState = signedIn(data, undefined, token);
+      return signedInRequestState;
+    } catch (err) {
+      return handleError(err, 'header');
     }
+  }
 
-    const signedInRequestState = signedIn(data, undefined, token);
-    return signedInRequestState;
+  async function handleError(
+    err: unknown,
+    tokenCarrier: TokenCarrier,
+  ): Promise<SignedInState | SignedOutState> {
+    if (!(err instanceof TokenVerificationError)) {
+      return signedOut(AuthErrorReason.UnexpectedError);
+    }
+    let refreshError: string | null;
+
+    err.tokenCarrier = tokenCarrier;
+
+    return signedOut(err.reason, err.getFullMessage());
   }
 
   if (hasAuthorizationHeader(request)) {

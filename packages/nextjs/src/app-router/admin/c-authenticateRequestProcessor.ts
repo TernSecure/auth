@@ -1,7 +1,7 @@
 import type { TernSecureRequest } from '@tern-secure/backend';
 import { constants } from '@tern-secure/backend';
 
-import type { TernSecureHandlerOptions} from './types';
+import type { AuthEndpoint, SessionSubEndpoint, TernSecureHandlerOptions } from './types';
 
 /**
  * Request context for better type safety and clarity
@@ -19,11 +19,19 @@ interface RequestProcessorContext extends TernSecureHandlerOptions {
   accept: string | undefined;
 
   // cookie-based values
-  sessionTokenInCookie: string | undefined;
+  idTokenInCookie: string | undefined;
   refreshTokenInCookie: string | undefined;
   csrfTokenInCookie: string | undefined;
+  sessionTokenInCookie?: string | undefined;
+  customTokenInCookie?: string | undefined;
+
+  method: string;
+  pathSegments: string[];
+  endpoint?: AuthEndpoint;
+  subEndpoint?: SessionSubEndpoint;
 
   ternUrl: URL;
+  instanceType: string;
 }
 
 /**
@@ -36,7 +44,13 @@ class RequestProcessorContext implements RequestProcessorContext {
   ) {
     this.initHeaderValues();
     this.initCookieValues();
+    this.initUrlValues();
+    Object.assign(this, options);
     this.ternUrl = this.ternSecureRequest.ternUrl;
+  }
+
+  public get request(): TernSecureRequest {
+    return this.ternSecureRequest;
   }
 
   private initHeaderValues() {
@@ -56,12 +70,24 @@ class RequestProcessorContext implements RequestProcessorContext {
   }
 
   private initCookieValues() {
-    //this.sessionTokenInCookie = this.getCookie(this.options.cookies.name);
+    // Consumer-controlled session cookie using namePrefix
+    const namePrefix = this.options.cookies?.namePrefix;
+    const isProduction = process.env.NODE_ENV === 'production';
+    const defaultPrefix = isProduction ? '__HOST-' : '__dev_';
+    this.sessionTokenInCookie = this.getCookie(constants.Cookies.Session);
+
+    // System-fixed cookies using backend constants
+    this.idTokenInCookie = this.getCookie(`${defaultPrefix}${constants.Cookies.IdToken}`);
+    this.refreshTokenInCookie = this.getCookie(`${defaultPrefix}${constants.Cookies.Refresh}`);
     this.csrfTokenInCookie = this.getCookie(constants.Cookies.CsrfToken);
+    this.customTokenInCookie = this.getCookie(constants.Cookies.Custom);
   }
 
-  private getQueryParam(name: string) {
-    return this.ternSecureRequest.ternUrl.searchParams.get(name);
+  private initUrlValues() {
+    this.method = this.ternSecureRequest.method;
+    this.pathSegments = this.ternSecureRequest.ternUrl.pathname.split('/').filter(Boolean);
+    this.endpoint = this.pathSegments[2] as AuthEndpoint;
+    this.subEndpoint = this.pathSegments[3] as SessionSubEndpoint;
   }
 
   private getHeader(name: string) {
@@ -97,9 +123,9 @@ class RequestProcessorContext implements RequestProcessorContext {
 
 export type { RequestProcessorContext };
 
-export const createRequestProcessor = async (
+export const createRequestProcessor = (
   ternSecureRequest: TernSecureRequest,
   options: TernSecureHandlerOptions,
-): Promise<RequestProcessorContext> => {
+): RequestProcessorContext => {
   return new RequestProcessorContext(ternSecureRequest, options);
 };

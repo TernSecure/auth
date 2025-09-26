@@ -27,6 +27,7 @@ export default ternSecureMiddleware(
       appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
       measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || '',
       appName: process.env.NEXT_PUBLIC_FIREBASE_APP_NAME || '',
+      tenantId: process.env.NEXT_PUBLIC_FIREBASE_TENANT_ID || undefined,
     },
     checkRevoked: {
       enabled: true,
