@@ -31,6 +31,7 @@ interface RequestProcessorContext extends TernSecureHandlerOptions {
   subEndpoint?: SessionSubEndpoint;
 
   ternUrl: URL;
+  instanceType: string;
 }
 
 /**
@@ -70,13 +71,14 @@ class RequestProcessorContext implements RequestProcessorContext {
 
   private initCookieValues() {
     // Consumer-controlled session cookie using namePrefix
-    const namePrefix = this.options.cookies?.namePrefix || '__session';
-    const sessionCookieName = `${namePrefix}.session`;
-    this.sessionTokenInCookie = this.getCookie(sessionCookieName);
+    const namePrefix = this.options.cookies?.namePrefix;
+    const isProduction = process.env.NODE_ENV === 'production';
+    const defaultPrefix = isProduction ? '__HOST-' : '__dev_';
+    this.sessionTokenInCookie = this.getCookie(constants.Cookies.Session);
 
     // System-fixed cookies using backend constants
-    this.idTokenInCookie = this.getCookie(constants.Cookies.IdToken);
-    this.refreshTokenInCookie = this.getCookie(constants.Cookies.Refresh);
+    this.idTokenInCookie = this.getCookie(`${defaultPrefix}${constants.Cookies.IdToken}`);
+    this.refreshTokenInCookie = this.getCookie(`${defaultPrefix}${constants.Cookies.Refresh}`);
     this.csrfTokenInCookie = this.getCookie(constants.Cookies.CsrfToken);
     this.customTokenInCookie = this.getCookie(constants.Cookies.Custom);
   }

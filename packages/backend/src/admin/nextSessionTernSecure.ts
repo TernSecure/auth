@@ -4,11 +4,12 @@ import { handleFirebaseAuthError } from "@tern-secure/shared/errors";
 import type { TernVerificationResult } from "@tern-secure/types";
 import { cookies } from "next/headers";
 
+import { constants } from '../constants';
 import { adminTernSecureAuth as adminAuth, getAuthForTenant } from "../utils/admin-init";
 
 
 const SESSION_CONSTANTS = {
-  COOKIE_NAME: "_session_cookie",
+  COOKIE_NAME: constants.Cookies.Session,
   DEFAULT_EXPIRES_IN_MS: 60 * 60 * 24 * 5 * 1000, // 5 days
   DEFAULT_EXPIRES_IN_SECONDS: 60 * 60 * 24 * 5,
   REVOKE_REFRESH_TOKENS_ON_SIGNOUT: true,
@@ -22,7 +23,7 @@ export async function CreateNextSessionCookie(idToken: string) {
     });
 
     const cookieStore = await cookies();
-    cookieStore.set("_session_cookie", sessionCookie, {
+    cookieStore.set(constants.Cookies.Session, sessionCookie, {
       maxAge: expiresIn,
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
@@ -162,8 +163,7 @@ export async function ClearNextSessionCookie(tenantId?: string) {
     const sessionCookie = cookieStore.get(SESSION_CONSTANTS.COOKIE_NAME);
 
     cookieStore.delete(SESSION_CONSTANTS.COOKIE_NAME);
-    cookieStore.delete("_session_token");
-    cookieStore.delete("_session");
+    cookieStore.delete(constants.Cookies.IdToken);
 
     if (
       SESSION_CONSTANTS.REVOKE_REFRESH_TOKENS_ON_SIGNOUT &&

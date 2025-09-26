@@ -1,3 +1,4 @@
+import { constants } from '../constants';
 import type { ApiClient } from '../fireRestApi';
 import type { TokenCarrier } from '../utils/errors';
 import { TokenVerificationError, TokenVerificationErrorReason } from '../utils/errors';
@@ -40,7 +41,7 @@ function extractTokenFromCookie(request: Request): string | null {
     {} as Record<string, string>,
   );
 
-  return cookies[AUTH_COOKIE_NAME] || null;
+  return cookies[constants.Cookies.Session] || null;
 }
 
 function hasAuthorizationHeader(request: Request): boolean {

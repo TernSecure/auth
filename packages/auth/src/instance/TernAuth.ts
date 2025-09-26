@@ -37,6 +37,7 @@ import {
   onAuthStateChanged,
   onIdTokenChanged,
 } from 'firebase/auth';
+import { browserCookiePersistence } from 'firebase/auth/web-extension';
 import { getInstallations } from 'firebase/installations';
 
 import { AuthCookieManager, SignIn, SignUp, TernSecureBase } from '../resources/internal';
@@ -221,7 +222,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
     const persistence = this.#setPersistence();
     const auth = initializeAuth(this.firebaseClientApp, {
-      persistence,
+      persistence: browserCookiePersistence,
     });
 
     this.auth = auth;
