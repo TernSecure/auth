@@ -1,5 +1,16 @@
 # @tern-secure/types
 
+## 1.1.0
+
+### Minor Changes
+
+- add features to the authentication ([#22](https://github.com/TernSecure/auth/pull/22)) by [@kayp514](https://github.com/kayp514)
+
+- add features to the authentication ([#24](https://github.com/TernSecure/auth/pull/24)) by [@kayp514](https://github.com/kayp514)
+
+### Patch Changes
+
+- Update cookie handling and refactor session management in TernSecureAuth and related modules ([#28](https://github.com/TernSecure/auth/pull/28)) by [@kayp514](https://github.com/kayp514)
 
 ## 1.0.5
 
