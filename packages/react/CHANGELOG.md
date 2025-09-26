@@ -1,5 +1,21 @@
 # @tern-secure/react
 
+## 1.2.0
+
+### Minor Changes
+
+- add features to the authentication ([#22](https://github.com/TernSecure/auth/pull/22)) by [@kayp514](https://github.com/kayp514)
+
+- add features to the authentication ([#24](https://github.com/TernSecure/auth/pull/24)) by [@kayp514](https://github.com/kayp514)
+
+### Patch Changes
+
+- Update cookie handling and refactor session management in TernSecureAuth and related modules ([#28](https://github.com/TernSecure/auth/pull/28)) by [@kayp514](https://github.com/kayp514)
+
+- Updated dependencies [[`db27265`](https://github.com/TernSecure/auth/commit/db27265152844583de0f89c5b7af075ea9780061), [`b4a161a`](https://github.com/TernSecure/auth/commit/b4a161a0f59f3cbf7b57a2b75dcf776e5d46fe82), [`34642ab`](https://github.com/TernSecure/auth/commit/34642abf1dcd5ce485b42343be4bc8182bfad360), [`e187e46`](https://github.com/TernSecure/auth/commit/e187e46a825be61ec5aa134303cbbf443a731bd4), [`fb08ec2`](https://github.com/TernSecure/auth/commit/fb08ec210f9a324ab76947cda4bb539c9d482def), [`be59eda`](https://github.com/TernSecure/auth/commit/be59eda4c9696c4ef8719d46bcc61f6799d41c6a)]:
+  - @tern-secure/shared@1.3.0
+  - @tern-secure/auth@1.1.0
+  - @tern-secure/types@1.1.0
 
 ## 1.1.6
 
