@@ -1,4 +1,4 @@
-import {  useEmulator } from './emulator';
+
 
 export const getRefreshTokenEndpoint = (apiKey: string) => {
   return `https://securetoken.googleapis.com/v1/token?key=${apiKey}`;
@@ -13,14 +13,6 @@ export const signUpEndpoint = (apiKey: string) => {
 };
 
 export const getCustomTokenEndpoint = (apiKey: string) => {
-  if (useEmulator() && process.env.FIREBASE_AUTH_EMULATOR_HOST) {
-    let protocol = 'http://';
-    if ((process.env.FIREBASE_AUTH_EMULATOR_HOST as string).startsWith('http://')) {
-      protocol = '';
-    }
-
-    return `${protocol}${process.env.FIREBASE_AUTH_EMULATOR_HOST}/identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${apiKey}`;
-  }
   return `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${apiKey}`;
 };
 
