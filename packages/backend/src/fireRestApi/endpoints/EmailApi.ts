@@ -1,6 +1,5 @@
 import { AbstractAPI } from "./AbstractApi";
 
-const rootPath = "/customTokens";
 
 type sendEmailVerificationParams = {
     idToken: string;
@@ -17,8 +16,8 @@ export class EmailApi extends AbstractAPI {
     this.requireApiKey(apiKey);
     const { ...restParams } = params;
     return this.request({
+      endpoint: "sendOobCode",
       method: "POST",
-      path: `${rootPath}`,
       bodyParams: restParams,
     });
   }
@@ -27,8 +26,8 @@ export class EmailApi extends AbstractAPI {
     this.requireApiKey(apiKey);
     const { ...restParams } = params;
     return this.request({
+      endpoint: "sendOobCode",
       method: "POST",
-      path: `${rootPath}`,
       bodyParams: restParams,
     });
   }

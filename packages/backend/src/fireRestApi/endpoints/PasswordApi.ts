@@ -1,6 +1,5 @@
 import { AbstractAPI } from "./AbstractApi";
 
-const rootPath = "/customTokens";
 
 type ConfirmPasswordResetParams = {
   oobCode: string;
@@ -22,8 +21,8 @@ export class PasswordApi extends AbstractAPI {
     this.requireApiKey(apiKey);
     const { ...restParams } = params;
     return this.request({
+      endpoint: "passwordReset",
       method: "POST",
-      path: `${rootPath}`,
       bodyParams: restParams,
     });
   }
@@ -32,8 +31,8 @@ export class PasswordApi extends AbstractAPI {
     this.requireApiKey(apiKey);
     const { ...restParams } = params;
     return this.request({
+      endpoint: "passwordReset",
       method: "POST",
-      path: `${rootPath}`,
       bodyParams: restParams,
     });
   }
@@ -42,8 +41,8 @@ export class PasswordApi extends AbstractAPI {
     this.requireApiKey(apiKey);
     const { ...restParams } = params;
     return this.request({
+      endpoint: "passwordReset",
       method: "POST",
-      path: `${rootPath}`,
       bodyParams: restParams,
     });
   }

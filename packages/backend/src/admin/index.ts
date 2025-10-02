@@ -1,5 +1,6 @@
 export { 
     createSessionCookie, 
+    createCustomTokenClaims,
     clearSessionCookie
 } from './sessionTernSecure'
 export { 

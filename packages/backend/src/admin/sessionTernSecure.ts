@@ -259,10 +259,7 @@ export async function createSessionCookie(
     const cookiePrefix = getCookiePrefix();
 
     // Always set idToken cookie by default
-    const idTokenCookieName = getCookieName(
-      constants.Cookies.IdToken,
-      cookiePrefix,
-    );
+    const idTokenCookieName = getCookieName(constants.Cookies.IdToken, cookiePrefix);
     cookiePromises.push(
       cookieStore.set(
         idTokenCookieName,
@@ -273,10 +270,7 @@ export async function createSessionCookie(
 
     // Always set refreshToken cookie by default if provided
     if (refreshToken) {
-      const refreshTokenCookieName = getCookieName(
-        constants.Cookies.Refresh,
-        cookiePrefix,
-      );
+      const refreshTokenCookieName = getCookieName(constants.Cookies.Refresh, cookiePrefix);
       cookiePromises.push(
         cookieStore.set(
           refreshTokenCookieName,
@@ -326,10 +320,7 @@ export async function createSessionCookie(
 
     // Create and set custom token cookie only if enableCustomToken is true
     if (options?.enableCustomToken && decodedToken?.uid) {
-      const customTokenCookieName = getCookieName(
-        constants.Cookies.Custom,
-        cookiePrefix,
-      );
+      const customTokenCookieName = getCookieName(constants.Cookies.Custom, cookiePrefix);
       const customToken = await createCustomToken(decodedToken.uid, options);
       if (customToken) {
         cookiePromises.push(
@@ -374,10 +365,7 @@ export async function clearSessionCookie(
     const cookiePrefix = getCookiePrefix();
 
     // Get the session cookie name for revocation purposes
-    const sessionCookieName = getCookieName(
-      constants.Cookies.Session,
-      cookiePrefix,
-    );
+    const sessionCookieName = getCookieName(constants.Cookies.Session, cookiePrefix);
     const sessionCookie = await cookieStore.get(sessionCookieName);
 
     const deletionPromises: Promise<void>[] = [];
@@ -389,22 +377,13 @@ export async function clearSessionCookie(
     }
 
     // Always delete default cookies
-    const idTokenCookieName = getCookieName(
-      constants.Cookies.IdToken,
-      cookiePrefix,
-    );
+    const idTokenCookieName = getCookieName(constants.Cookies.IdToken, cookiePrefix);
     deletionPromises.push(cookieStore.delete(idTokenCookieName));
 
-    const refreshTokenCookieName = getCookieName(
-      constants.Cookies.Refresh,
-      cookiePrefix,
-    );
+    const refreshTokenCookieName = getCookieName(constants.Cookies.Refresh, cookiePrefix);
     deletionPromises.push(cookieStore.delete(refreshTokenCookieName));
 
-    const customTokenCookieName = getCookieName(
-      constants.Cookies.Custom,
-      cookiePrefix,
-    );
+    const customTokenCookieName = getCookieName(constants.Cookies.Custom, cookiePrefix);
     deletionPromises.push(cookieStore.delete(customTokenCookieName));
 
     // Also delete legacy cookie names for backward compatibility
@@ -453,5 +432,20 @@ export async function createCustomToken(
   } catch (error) {
     console.error('[createCustomToken] Error creating custom token:', error);
     return null;
+  }
+}
+
+
+export async function createCustomTokenClaims(
+  uid: string,
+  developerClaims?: { [key: string]: unknown },
+): Promise<string> {
+  const adminAuth = getAuthForTenant();
+  try {
+    const customToken = await adminAuth.createCustomToken(uid, developerClaims);
+    return customToken;
+  } catch (error) {
+    console.error('[createCustomToken] Error creating custom token:', error);
+    return '';
   }
 }

@@ -20,13 +20,13 @@ export const DEFAULT_CORS_OPTIONS: CorsOptions = {
 };
 
 export const DEFAULT_COOKIE_OPTIONS: CookieOptions = {
-  namePrefix: '__session',
+  //namePrefix: '__session',
   path: '/',
   httpOnly: true,
   sameSite: 'lax',
-  session: {
-    maxAge: 3600 * 24 * 7, // Default: 1 week (consumer can set 5 mins to 2 weeks)
-  },
+  //session: {
+  //  maxAge: 3600 * 24 * 7, // Default: 1 week (consumer can set 5 mins to 2 weeks)
+  //},
 };
 
 export const FIXED_TOKEN_CONFIGS = {
