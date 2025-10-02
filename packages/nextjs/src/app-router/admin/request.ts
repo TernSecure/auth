@@ -44,6 +44,9 @@ export async function refreshCookieWithIdToken(
 
   const customTokens = await createCustomIdAndRefreshToken(idToken);
 
+  console.log('Custom idToken:', customTokens.idToken);
+  console.log('Custom refreshToken:', customTokens.refreshToken);
+
   const cookiePrefix = getCookiePrefix();
 
   await Promise.all([

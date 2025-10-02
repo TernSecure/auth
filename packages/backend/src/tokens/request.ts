@@ -1,6 +1,3 @@
-import { getCookieName, getCookiePrefix } from '@tern-secure/shared/cookie';
-
-import { constants } from '../constants';
 import type { ApiClient } from '../fireRestApi';
 import type { TokenCarrier } from '../utils/errors';
 import { TokenVerificationError, TokenVerificationErrorReason } from '../utils/errors';
@@ -16,73 +13,31 @@ import { createTernSecureRequest } from './ternSecureRequest';
 import type { AuthenticateRequestOptions } from './types';
 import { verifyToken } from './verify';
 
-const BEARER_PREFIX = 'Bearer ';
-
-
-function extractTokenFromHeader(request: Request): string | null {
-  const authHeader = request.headers.get('Authorization');
-
-  if (!authHeader || !authHeader.startsWith(BEARER_PREFIX)) {
-    return null;
-  }
-
-  return authHeader.slice(BEARER_PREFIX.length);
-}
-
-function extractTokenFromCookie(request: Request): string | null {
-  const cookieHeader = request.headers.get('Cookie') || undefined;
-
-  if (!cookieHeader) {
-    return null;
-  }
-
-  const cookiePrefix = getCookiePrefix();
-  const idTokenCookieName = getCookieName(
-        constants.Cookies.IdToken,
-        cookiePrefix,
-  );
-
-  const cookies = cookieHeader.split(';').reduce(
-    (acc, cookie) => {
-      const [name, value] = cookie.trim().split('=');
-      acc[name] = value;
-      return acc;
-    },
-    {} as Record<string, string>,
-  );
-
-  console.log('Extracted cookies:', cookies[idTokenCookieName]); // Debug log to see all cookies
-
-  return cookies[idTokenCookieName] || null;
-}
 
 function hasAuthorizationHeader(request: Request): boolean {
   return request.headers.has('Authorization');
 }
 
 function isRequestForRefresh(error: TokenVerificationError, request: Request) {
-  return (
-    error.reason === TokenVerificationErrorReason.TokenExpired &&
-    request.method === 'GET'
-  );
+  return error.reason === TokenVerificationErrorReason.TokenExpired && request.method === 'GET';
 }
 
 export async function authenticateRequest(
   request: Request,
   options: AuthenticateRequestOptions,
 ): Promise<RequestState> {
-
   const context = createRequestProcessor(createTernSecureRequest(request), options);
 
   async function authenticateRequestWithTokenInCookie() {
-    try { // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const { data, errors } = await verifyToken(context.idTokenInCookie!, options);
 
       if (errors) {
         throw errors[0];
       }
 
-       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const signedInRequestState = signedIn(data, undefined, context.idTokenInCookie!);
       return signedInRequestState;
     } catch (err) {
@@ -91,18 +46,17 @@ export async function authenticateRequest(
   }
 
   async function authenticateRequestWithTokenInHeader() {
-    const token = extractTokenFromHeader(request);
-    if (!token) {
-      return signedOut(AuthErrorReason.SessionTokenMissing, '');
-    }
+    const { sessionTokenInHeader } = context;
     try {
-      const { data, errors } = await verifyToken(token, options);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const { data, errors } = await verifyToken(sessionTokenInHeader!, options);
 
       if (errors) {
         throw errors[0];
       }
 
-      const signedInRequestState = signedIn(data, undefined, token);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const signedInRequestState = signedIn(data, undefined, sessionTokenInHeader!);
       return signedInRequestState;
     } catch (err) {
       return handleError(err, 'header');
