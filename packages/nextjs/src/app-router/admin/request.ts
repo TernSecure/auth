@@ -57,10 +57,6 @@ export async function refreshCookieWithIdToken(
       customTokens.refreshToken,
       COOKIE_OPTIONS,
     ),
-    cookieStore.set(
-      getCookieName(constants.Cookies.Custom, cookiePrefix),
-      customTokens.customToken,
-      COOKIE_OPTIONS,
-    ),
+    cookieStore.set(constants.Cookies.Custom, customTokens.customToken, COOKIE_OPTIONS),
   ]);
 }
