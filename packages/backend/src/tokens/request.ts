@@ -11,6 +11,8 @@ import {
 } from '../utils/options';
 import type { RequestState, SignedInState, SignedOutState } from './authstate';
 import { AuthErrorReason, signedIn, signedOut } from './authstate';
+import { createRequestProcessor } from './c-authenticateRequestProcessor';
+import { createTernSecureRequest } from './ternSecureRequest';
 import type { AuthenticateRequestOptions } from './types';
 import { verifyToken } from './verify';
 
@@ -70,19 +72,18 @@ export async function authenticateRequest(
   options: AuthenticateRequestOptions,
 ): Promise<RequestState> {
 
+  const context = createRequestProcessor(createTernSecureRequest(request), options);
+
   async function authenticateRequestWithTokenInCookie() {
-    const token = extractTokenFromCookie(request);
-    if (!token) {
-      return signedOut(AuthErrorReason.SessionTokenMissing);
-    }
-    try {
-      const { data, errors } = await verifyToken(token, options);
+    try { // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const { data, errors } = await verifyToken(context.idTokenInCookie!, options);
 
       if (errors) {
         throw errors[0];
       }
 
-      const signedInRequestState = signedIn(data, undefined, token);
+       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const signedInRequestState = signedIn(data, undefined, context.idTokenInCookie!);
       return signedInRequestState;
     } catch (err) {
       return handleError(err, 'cookie');
