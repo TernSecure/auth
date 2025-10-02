@@ -49,7 +49,9 @@ function extractTokenFromCookie(request: Request): string | null {
     {} as Record<string, string>,
   );
 
-  return idTokenCookieName || null;
+  console.log('Extracted cookies:', cookies[idTokenCookieName]); // Debug log to see all cookies
+
+  return cookies[idTokenCookieName] || null;
 }
 
 function hasAuthorizationHeader(request: Request): boolean {
@@ -68,18 +70,6 @@ export async function authenticateRequest(
   options: AuthenticateRequestOptions,
 ): Promise<RequestState> {
 
-  async function refreshToken() {
-    try {
-      const response = await options.apiClient?.tokens.refreshToken(options.firebaseConfig?.apiKey || '' , {
-        format: 'cookie',
-        refresh_token: '',
-        expired_token: '',
-        request_origin: options.apiUrl || '',
-      })
-    } catch (error) {
-      console.error('Error refreshing token:', error);
-    }
-  }
   async function authenticateRequestWithTokenInCookie() {
     const token = extractTokenFromCookie(request);
     if (!token) {
