@@ -86,11 +86,6 @@ export function createRequest(options: CreateRequestOptions) {
 
     const endpointUrl = FIREBASE_ENDPOINT_MAP[endpoint](apiKey);
     const finalUrl = new URL(endpointUrl);
-    console.log('endpoint url:', endpointUrl);
-
-    console.log('Final URL href:', finalUrl.href);
-    console.log('Final URL:', finalUrl);
-    console.log('Method:', method);
 
     if (queryParams) {
       Object.entries(queryParams).forEach(([key, value]) => {
