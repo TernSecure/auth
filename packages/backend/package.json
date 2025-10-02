@@ -12,6 +12,7 @@
   "files": [
     "dist",
     "admin",
+    "auth",
     "internal",
     "jwt"
   ],
@@ -46,6 +47,16 @@
       "require": {
         "types": "./dist/admin/index.d.ts",
         "default": "./dist/admin/index.js"
+      }
+    },
+    "./auth": {
+      "import": {
+        "types": "./dist/auth/index.d.ts",
+        "default": "./dist/auth/index.mjs"
+      },
+      "require": {
+        "types": "./dist/auth/index.d.ts",
+        "default": "./dist/auth/index.js"
       }
     },
     "./jwt": {

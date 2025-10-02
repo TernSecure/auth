@@ -17,6 +17,7 @@ export { createFireClient } from "./instance/backendFireInstance";
 
 export type {
   BackendInstance,
+  TernSecureBackendOptions
 } from "./instance/backendInstanceEdge";
 
 export {

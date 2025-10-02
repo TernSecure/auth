@@ -5,7 +5,6 @@ import type {
 } from '@tern-secure/backend';
 import {
   constants,
-  createBackendInstanceClient,
   createTernSecureRequest,
   enableDebugLogging,
 } from '@tern-secure/backend';
@@ -19,7 +18,7 @@ import { NextResponse } from 'next/server';
 import { isRedirect, setHeader } from '../utils/response';
 import { serverRedirectWithAuth } from '../utils/serverRedirectAuth';
 import { createEdgeCompatibleLogger } from '../utils/withLogger';
-import { API_KEY, API_URL, API_VERSION,SIGN_IN_URL, SIGN_UP_URL } from './constant';
+import { SIGN_IN_URL, SIGN_UP_URL } from './constant';
 import {
   isNextjsNotFoundError,
   isNextjsRedirectError,
@@ -31,6 +30,7 @@ import {
 } from './nextErrors';
 import { type AuthProtect,createProtect } from './protect';
 import { createRedirect, type RedirectFun } from './redirect';
+import { ternSecureBackendClient } from './ternsecureClient';
 import type {
   NextMiddlewareEvtParam,
   NextMiddlewareRequestParam,
@@ -87,23 +87,6 @@ interface TernSecureMiddleware {
    */
   (request: NextMiddlewareRequestParam, event: NextMiddlewareEvtParam): NextMiddlewareReturn;
 }
-
-const backendClientDefaultOptions = {
-  apiKey: API_KEY,
-  apiUrl: API_URL,
-  apiVersion: API_VERSION,
-};
-
-const ternSecureBackendClient = async () => {
-  return createBackendClientWithOptions({});
-};
-
-const createBackendClientWithOptions: typeof createBackendInstanceClient = options => {
-  return createBackendInstanceClient({
-    ...backendClientDefaultOptions,
-    ...options,
-  });
-};
 
 export const ternSecureMiddleware = ((
   ...args: unknown[]
@@ -190,6 +173,9 @@ export const ternSecureMiddleware = ((
 
 
     const nextMiddleware: NextMiddleware = async (request, event) => {
+      if(isFirebaseCookieRequest(request)) {
+        return handleFirebaseAuthRequest(request);
+      }
       return withAuthNextMiddleware(request, event);
     };
 

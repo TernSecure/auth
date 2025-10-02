@@ -29,6 +29,7 @@ export type RequestOptions = {
   checkRevoked?: CheckRevokedOptions;
   cookies?: MiddlewareCookiesOptions;
   apiClient?: ApiClient;
+  apiKey?: string;
   apiUrl?: string;
   apiVersion?: string;
   firebaseConfig?: TernSecureConfig

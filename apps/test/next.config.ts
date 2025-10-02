@@ -13,6 +13,15 @@ const nextConfig: NextConfig = {
                 ],
             }
         ]
+    },
+
+    async rewrites() {
+        return [
+            {
+                source: '/__/:path*',
+                destination: 'http://localhost:3001/:path*' // Proxy to Backend
+            }
+        ]
     }
 
 };

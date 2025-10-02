@@ -3,8 +3,8 @@ import { type RemoteJWKSetOptions } from 'jose';
 import {
   CACHE_CONTROL_REGEX,
   DEFAULT_CACHE_DURATION,
-  MAX_CACHE_LAST_UPDATED_AT_SECONDS,
-  SESSION_COOKIE_PUBLIC_KEYS_URL,
+  GOOGLE_PUBLIC_KEYS_URL,
+  MAX_CACHE_LAST_UPDATED_AT_SECONDS
 } from '../constants';
 import { TokenVerificationError, TokenVerificationErrorReason } from '../utils/errors';
 
@@ -60,7 +60,7 @@ async function fetchPublicKeys(keyUrl: string): Promise<PublicKeysResponse> {
 }
 
 export async function loadJWKFromRemote({
-  keyURL = SESSION_COOKIE_PUBLIC_KEYS_URL,
+  keyURL = GOOGLE_PUBLIC_KEYS_URL,
   skipJwksCache,
   kid,
 }: LoadJWKFromRemoteOptions): Promise<string> {

@@ -64,3 +64,13 @@ export function serverCookieHandler(response: Response): CookieStore {
     delete: deleteCookie,
   };
 }
+
+export const getCookiePrefix = (): string => {
+  const isProduction = process.env.NODE_ENV === 'production';
+  return isProduction ? '__HOST-' : '__dev_';
+};
+
+export const getCookieName = (baseName: string, prefix?: string): string => {
+  return prefix ? `${prefix}${baseName}` : baseName;
+};
+

@@ -70,8 +70,6 @@ class RequestProcessorContext implements RequestProcessorContext {
   }
 
   private initCookieValues() {
-    // Consumer-controlled session cookie using namePrefix
-    const namePrefix = this.options.cookies?.namePrefix;
     const isProduction = process.env.NODE_ENV === 'production';
     const defaultPrefix = isProduction ? '__HOST-' : '__dev_';
     this.sessionTokenInCookie = this.getCookie(constants.Cookies.Session);

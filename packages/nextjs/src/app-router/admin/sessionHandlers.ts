@@ -1,10 +1,11 @@
-import { clearSessionCookie, createSessionCookie } from '@tern-secure/backend/admin';
+import { clearSessionCookie } from '@tern-secure/backend/admin';
 import { ternDecodeJwtUnguarded } from '@tern-secure/backend/jwt';
 import { cookies } from 'next/headers';
 
 import { NextCookieStore } from '../../utils/NextCookieAdapter';
 import { type RequestProcessorContext } from './c-authenticateRequestProcessor';
 import { createValidators } from './fnValidators';
+import { refreshCookieWithIdToken } from './request';
 import { createApiErrorResponse, HttpResponseHelper, SessionResponseHelper } from './responses';
 import type { SessionSubEndpoint, TernSecureHandlerOptions } from './types';
 
@@ -79,7 +80,7 @@ export async function sessionEndpointHandler(
       idToken: string,
     ): Promise<Response> => {
       try {
-        const res = await createSessionCookie(idToken, cookieStore, options);
+        const res = await refreshCookieWithIdToken(idToken, cookieStore, options);
         return SessionResponseHelper.createSessionCreationResponse(res);
       } catch (error) {
         return createApiErrorResponse('SESSION_CREATION_FAILED', 'Session creation failed', 500);
@@ -96,7 +97,7 @@ export async function sessionEndpointHandler(
           return createApiErrorResponse('INVALID_SESSION', 'Invalid session for refresh', 401);
         }
 
-        const refreshRes = await createSessionCookie(idToken, cookieStore, options);
+        const refreshRes = await refreshCookieWithIdToken(idToken, cookieStore, options);
         return SessionResponseHelper.createRefreshResponse(refreshRes);
       } catch (error) {
         return createApiErrorResponse('REFRESH_FAILED', 'Session refresh failed', 500);

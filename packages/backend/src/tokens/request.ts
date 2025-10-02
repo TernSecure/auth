@@ -1,3 +1,5 @@
+import { getCookieName, getCookiePrefix } from '@tern-secure/shared/cookie';
+
 import { constants } from '../constants';
 import type { ApiClient } from '../fireRestApi';
 import type { TokenCarrier } from '../utils/errors';
@@ -13,7 +15,7 @@ import type { AuthenticateRequestOptions } from './types';
 import { verifyToken } from './verify';
 
 const BEARER_PREFIX = 'Bearer ';
-const AUTH_COOKIE_NAME = '_session_cookie';
+
 
 function extractTokenFromHeader(request: Request): string | null {
   const authHeader = request.headers.get('Authorization');
@@ -32,6 +34,12 @@ function extractTokenFromCookie(request: Request): string | null {
     return null;
   }
 
+  const cookiePrefix = getCookiePrefix();
+  const idTokenCookieName = getCookieName(
+        constants.Cookies.IdToken,
+        cookiePrefix,
+  );
+
   const cookies = cookieHeader.split(';').reduce(
     (acc, cookie) => {
       const [name, value] = cookie.trim().split('=');
@@ -41,7 +49,7 @@ function extractTokenFromCookie(request: Request): string | null {
     {} as Record<string, string>,
   );
 
-  return cookies[constants.Cookies.Session] || null;
+  return idTokenCookieName || null;
 }
 
 function hasAuthorizationHeader(request: Request): boolean {

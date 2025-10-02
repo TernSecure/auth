@@ -1,3 +1,5 @@
+
+
 export const ObjectType = {
   Client: 'client',
   Cookies: 'cookies',
@@ -15,6 +17,7 @@ export const ObjectType = {
   SignUpAttempt: 'sign_up_attempt',
   SmsMessage: 'sms_message',
   User: 'user',
+  IdAndRefreshTokens: 'id_and_refresh_tokens',
   Token: 'token',
   TotalCount: 'total_count',
   TestingToken: 'testing_token',
@@ -46,4 +49,10 @@ export interface JwksKeyJSON {
   alg: string;
   n: string;
   e: string;
+}
+
+export interface IdAndRefreshTokenJSON {
+  object: typeof ObjectType.IdAndRefreshTokens;
+  idToken: string;
+  refreshToken: string;
 }

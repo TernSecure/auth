@@ -285,8 +285,6 @@ export function createCoreApiClient(clientOptions: ApiClientOptions): ApiClient 
     const overwrittenRequestMethod = method === 'GET' ? 'GET' : 'POST';
     const url = requestInit.url.toString();
 
-    console.log('Request URL:', url);
-
     requestInit.headers = new Headers(requestInit.headers);
 
     if (

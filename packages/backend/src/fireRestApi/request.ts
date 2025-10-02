@@ -5,16 +5,32 @@ import type {
 
 import { constants } from "../constants";
 import { runtime } from "../runtime";
-import { joinPaths } from "../utils/path";
+import {
+  getCustomTokenEndpoint,
+  getRefreshTokenEndpoint,
+  passwordResetEndpoint,
+  signInWithPassword,
+  signUpEndpoint,
+} from "./endpointUrl";
 
 export type HTTPMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
+export type FirebaseEndpoint =
+  | "refreshToken"
+  | "signInWithPassword"
+  | "signUp"
+  | "signInWithCustomToken"
+  | "passwordReset"
+  | "sendOobCode"
+
 export type BackendApiRequestOptions = {
+  endpoint: FirebaseEndpoint;
   method?: HTTPMethod;
+  apiKey?: string;
   queryParams?: Record<string, unknown>;
   headerParams?: Record<string, string>;
   bodyParams?: Record<string, unknown>;
   formData?: FormData;
-} & ({ url: string; path?: string } | { url?: string; path: string });
+}
 
 export type BackendApiResponse<T> =
   | {
@@ -39,16 +55,42 @@ type CreateRequestOptions = {
   apiVersion?: string;
 };
 
+const FIREBASE_ENDPOINT_MAP: Record<FirebaseEndpoint, (apiKey: string) => string> = {
+  refreshToken: getRefreshTokenEndpoint,
+  signInWithPassword: signInWithPassword,
+  signUp: signUpEndpoint,
+  signInWithCustomToken: getCustomTokenEndpoint,
+  passwordReset: passwordResetEndpoint,
+  sendOobCode: signInWithPassword,
+};
+
+
 export function createRequest(options: CreateRequestOptions) {
   const requestFn = async <T>(
     requestOptions: BackendApiRequestOptions
   ): Promise<BackendApiResponse<T>> => {
-    const { apiKey, apiUrl, apiVersion = 'v1' } = options;
-    const { path, method, queryParams, headerParams, bodyParams, formData } =
+    const { endpoint, method, apiKey, queryParams, headerParams, bodyParams, formData } =
       requestOptions;
 
-    const url = joinPaths(apiUrl, apiVersion, path);
-    const finalUrl = new URL(url);
+    if (!apiKey) {
+      return {
+        data: null,
+        errors: [
+          {
+            code: "missing_api_key",
+            message: "Firebase API key is required",
+          },
+        ],
+      };
+    }
+
+    const endpointUrl = FIREBASE_ENDPOINT_MAP[endpoint](apiKey);
+    const finalUrl = new URL(endpointUrl);
+    console.log('endpoint url:', endpointUrl);
+
+    console.log('Final URL href:', finalUrl.href);
+    console.log('Final URL:', finalUrl);
+    console.log('Method:', method);
 
     if (queryParams) {
       Object.entries(queryParams).forEach(([key, value]) => {
