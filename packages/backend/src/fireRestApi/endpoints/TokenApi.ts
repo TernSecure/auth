@@ -1,11 +1,8 @@
-
 import type { IdAndRefreshTokens } from '../resources/Token';
 import { AbstractAPI } from './AbstractApi';
 
-
-const rootPath = "/sessions";
-const base = "accounts:signInWithCustomToken";
-
+const rootPath = '/sessions';
+const base = 'accounts:signInWithCustomToken';
 
 type RefreshTokenParams = {
   expired_token: string;
@@ -27,8 +24,8 @@ export class TokenApi extends AbstractAPI {
     this.requireApiKey(apiKey);
     const { ...restParams } = params;
     return this.request({
-      endpoint: "refreshToken",
-      method: "POST",
+      endpoint: 'refreshToken',
+      method: 'POST',
       bodyParams: restParams,
     });
   }
@@ -36,29 +33,14 @@ export class TokenApi extends AbstractAPI {
   public async exchangeCustomForIdAndRefreshTokens(
     apiKey: string,
     params: IdAndRefreshTokensParams,
-  ): Promise<IdAndRefreshTokens> {
-    try {
-      this.requireApiKey(apiKey);
-      const { ...restParams } = params;
+  ) {
+    this.requireApiKey(apiKey);
 
-      const response = await this.request<IdAndRefreshTokens>({
-        endpoint: "signInWithCustomToken",
-        method: 'POST',
-        apiKey,
-        bodyParams: restParams,
-      });
-
-      const { data } = response;
-
-      if (!data?.idToken) {
-        throw new Error('No data received from token exchange');
-      }
-
-      return data;
-    } catch (error) {
-      const contextualMessage = `Failed to create custom token: ${error instanceof Error ? error.message : 'Unknown error'}`;
-      throw new Error(contextualMessage);
-    }
+    return this.request<IdAndRefreshTokens>({
+      endpoint: 'signInWithCustomToken',
+      method: 'POST',
+      apiKey,
+      bodyParams: params,
+    });
   }
-
 }

@@ -127,6 +127,7 @@ export function createRequest(options: CreateRequestOptions) {
           constants.ContentTypes.Json;
       const responseBody = await (isJSONResponse ? res.json() : res.text());
 
+
       if (!res.ok) {
         return {
           data: null,
