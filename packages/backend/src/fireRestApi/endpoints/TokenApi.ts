@@ -50,7 +50,7 @@ export class TokenApi extends AbstractAPI {
 
       const { data } = response;
 
-      if (!data) {
+      if (!data?.idToken) {
         throw new Error('No data received from token exchange');
       }
 
