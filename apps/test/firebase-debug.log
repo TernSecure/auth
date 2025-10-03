@@ -1,40 +1,40 @@
-[debug] [2025-10-02T17:02:22.223Z] ----------------------------------------------------------------------
-[debug] [2025-10-02T17:02:22.226Z] Command:       /usr/bin/node /usr/bin/firebase emulators:start
-[debug] [2025-10-02T17:02:22.226Z] CLI Version:   14.11.1
-[debug] [2025-10-02T17:02:22.226Z] Platform:      linux
-[debug] [2025-10-02T17:02:22.226Z] Node Version:  v23.11.0
-[debug] [2025-10-02T17:02:22.227Z] Time:          Thu Oct 02 2025 17:02:22 GMT+0000 (Coordinated Universal Time)
-[debug] [2025-10-02T17:02:22.227Z] ----------------------------------------------------------------------
+[debug] [2025-10-03T00:48:31.591Z] ----------------------------------------------------------------------
+[debug] [2025-10-03T00:48:31.594Z] Command:       /usr/bin/node /usr/bin/firebase emulators:start
+[debug] [2025-10-03T00:48:31.594Z] CLI Version:   14.11.1
+[debug] [2025-10-03T00:48:31.595Z] Platform:      linux
+[debug] [2025-10-03T00:48:31.595Z] Node Version:  v23.11.0
+[debug] [2025-10-03T00:48:31.595Z] Time:          Fri Oct 03 2025 00:48:31 GMT+0000 (Coordinated Universal Time)
+[debug] [2025-10-03T00:48:31.595Z] ----------------------------------------------------------------------
 [debug] 
-[debug] [2025-10-02T17:02:22.484Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
-[debug] [2025-10-02T17:02:22.485Z] > authorizing via signed-in user (pacifique.kamugisha@lifesprintcare.ca)
+[debug] [2025-10-03T00:48:31.854Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-10-03T00:48:31.855Z] > authorizing via signed-in user (pacifique.kamugisha@lifesprintcare.ca)
 [info] i  emulators: Starting emulators: auth, functions, hosting, extensions {"metadata":{"emulator":{"name":"hub"},"message":"Starting emulators: auth, functions, hosting, extensions"}}
-[debug] [2025-10-02T17:02:22.491Z] Checked if tokens are valid: true, expires at: 1759428134686
-[debug] [2025-10-02T17:02:22.491Z] Checked if tokens are valid: true, expires at: 1759428134686
-[debug] [2025-10-02T17:02:22.492Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/dev-coffeeconnect-v1 [none]
-[debug] [2025-10-02T17:02:22.736Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/dev-coffeeconnect-v1 200
-[debug] [2025-10-02T17:02:22.737Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/dev-coffeeconnect-v1 {"projectNumber":"1067466486064","projectId":"dev-coffeeconnect-v1","lifecycleState":"ACTIVE","name":"dev-coffeeconnect-v1","labels":{"firebase":"enabled","generative-language":"enabled"},"createTime":"2024-04-22T14:29:40.536900Z","parent":{"type":"folder","id":"272363114572"}}
+[debug] [2025-10-03T00:48:31.861Z] Checked if tokens are valid: true, expires at: 1759456073069
+[debug] [2025-10-03T00:48:31.861Z] Checked if tokens are valid: true, expires at: 1759456073069
+[debug] [2025-10-03T00:48:31.862Z] >>> [apiv2][query] GET https://cloudresourcemanager.googleapis.com/v1/projects/dev-coffeeconnect-v1 [none]
+[debug] [2025-10-03T00:48:32.069Z] <<< [apiv2][status] GET https://cloudresourcemanager.googleapis.com/v1/projects/dev-coffeeconnect-v1 200
+[debug] [2025-10-03T00:48:32.069Z] <<< [apiv2][body] GET https://cloudresourcemanager.googleapis.com/v1/projects/dev-coffeeconnect-v1 {"projectNumber":"1067466486064","projectId":"dev-coffeeconnect-v1","lifecycleState":"ACTIVE","name":"dev-coffeeconnect-v1","labels":{"firebase":"enabled","generative-language":"enabled"},"createTime":"2024-04-22T14:29:40.536900Z","parent":{"type":"folder","id":"272363114572"}}
 [warn] ⚠  hosting: The hosting emulator is configured but there is no hosting configuration. Have you run firebase init hosting? {"metadata":{"emulator":{"name":"hosting"},"message":"The hosting emulator is configured but there is no hosting configuration. Have you run \u001b[1mfirebase init hosting\u001b[22m?"}}
-[debug] [2025-10-02T17:02:22.743Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-10-02T17:02:22.743Z] [auth] Authentication Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-10-02T17:02:22.743Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}]},"metadata":{"message":"assigned listening specs for emulators"}}
-[debug] [2025-10-02T17:02:22.748Z] [hub] writing locator at /tmp/hub-dev-coffeeconnect-v1.json
-[debug] [2025-10-02T17:02:22.753Z] [Extensions] Started Extensions emulator, this is a noop.
-[debug] [2025-10-02T17:02:22.755Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-10-02T17:02:22.755Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-10-02T17:02:22.756Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
-[debug] [2025-10-02T17:02:22.756Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
+[debug] [2025-10-03T00:48:32.075Z] [logging] Logging Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-03T00:48:32.075Z] [auth] Authentication Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-03T00:48:32.075Z] assigned listening specs for emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}]},"metadata":{"message":"assigned listening specs for emulators"}}
+[debug] [2025-10-03T00:48:32.080Z] [hub] writing locator at /tmp/hub-dev-coffeeconnect-v1.json
+[debug] [2025-10-03T00:48:32.085Z] [Extensions] Started Extensions emulator, this is a noop.
+[debug] [2025-10-03T00:48:32.087Z] [functions] Functions Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-03T00:48:32.087Z] [eventarc] Eventarc Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-03T00:48:32.087Z] [tasks] Cloud Tasks Emulator only supports listening on one address (127.0.0.1). Not listening on ::1
+[debug] [2025-10-03T00:48:32.087Z] late-assigned ports for functions and eventarc emulators {"user":{"hub":[{"address":"127.0.0.1","family":"IPv4","port":4400},{"address":"::1","family":"IPv6","port":4400}],"ui":[{"address":"127.0.0.1","family":"IPv4","port":4000},{"address":"::1","family":"IPv6","port":4000}],"logging":[{"address":"127.0.0.1","family":"IPv4","port":4500}],"auth":[{"address":"127.0.0.1","family":"IPv4","port":9099}],"functions":[{"address":"127.0.0.1","family":"IPv4","port":5001}],"eventarc":[{"address":"127.0.0.1","family":"IPv4","port":9299}],"tasks":[{"address":"127.0.0.1","family":"IPv4","port":9499}]},"metadata":{"message":"late-assigned ports for functions and eventarc emulators"}}
 [warn] ⚠  functions: The following emulators are not running, calls to these services from the Functions emulator will affect production: apphosting, firestore, database, hosting, pubsub, storage, dataconnect {"metadata":{"emulator":{"name":"functions"},"message":"The following emulators are not running, calls to these services from the Functions emulator will affect production: \u001b[1mapphosting, firestore, database, hosting, pubsub, storage, dataconnect\u001b[22m"}}
 [warn] ⚠  functions: Application Default Credentials detected. Non-emulated services will access production using these credentials. Be careful! {"metadata":{"emulator":{"name":"functions"},"message":"Application Default Credentials detected. Non-emulated services will access production using these credentials. Be careful!"}}
-[debug] [2025-10-02T17:02:23.880Z] Checked if tokens are valid: true, expires at: 1759428134686
-[debug] [2025-10-02T17:02:23.880Z] Checked if tokens are valid: true, expires at: 1759428134686
-[debug] [2025-10-02T17:02:23.880Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/dev-coffeeconnect-v1/adminSdkConfig [none]
-[debug] [2025-10-02T17:02:24.152Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/dev-coffeeconnect-v1/adminSdkConfig 200
-[debug] [2025-10-02T17:02:24.152Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/dev-coffeeconnect-v1/adminSdkConfig {"projectId":"dev-coffeeconnect-v1","storageBucket":"dev-coffeeconnect-v1.firebasestorage.app"}
-[debug] [2025-10-02T17:02:33.253Z] [Extensions] Connecting Extensions emulator, this is a noop.
+[debug] [2025-10-03T00:48:33.208Z] Checked if tokens are valid: true, expires at: 1759456073069
+[debug] [2025-10-03T00:48:33.208Z] Checked if tokens are valid: true, expires at: 1759456073069
+[debug] [2025-10-03T00:48:33.208Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/dev-coffeeconnect-v1/adminSdkConfig [none]
+[debug] [2025-10-03T00:48:33.561Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/dev-coffeeconnect-v1/adminSdkConfig 200
+[debug] [2025-10-03T00:48:33.562Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/dev-coffeeconnect-v1/adminSdkConfig {"projectId":"dev-coffeeconnect-v1","storageBucket":"dev-coffeeconnect-v1.firebasestorage.app"}
+[debug] [2025-10-03T00:48:42.199Z] [Extensions] Connecting Extensions emulator, this is a noop.
 [info] i  functions: Watching "/home/remote/Desktop/codebase/auth/apps/test/functions" for Cloud Functions... {"metadata":{"emulator":{"name":"functions"},"message":"Watching \"/home/remote/Desktop/codebase/auth/apps/test/functions\" for Cloud Functions..."}}
 [error] ⬢  functions: Failed to load function definition from source: FirebaseError: could not deploy functions because the "functions" directory was not found. Please create it or specify a different source directory in firebase.json {"metadata":{"emulator":{"name":"functions"},"message":"Failed to load function definition from source: FirebaseError: could not deploy functions because the \u001b[1m\"functions\"\u001b[22m directory was not found. Please create it or specify a different source directory in firebase.json"}}
-[debug] [2025-10-02T17:02:33.269Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
+[debug] [2025-10-03T00:48:42.215Z] Could not find VSCode notification endpoint: FetchError: request to http://localhost:40001/vscode/notify failed, reason: . If you are not running the Firebase Data Connect VSCode extension, this is expected and not an issue.
 [info] 
 ┌─────────────────────────────────────────────────────────────┐
 │ ✔  All emulators ready! It is now safe to connect your app. │
@@ -59,7 +59,7 @@
 └─────────────────────────┴───────────────┴─────────────────────┘
 Issues? Report them at https://github.com/firebase/firebase-tools/issues and attach the *-debug.log files.
  
-[debug] [2025-10-02T17:03:13.965Z] >>> [apiv2][query] POST http://127.0.0.1:5001/functions/projects/dev-coffeeconnect-v1/trigger_multicast [none]
-[debug] [2025-10-02T17:03:13.965Z] >>> [apiv2][body] POST http://127.0.0.1:5001/functions/projects/dev-coffeeconnect-v1/trigger_multicast {"eventId":"fbc750a8-38aa-47ea-a198-38298bcdfae1","eventType":"providers/firebase.auth/eventTypes/user.create","resource":{"name":"projects/dev-coffeeconnect-v1","service":"firebaseauth.googleapis.com"},"params":{},"timestamp":"2025-10-02T17:03:13.965Z","data":{"uid":"7IdoSSpKpyQBrsHmRi5qEHJL1Zp1","metadata":{"creationTime":"2025-10-02T17:03:13.963Z","lastSignInTime":"2025-10-02T17:03:13.963Z"},"customClaims":{}}}
-[debug] [2025-10-02T17:03:13.986Z] <<< [apiv2][status] POST http://127.0.0.1:5001/functions/projects/dev-coffeeconnect-v1/trigger_multicast 200
-[debug] [2025-10-02T17:03:13.986Z] <<< [apiv2][body] POST http://127.0.0.1:5001/functions/projects/dev-coffeeconnect-v1/trigger_multicast {"status":"multicast_acknowledged"}
+[debug] [2025-10-03T00:48:56.395Z] >>> [apiv2][query] POST http://127.0.0.1:5001/functions/projects/dev-coffeeconnect-v1/trigger_multicast [none]
+[debug] [2025-10-03T00:48:56.396Z] >>> [apiv2][body] POST http://127.0.0.1:5001/functions/projects/dev-coffeeconnect-v1/trigger_multicast {"eventId":"67d86c7d-ff0a-4097-9f70-ab2dfc232510","eventType":"providers/firebase.auth/eventTypes/user.create","resource":{"name":"projects/dev-coffeeconnect-v1","service":"firebaseauth.googleapis.com"},"params":{},"timestamp":"2025-10-03T00:48:56.395Z","data":{"uid":"7IdoSSpKpyQBrsHmRi5qEHJL1Zp1","metadata":{"creationTime":"2025-10-03T00:48:56.394Z","lastSignInTime":"2025-10-03T00:48:56.394Z"},"customClaims":{}}}
+[debug] [2025-10-03T00:48:56.426Z] <<< [apiv2][status] POST http://127.0.0.1:5001/functions/projects/dev-coffeeconnect-v1/trigger_multicast 200
+[debug] [2025-10-03T00:48:56.427Z] <<< [apiv2][body] POST http://127.0.0.1:5001/functions/projects/dev-coffeeconnect-v1/trigger_multicast {"status":"multicast_acknowledged"}

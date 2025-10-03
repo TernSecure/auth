@@ -48,10 +48,14 @@ export class TokenApi extends AbstractAPI {
         bodyParams: restParams,
       });
 
-      if (response.errors) {
+      if (response.errors && response.errors.length > 0) {
         const errorMessage = response.errors[0]?.message || 'Failed to create custom token';
         console.error('Error response from exchangeCustomForIdAndRefreshTokens:', response.errors);
         throw new Error(errorMessage);
+      }
+
+      if (!response.data) {
+        throw new Error('No data received from token exchange');
       }
 
       return response.data;
