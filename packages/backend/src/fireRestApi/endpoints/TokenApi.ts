@@ -1,9 +1,6 @@
 import type { IdAndRefreshTokens } from '../resources/Token';
 import { AbstractAPI } from './AbstractApi';
 
-const rootPath = '/sessions';
-const base = 'accounts:signInWithCustomToken';
-
 type RefreshTokenParams = {
   expired_token: string;
   refresh_token: string;
@@ -17,6 +14,10 @@ type RefreshTokenParams = {
 type IdAndRefreshTokensParams = {
   token: string;
   returnSecureToken?: boolean;
+};
+
+type IdAndRefreshTokensOptions = {
+  referer?: string;
 };
 
 export class TokenApi extends AbstractAPI {
@@ -33,14 +34,21 @@ export class TokenApi extends AbstractAPI {
   public async exchangeCustomForIdAndRefreshTokens(
     apiKey: string,
     params: IdAndRefreshTokensParams,
+    options?: IdAndRefreshTokensOptions,
   ) {
     this.requireApiKey(apiKey);
+
+    const headers: Record<string, string> = {};
+    if (options?.referer) {
+      headers['Referer'] = options.referer;
+    }
 
     return this.request<IdAndRefreshTokens>({
       endpoint: 'signInWithCustomToken',
       method: 'POST',
       apiKey,
       bodyParams: params,
+      headerParams: headers,
     });
   }
 }

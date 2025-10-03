@@ -1,5 +1,6 @@
 "use server";
 
+import { getCookieName, getCookiePrefix } from '@tern-secure/shared/cookie';
 import { handleFirebaseAuthError } from "@tern-secure/shared/errors";
 import type { TernVerificationResult } from "@tern-secure/types";
 import { cookies } from "next/headers";
@@ -161,9 +162,12 @@ export async function ClearNextSessionCookie(tenantId?: string) {
     const tenantAuth = getAuthForTenant(tenantId);
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(SESSION_CONSTANTS.COOKIE_NAME);
+    const cookiePrefix = getCookiePrefix();
 
     cookieStore.delete(SESSION_CONSTANTS.COOKIE_NAME);
-    cookieStore.delete(constants.Cookies.IdToken);
+    cookieStore.delete(getCookieName(constants.Cookies.IdToken, cookiePrefix));
+    cookieStore.delete(getCookieName(constants.Cookies.Refresh, cookiePrefix));
+    cookieStore.delete(constants.Cookies.Custom);
 
     if (
       SESSION_CONSTANTS.REVOKE_REFRESH_TOKENS_ON_SIGNOUT &&
