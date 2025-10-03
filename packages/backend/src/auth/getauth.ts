@@ -59,6 +59,7 @@ export function getAuth(options: AuthenticateRequestOptions) {
     const idAndRefreshTokens = await customForIdAndRefreshToken(
       customToken,
     );
+    
     return {
       ...idAndRefreshTokens,
       customToken,
