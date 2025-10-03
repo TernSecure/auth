@@ -36,9 +36,13 @@ export function getAuth(options: AuthenticateRequestOptions) {
       returnSecureToken: true,
     });
 
+    console.log('[getAuth]customForIdAndRefreshToken response', response); // Debug log --- IGNORE ---
+    console.log('[getAuth]idToken:', response?.data?.idToken); // Debug log --- IGNORE ---
+    console.log('[getAuth]refreshToken:', response?.data?.refreshToken); // Debug log --- IGNORE ---
+
     return {
-      idToken: response?.idToken || '',
-      refreshToken: response?.refreshToken || '',
+      idToken: response?.data?.idToken || '',
+      refreshToken: response?.data?.refreshToken || '',
     };
   }
 
