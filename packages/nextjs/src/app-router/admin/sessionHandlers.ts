@@ -13,7 +13,7 @@ export async function sessionEndpointHandler(
   context: RequestProcessorContext,
   options: TernSecureHandlerOptions,
 ): Promise<Response> {
-  const { subEndpoint, method } = context;
+  const { subEndpoint, method, referrer } = context;
 
   const validators = createValidators(context);
 
@@ -80,16 +80,12 @@ export async function sessionEndpointHandler(
       idToken: string,
     ): Promise<Response> => {
       try {
-        await refreshCookieWithIdToken(idToken, cookieStore, options);
+        await refreshCookieWithIdToken(idToken, cookieStore, options, referrer);
         return SessionResponseHelper.createSessionCreationResponse({
           success: true,
           message: 'Session created successfully',
         });
       } catch (error) {
-        console.error('[Auth] Session creation failed:', {
-          error: error instanceof Error ? error.message : error,
-          stack: error instanceof Error ? error.stack : undefined,
-        });
         return createApiErrorResponse('SESSION_CREATION_FAILED', 'Session creation failed', 500);
       }
     };

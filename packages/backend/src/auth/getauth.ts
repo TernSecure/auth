@@ -19,39 +19,68 @@ interface CustomForIdAndRefreshTokenOptions {
   referer?: string;
 }
 
-type getAuthParams = AuthenticateRequestOptions["firebaseConfig"] & AuthenticateRequestOptions["apiClient"]
+interface FirebaseCustomTokenResponse {
+  kind: string;
+  idToken: string;
+  refreshToken: string;
+  expiresIn: string;
+  isNewUser: boolean;
+}
+
+type getAuthParams = AuthenticateRequestOptions['firebaseConfig'] &
+  AuthenticateRequestOptions['apiClient'];
+
+function parseFirebaseResponse<T>(data: unknown): T {
+  if (typeof data === 'string') {
+    try {
+      return JSON.parse(data) as T;
+    } catch (error) {
+      throw new Error(`Failed to parse Firebase response: ${error}`);
+    }
+  }
+  return data as T;
+}
 
 export function getAuth(options: AuthenticateRequestOptions) {
-  const { apiKey, tenantId } = options.firebaseConfig || {};
+  const { apiKey } = options.firebaseConfig || {};
 
   async function customForIdAndRefreshToken(
     customToken: string,
+    opts: CustomForIdAndRefreshTokenOptions,
   ): Promise<IdAndRefreshTokens> {
-
     if (!apiKey) {
       throw new Error('API Key is required to create custom token');
     }
-    const response = await options.apiClient?.tokens.exchangeCustomForIdAndRefreshTokens(apiKey, {
-      token: customToken,
-      returnSecureToken: true,
-    });
+    const response = await options.apiClient?.tokens.exchangeCustomForIdAndRefreshTokens(
+      apiKey,
+      {
+        token: customToken,
+        returnSecureToken: true,
+      },
+      {
+        referer: opts.referer,
+      },
+    );
 
-    console.log('[getAuth]customForIdAndRefreshToken response', response); // Debug log --- IGNORE ---
-    console.log('[getAuth]idToken:', response?.data?.idToken); // Debug log --- IGNORE ---
-    console.log('[getAuth]refreshToken:', response?.data?.refreshToken); // Debug log --- IGNORE ---
+    if (!response?.data) {
+      throw new Error('No data received from Firebase token exchange');
+    }
+
+    const parsedData = parseFirebaseResponse<FirebaseCustomTokenResponse>(response.data);
 
     return {
-      idToken: response?.data?.idToken || '',
-      refreshToken: response?.data?.refreshToken || '',
+      idToken: parsedData.idToken,
+      refreshToken: parsedData.refreshToken,
     };
   }
 
-
-  async function createCustomIdAndRefreshToken(idToken: string): Promise<CustomTokens> {
+  async function createCustomIdAndRefreshToken(
+    idToken: string,
+    opts: CustomForIdAndRefreshTokenOptions,
+  ): Promise<CustomTokens> {
     const decoded = await verifyToken(idToken, options);
     const { data, errors } = decoded;
     if (errors) {
-      console.error('Token Verification failed:', errors);
       throw errors[0];
     }
 
@@ -60,10 +89,10 @@ export function getAuth(options: AuthenticateRequestOptions) {
       source_sign_in_provider: data.firebase.sign_in_provider,
     });
 
-    const idAndRefreshTokens = await customForIdAndRefreshToken(
-      customToken,
-    );
-    
+    const idAndRefreshTokens = await customForIdAndRefreshToken(customToken, {
+      referer: opts.referer,
+    });
+
     return {
       ...idAndRefreshTokens,
       customToken,

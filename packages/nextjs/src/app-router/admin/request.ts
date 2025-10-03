@@ -25,50 +25,47 @@ export async function refreshCookieWithIdToken(
   idToken: string,
   cookieStore: NextCookieStore,
   options?: TernSecureHandlerOptions,
+  referrer?: string,
 ): Promise<void> {
-  try {
-    const backendClient = await ternSecureBackendClient();
+  const backendClient = await ternSecureBackendClient();
 
-    const authOptions: AuthenticateRequestOptions = {
-      firebaseConfig: {
-        apiKey: FIREBASE_API_KEY,
-        authDomain: FIREBASE_AUTH_DOMAIN,
-        projectId: FIREBASE_PROJECT_ID,
-        storageBucket: FIREBASE_STORAGE_BUCKET,
-        messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
-        appId: FIREBASE_APP_ID,
-        tenantId: options?.tenantId || undefined,
-      },
-      apiClient: backendClient,
-    };
-
-    const { createCustomIdAndRefreshToken } = getAuth(authOptions);
-
-    const customTokens = await createCustomIdAndRefreshToken(idToken);
-
-    const cookiePrefix = getCookiePrefix();
-
-    await Promise.all([
-      cookieStore.set(
-        getCookieName(constants.Cookies.IdToken, cookiePrefix),
-        customTokens.idToken,
-        COOKIE_OPTIONS,
-      ),
-      cookieStore.set(
-        getCookieName(constants.Cookies.Refresh, cookiePrefix),
-        customTokens.refreshToken,
-        COOKIE_OPTIONS,
-      ),
-      cookieStore.set(constants.Cookies.Custom, customTokens.customToken, COOKIE_OPTIONS),
-    ]);
-  } catch (error) {
-    console.error('[Auth] refreshCookieWithIdToken failed:', {
-      error: error instanceof Error ? error.message : error,
-      stack: error instanceof Error ? error.stack : undefined,
-      hasIdToken: !!idToken,
+  const authOptions: AuthenticateRequestOptions = {
+    firebaseConfig: {
+      apiKey: FIREBASE_API_KEY,
+      authDomain: FIREBASE_AUTH_DOMAIN,
       projectId: FIREBASE_PROJECT_ID,
-      apiKey: FIREBASE_API_KEY ? '[SET]' : '[MISSING]',
-    });
-    throw error;
+      storageBucket: FIREBASE_STORAGE_BUCKET,
+      messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
+      appId: FIREBASE_APP_ID,
+      tenantId: options?.tenantId || undefined,
+    },
+    apiClient: backendClient,
+  };
+
+  const { createCustomIdAndRefreshToken } = getAuth(authOptions);
+
+  const customTokens = await createCustomIdAndRefreshToken(idToken, { referer: referrer });
+
+  const cookiePrefix = getCookiePrefix();
+
+  const cookiePromises = [
+    cookieStore.set(
+      getCookieName(constants.Cookies.IdToken, cookiePrefix),
+      customTokens.idToken,
+      COOKIE_OPTIONS,
+    ),
+    cookieStore.set(
+      getCookieName(constants.Cookies.Refresh, cookiePrefix),
+      customTokens.refreshToken,
+      COOKIE_OPTIONS,
+    ),
+  ];
+
+  if (options?.enableCustomToken) {
+    cookiePromises.push(
+      cookieStore.set(constants.Cookies.Custom, customTokens.customToken, COOKIE_OPTIONS),
+    );
   }
+
+  await Promise.all(cookiePromises);
 }

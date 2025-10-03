@@ -1,6 +1,6 @@
 import type {
-  TernSecureAPIError,
-  TernSecureApiErrorJSON,
+  TernSecureFireRestError,
+  TernSecureFireRestErrorJSON,
 } from "@tern-secure/types";
 
 import { constants } from "../constants";
@@ -40,7 +40,7 @@ export type BackendApiResponse<T> =
     }
   | {
       data: null;
-      errors: TernSecureAPIError[];
+      errors: TernSecureFireRestError[];
       totalCount?: never;
       status?: number;
       statusText?: string;
@@ -78,8 +78,10 @@ export function createRequest(options: CreateRequestOptions) {
         data: null,
         errors: [
           {
-            code: "missing_api_key",
+            domain: "none",
+            reason: "invalid_parameter",
             message: "Firebase API key is required",
+            code: "400",
           },
         ],
       };
@@ -147,8 +149,10 @@ export function createRequest(options: CreateRequestOptions) {
           data: null,
           errors: [
             {
-              code: "unexpected_error",
+              domain: "none",
+              reason: "request_failed",
               message: error.message || "An unexpected error occurred",
+              code: "500",
             },
           ],
         };
@@ -165,17 +169,49 @@ export function createRequest(options: CreateRequestOptions) {
   return requestFn;
 }
 
-function parseErrors(data: unknown): TernSecureAPIError[] {
-  if (!!data && typeof data === "object" && "errors" in data) {
-    const errors = data.errors as TernSecureApiErrorJSON[];
-    return errors.length > 0 ? errors.map(parseError) : [];
+function parseErrors(data: unknown): TernSecureFireRestError[] {
+  let parsedData = data;
+  if (typeof data === "string") {
+    try {
+      parsedData = JSON.parse(data);
+    } catch (error) {
+      return [];
+    }
   }
+
+  if (!parsedData || typeof parsedData !== "object") {
+    return [];
+  }
+
+  if ("error" in parsedData && typeof parsedData.error === "object" && parsedData.error !== null) {
+    const errorObj = parsedData.error as any;
+
+    if ("errors" in errorObj && Array.isArray(errorObj.errors) && errorObj.errors.length > 0) {
+      return errorObj.errors.map((err: any) => parseError({
+        code: errorObj.code || "unknown_error", 
+        message: err.message || "Unknown error",
+        domain: err.domain,
+        reason: err.reason
+      }));
+    }
+
+    // Fallback: create single error from main error object
+    return [parseError({
+      code: errorObj.code?.toString() || "unknown_error",
+      message: errorObj.message || "Unknown error",
+      domain: errorObj.domain || "unknown",
+      reason: errorObj.reason || errorObj.code?.toString() || "unknown_error"
+    })];
+  }
+
   return [];
 }
 
-export function parseError(error: TernSecureApiErrorJSON): TernSecureAPIError {
+export function parseError(error: TernSecureFireRestErrorJSON): TernSecureFireRestError {
   return {
-    code: error.code,
+    domain: error.domain,
+    reason: error.reason,
     message: error.message,
+    code: error.code
   };
 }
