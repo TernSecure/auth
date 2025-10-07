@@ -1,4 +1,4 @@
-import { createCustomTokenClaims } from '../admin';
+import { createCustomToken } from '../jwt/customJwt';
 import type { AuthenticateRequestOptions } from '../tokens/types';
 import { verifyToken } from '../tokens/verify';
 
@@ -19,6 +19,14 @@ interface CustomForIdAndRefreshTokenOptions {
   referer?: string;
 }
 
+interface FirebaseRefreshTokenResponse {
+  kind: string;
+  id_token: string;
+  refresh_token: string;
+  expires_in: string;
+  isNewUser: boolean;
+}
+
 interface FirebaseCustomTokenResponse {
   kind: string;
   idToken: string;
@@ -27,8 +35,10 @@ interface FirebaseCustomTokenResponse {
   isNewUser: boolean;
 }
 
-type getAuthParams = AuthenticateRequestOptions['firebaseConfig'] &
-  AuthenticateRequestOptions['apiClient'];
+type AuthResult<T = any> = { data: T; error: null } | { data: null; error: any };
+
+const API_KEY_ERROR = 'API Key is required';
+const NO_DATA_ERROR = 'No token data received';
 
 function parseFirebaseResponse<T>(data: unknown): T {
   if (typeof data === 'string') {
@@ -43,6 +53,36 @@ function parseFirebaseResponse<T>(data: unknown): T {
 
 export function getAuth(options: AuthenticateRequestOptions) {
   const { apiKey } = options.firebaseConfig || {};
+
+  async function refreshExpiredIdToken(
+    refreshToken: string,
+    opts: CustomForIdAndRefreshTokenOptions,
+  ): Promise<AuthResult> {
+    if (!apiKey) {
+      return { data: null, error: new Error(API_KEY_ERROR) };
+    }
+    const response = await options.apiClient?.tokens.refreshToken(apiKey, {
+      refresh_token: refreshToken,
+      request_origin: opts.referer,
+    });
+
+    if (!response?.data) {
+      return {
+        data: null,
+        error: new Error(NO_DATA_ERROR),
+      };
+    }
+
+    const parsedData = parseFirebaseResponse<FirebaseRefreshTokenResponse>(response.data);
+
+    return {
+      data: {
+        idToken: parsedData.id_token,
+        refreshToken: parsedData.refresh_token,
+      },
+      error: null,
+    };
+  }
 
   async function customForIdAndRefreshToken(
     customToken: string,
@@ -84,7 +124,7 @@ export function getAuth(options: AuthenticateRequestOptions) {
       throw errors[0];
     }
 
-    const customToken = await createCustomTokenClaims(data.uid, {
+    const customToken = await createCustomToken(data.uid, {
       emailVerified: data.email_verified,
       source_sign_in_provider: data.firebase.sign_in_provider,
     });
@@ -102,5 +142,6 @@ export function getAuth(options: AuthenticateRequestOptions) {
   return {
     customForIdAndRefreshToken,
     createCustomIdAndRefreshToken,
+    refreshExpiredIdToken,
   };
 }

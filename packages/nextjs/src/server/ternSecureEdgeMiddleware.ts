@@ -57,7 +57,7 @@ type MiddlewareHandler = (
 
 export interface MiddlewareOptions extends RequestOptions {
   debug?: boolean;
-  firebaseOptions?: TernSecureConfig;
+  firebaseConfig?: TernSecureConfig;
 }
 type MiddlewareOptionsCallback = (
   req: NextRequest,
@@ -207,7 +207,7 @@ const isFirebaseRequest = (request: NextMiddlewareRequestParam) =>
 
 const rewriteFirebaseRequest = (options: MiddlewareOptions, request: NextMiddlewareRequestParam) => {
   const newUrl = new URL(request.url);
-  newUrl.host = options.firebaseOptions?.authDomain || '';
+  newUrl.host = options.firebaseConfig?.authDomain || '';
   newUrl.port = '';
   return NextResponse.rewrite(newUrl);
 }

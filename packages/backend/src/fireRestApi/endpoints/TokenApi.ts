@@ -2,9 +2,9 @@ import type { IdAndRefreshTokens } from '../resources/Token';
 import { AbstractAPI } from './AbstractApi';
 
 type RefreshTokenParams = {
-  expired_token: string;
+  expired_token?: string;
   refresh_token: string;
-  request_origin: string;
+  request_origin?: string;
   request_originating_ip?: string;
   request_headers?: Record<string, string[]>;
   suffixed_cookies?: boolean;
@@ -23,11 +23,25 @@ type IdAndRefreshTokensOptions = {
 export class TokenApi extends AbstractAPI {
   public async refreshToken(apiKey: string, params: RefreshTokenParams) {
     this.requireApiKey(apiKey);
-    const { ...restParams } = params;
+    const { refresh_token, request_origin, ...restParams } = params;
+
+    const headers: Record<string, string> = {};
+    if (request_origin) {
+      headers['Referer'] = request_origin;
+    }
+
+    const bodyParams = {
+      grant_type: 'refresh_token',
+      refresh_token,
+      ...restParams,
+    };
+
     return this.request({
       endpoint: 'refreshToken',
       method: 'POST',
-      bodyParams: restParams,
+      apiKey,
+      bodyParams,
+      headerParams: headers,
     });
   }
 
