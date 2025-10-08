@@ -1,8 +1,10 @@
-
+'use client'
 
 import { GalleryVerticalEnd } from "lucide-react"
 
 import { LoginForm } from "@/components/signin-form"
+
+import { SignInProvider} from '@tern-secure/nextjs';
 
 export default function LoginPage() {
   return (
@@ -14,7 +16,9 @@ export default function LoginPage() {
           </div>
           Acme Inc.
         </a>
-        <LoginForm />
+        <SignInProvider>
+          <LoginForm />
+        </SignInProvider>
       </div>
     </div>
   )

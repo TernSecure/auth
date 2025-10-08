@@ -38,8 +38,7 @@
   },
   "devDependencies": {
     "firebase": "^12.0.0",
-    "jose": "^5.10.0",
-    "next": "15.3.2"
+    "jose": "^5.10.0"
   },
   "peerDependencies": {
     "firebase": "^11.0.0"

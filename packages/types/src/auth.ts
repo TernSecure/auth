@@ -1,14 +1,15 @@
-import type { SignedInSession } from "session";
-import type { SignUpResource } from "signUp";
+import type { SignedInSession } from 'session';
+import type { SignUpResource } from 'signUp';
 
-import type { InstanceType,TernSecureConfig, TernSecureUser } from "./all";
-import type { DecodedIdToken } from "./jwt";
+import type { InstanceType, TernSecureConfig, TernSecureUser } from './all';
+import type { DecodedIdToken } from './jwt';
 import type {
   AfterSignOutUrl,
+  RedirectOptions,
   SignInRedirectUrl,
   SignUpRedirectUrl,
-} from "./redirect";
-import type { AuthErrorResponse,SignInResource } from "./signIn";
+} from './redirect';
+import type { AuthErrorResponse, SignInInitialValue, SignInResource } from './signIn';
 
 export interface InitialState {
   userId: string | null;
@@ -26,11 +27,11 @@ export interface TernSecureState {
   isAuthenticated: boolean;
   token: any | null;
   email: string | null;
-  status: "loading" | "authenticated" | "unauthenticated" | "unverified";
+  status: 'loading' | 'authenticated' | 'unauthenticated' | 'unverified';
   user?: TernSecureUser | null;
 }
 
-export type AuthProviderStatus = "idle" | "pending" | "error" | "success";
+export type AuthProviderStatus = 'idle' | 'pending' | 'error' | 'success';
 
 export const DEFAULT_TERN_SECURE_STATE: TernSecureState = {
   userId: null,
@@ -41,7 +42,7 @@ export const DEFAULT_TERN_SECURE_STATE: TernSecureState = {
   isAuthenticated: false,
   token: null,
   email: null,
-  status: "loading",
+  status: 'loading',
   user: null,
 };
 
@@ -71,9 +72,9 @@ export interface TernSecureAuthProvider {
   signOut(): Promise<void>;
 }
 
-export type Persistence = "local" | "session" | "browserCookie" | "none";
+export type Persistence = 'local' | 'session' | 'browserCookie' | 'none';
 
-type Mode = "browser" | "server";
+type Mode = 'browser' | 'server';
 
 export type TernAuthSDK = {
   /** SDK package name (e.g., @tern-secure/auth) */
@@ -129,23 +130,19 @@ export type TernAuthListenerEvent = keyof TernAuthListenerEventPayload;
 export type ListenerCallback = (emission: TernSecureResources) => void;
 export type UnsubscribeCallback = () => void;
 type TernSecureEvent = keyof TernAuthEventPayload;
-type EventHandler<Events extends TernSecureEvent> = (
-  payload: TernAuthEventPayload[Events]
-) => void;
+type EventHandler<Events extends TernSecureEvent> = (payload: TernAuthEventPayload[Events]) => void;
 export type TernAuthEventPayload = {
   status: TernSecureAuthStatus;
 };
 
-export type TernSecureAuthStatus = "error" | "loading" | "ready";
+export type TernSecureAuthStatus = 'error' | 'loading' | 'ready';
 
 type onEventListener = <E extends TernSecureEvent>(
   event: E,
-  handler: EventHandler<E>, opt?: { notify?: boolean }
+  handler: EventHandler<E>,
+  opt?: { notify?: boolean },
 ) => void;
-type OffEventListener = <E extends TernSecureEvent>(
-  event: E,
-  handler: EventHandler<E>
-) => void;
+type OffEventListener = <E extends TernSecureEvent>(event: E, handler: EventHandler<E>) => void;
 
 export type SignOutOptions = {
   /** URL to redirect to after sign out */
@@ -194,6 +191,16 @@ export interface TernSecureAuth {
   /** Initialize TernSecureAuth */
   initialize(options?: TernSecureAuthOptions): Promise<void>;
 
+  /**
+   * @internal
+   */
+  _internal_getOption<K extends keyof TernSecureAuthOptions>(key: K): TernSecureAuthOptions[K];
+
+  /**
+   * @internal
+   */
+  _internal_getAllOptions(): Readonly<TernSecureAuthOptions>;
+
   /** Current user*/
   user: TernSecureUser | null | undefined;
 
@@ -222,7 +229,26 @@ export interface TernSecureAuth {
   off: OffEventListener;
 
   addListener: (callback: ListenerCallback) => UnsubscribeCallback;
+  /** Get redirect result from OAuth flows */
+  getRedirectResult: () => Promise<any>;
+  /** Navigate to SignIn page */
+  redirectToSignIn(options?: SignInRedirectOptions): Promise<unknown>;
+  /** Navigate to SignUp page */
+  redirectToSignUp(options?: SignUpRedirectOptions): Promise<unknown>;
+
+  redirectAfterSignIn: () => void;
+
+  redirectAfterSignUp: () => void;
 }
+
+export type SignUpFormValues = {
+  email: string;
+  password: string;
+  confirmPassword?: string;
+  displayName?: string;
+};
+
+export type SignUpInitialValue = Partial<SignUpFormValues>;
 
 export interface TernSecureAuthFactory {
   create(options?: TernSecureAuthOptions): TernSecureAuth;
@@ -253,3 +279,33 @@ export type TernVerificationResult =
       valid: false;
       error: AuthErrorResponse;
     };
+
+/**
+ * Props for SignIn component focusing on UI concerns
+ */
+export type SignInProps = {
+  /** Routing Path */
+  path?: string;
+  /** URL to navigate to after successfully sign-in */
+  forceRedirectUrl?: string | null;
+  /** Initial form values */
+  initialValue?: SignInInitialValue;
+  /** Callbacks */
+  onSuccess?: (user: TernSecureUser | null) => void;
+} & SignUpRedirectUrl;
+
+/**
+ * Props for SignUp component focusing on UI concerns
+ */
+export type SignUpProps = {
+  /** URL to navigate to after successfully sign-up */
+  forceRedirectUrl?: string | null;
+  /** Initial form values */
+  initialValue?: SignUpInitialValue;
+  /** Callbacks */
+  onSubmit?: (values: SignUpFormValues) => Promise<void>;
+  onSuccess?: (user: TernSecureUser | null) => void;
+} & SignInRedirectUrl;
+
+export type SignInRedirectOptions = RedirectOptions;
+export type SignUpRedirectOptions = RedirectOptions;

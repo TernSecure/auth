@@ -1,4 +1,4 @@
-import type { SignInResponseTree } from './signIn';
+import type { SignInResponse } from './signIn';
 
 export interface SignUpResource {
     status?: SignUpStatus | null;
@@ -13,7 +13,7 @@ export interface SignUpResource {
     * @param options - Optional configuration for the social sign-in flow.
     * @returns A promise that resolves with the sign-in response or void if redirecting.
     */
-   withSocialProvider: (provider: string, options?: { mode?: 'popup' | 'redirect' }) => Promise<SignInResponseTree | void>;
+   withSocialProvider: (provider: string, options?: { mode?: 'popup' | 'redirect' }) => Promise<SignInResponse | void>;
 }
 
 export type SignUpStatus = 'missing_requirements' | 'complete' | 'abandoned';
