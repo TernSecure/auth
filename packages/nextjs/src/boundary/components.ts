@@ -3,5 +3,7 @@ export {
     useIdToken,
     useSession,
     useSignIn,
+    useSignInContext,
+    SignInProvider,
     signIn,
-} from '@tern-secure/react' 
+} from '@tern-secure/react';

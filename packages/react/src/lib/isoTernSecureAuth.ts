@@ -5,10 +5,13 @@ import type {
   DomainOrProxyUrl,
   ListenerCallback,
   SignedInSession,
+  SignInRedirectOptions,
   SignInResource,
   SignOutOptions,
+  SignUpRedirectOptions,
   SignUpResource,
   TernSecureAuth,
+  TernSecureAuthOptions,
   TernSecureAuthStatus,
   UnsubscribeCallback,
 } from '@tern-secure/types';
@@ -128,6 +131,20 @@ export class IsoTernSecureAuth implements TernSecureAuth {
 
   get mode(): 'browser' | 'server' {
     return this._mode;
+  }
+
+  /**
+   * @internal
+   */
+  public _internal_getOption<K extends keyof TernSecureAuthOptions>(key: K): TernSecureAuthOptions[K] | undefined {
+    return this.ternauth?._internal_getOption ? this.ternauth?._internal_getOption(key) : this.options[key];
+  }
+
+  /** 
+   * @internal
+  */
+  public _internal_getAllOptions(): Readonly<TernSecureAuthOptions> {
+    return Object.freeze({ ...this.options });
   }
 
   constructor(options: IsoTernSecureAuthOptions) {
@@ -250,6 +267,37 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     }
     return this.ternauth.onAuthStateChanged(callback);
   }
+
+  getRedirectResult = async (): Promise<any> => {
+    if (!this.ternauth?.getRedirectResult) {
+      throw new Error('TernSecure instance not initialized');
+    }
+    return this.ternauth.getRedirectResult();
+  };
+
+  redirectToSignIn = async (options?: SignInRedirectOptions) => {
+    if (this.ternauth?.redirectToSignIn) {
+      this.ternauth.redirectToSignIn(options);
+    }
+  };
+
+  redirectToSignUp = async (options?: SignUpRedirectOptions) => {
+    if (this.ternauth?.redirectToSignUp) {
+      this.ternauth.redirectToSignUp();
+    }
+  };
+
+  redirectAfterSignIn = (redirectUrl?: string): void => {
+    if (this.ternauth?.redirectAfterSignIn) {
+      this.ternauth.redirectAfterSignIn();
+    }
+  }
+
+  redirectAfterSignUp = (redirectUrl?: string): void => {
+    if (this.ternauth?.redirectAfterSignUp) {
+      this.ternauth.redirectAfterSignUp();
+    }
+  };
 
   #awaitForTernSecureAuth(): Promise<TernSecureAuthProps> {
     return new Promise<TernSecureAuthProps>(resolve => {

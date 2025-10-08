@@ -12,12 +12,17 @@ export type {
     AfterResponseHook
 } from './instance/coreApiClient';
 
-export { SignIn, TernSecureBase } from './resources/internal';
+export { SignIn, TernSecureBase, buildURL } from './resources/internal';
 
 export type {
+    AuthErrorTree,
     TernSecureConfig,
-    SignInFormValuesTree,
-    SignInResponseTree,
+    SignInFormValues,
+    SignInProps,
+    SignUpProps,
+    SignInResponse,
+    SignInRedirectUrl,
+    SignUpRedirectUrl,
     ResendEmailVerification,
     TernSecureUser,
     TernSecureState

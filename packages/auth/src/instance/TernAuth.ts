@@ -10,17 +10,17 @@ import type {
   SignedInSession,
   SignInRedirectOptions,
   SignInResource,
-  SignInResponseTree,
+  SignInResponse,
   SignOut,
   SignOutOptions,
   SignUpRedirectOptions,
   SignUpResource,
+  TernAuthSDK,
   TernSecureAuth as TernSecureAuthInterface,
   TernSecureAuthOptions,
   TernSecureAuthStatus,
   TernSecureConfig,
   TernSecureResources,
-  TernSecureSDK,
   TernSecureUser,
   UnsubscribeCallback,
 } from '@tern-secure/types';
@@ -40,7 +40,7 @@ import {
 import { getInstallations } from 'firebase/installations';
 
 import { AuthCookieManager, SignIn, SignUp, TernSecureBase } from '../resources/internal';
-import { buildURL } from '../utils/construct';
+import { buildURL, hasRedirectLoop } from '../utils/construct';
 import { type ApiClient, createCoreApiClient } from './c_coreApiClient';
 import { eventBus, events } from './events';
 
@@ -55,7 +55,7 @@ export { TernAuth };
  */
 export class TernSecureAuth implements TernSecureAuthInterface {
   public static version: string = PACKAGE_VERSION;
-  public static sdkMetadata: TernSecureSDK = {
+  public static sdkMetadata: TernAuthSDK = {
     name: PACKAGE_NAME,
     version: PACKAGE_VERSION,
     environment: process.env.NODE_ENV || 'production',
@@ -77,7 +77,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   #instanceType?: InstanceType;
   #status: TernSecureAuthInterface['status'] = 'loading';
   #listeners: Array<(emission: TernSecureResources) => void> = [];
-  #options: TernSecureAuthOptions = {} as TernSecureAuthOptions;
+  #options: TernSecureAuthOptions = {};
   #authCookieManager?: AuthCookieManager;
   #publicEventBus = createTernAuthEventBus();
 
@@ -96,11 +96,11 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return TernSecureAuth.version;
   }
 
-  set sdkMetadata(metadata: TernSecureSDK) {
+  set sdkMetadata(metadata: TernAuthSDK) {
     TernSecureAuth.sdkMetadata = metadata;
   }
 
-  get sdkMetadata(): TernSecureSDK {
+  get sdkMetadata(): TernAuthSDK {
     return TernSecureAuth.sdkMetadata;
   }
 
@@ -154,8 +154,14 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return this.#authCookieManager;
   }
 
-  public _internal_getOption<K extends keyof TernSecureAuthOptions>(key: K): TernSecureAuthOptions[K] {
+  public _internal_getOption<K extends keyof TernSecureAuthOptions>(
+    key: K,
+  ): TernSecureAuthOptions[K] {
     return this.#options[key];
+  }
+
+  public _internal_getAllOptions(): Readonly<TernSecureAuthOptions> {
+    return Object.freeze({ ...this.#options });
   }
 
   static getorCreateInstance(options?: TernSecureAuthOptions): TernSecureAuth {
@@ -310,7 +316,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
   }
 
-  public async checkRedirectResult(): Promise<SignInResponseTree | null> {
+  public async checkRedirectResult(): Promise<SignInResponse | null> {
     try {
       const result = await getRedirectResult(this.auth);
       if (result) {
@@ -330,6 +336,10 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       };
     }
   }
+
+  public getRedirectResult = async (): Promise<any> => {
+    throw new Error('getRedirectResult not implemented');
+  };
 
   public addListener = (listener: ListenerCallback): UnsubscribeCallback => {
     this.#listeners.push(listener);
@@ -502,11 +512,75 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return this.constructUrlWithAuthRedirect(constructedUrl);
   };
 
+  #constructAfterSignInUrl = (): string => {
+    if (!inBrowser()) {
+      return '/';
+    }
+
+    let redirectPath: string | null | undefined = undefined;
+    const defaultRedirectPath = '/';
+
+    // Priority 1: Check for signInForceRedirectUrl from instance options
+    if (this.#options.signInForceRedirectUrl) {
+      redirectPath = this.#options.signInForceRedirectUrl;
+    }
+
+    // Priority 2: If no force redirect, check 'redirect' param in current URL
+    if (!redirectPath) {
+      const urlParams = new URLSearchParams(window.location.search);
+      const redirectPathFromParams = urlParams.get('redirect_url');
+      if (redirectPathFromParams) {
+        redirectPath = redirectPathFromParams;
+      }
+    }
+
+    // Priority 3: Fallback to default path
+    if (!redirectPath) {
+      redirectPath = defaultRedirectPath;
+    }
+
+    const currentPath = window.location.pathname;
+
+    if (hasRedirectLoop(currentPath, redirectPath)) {
+      //console.warn('[TernSecure] Redirect loop detected. Redirecting to default path.');
+      return defaultRedirectPath;
+    }
+
+    return this.constructUrlWithAuthRedirect(redirectPath);
+  };
+
   #constructAfterSignOutUrl = (): string => {
     if (!this.#options.afterSignOutUrl) {
       return '/';
     }
     return this.constructUrlWithAuthRedirect(this.#options.afterSignOutUrl);
+  };
+
+  public redirectToSignIn = async (options?: SignInRedirectOptions): Promise<unknown> => {
+    if (inBrowser()) {
+      const url = this.constructSignInUrl(options);
+      window.location.href = url;
+    }
+    return;
+  };
+
+  public redirectToSignUp = async (options?: SignUpRedirectOptions): Promise<unknown> => {
+    if (inBrowser()) {
+      const redirectUrl = this.constructSignUpUrl();
+      window.location.href = redirectUrl;
+    }
+    return;
+  };
+
+  redirectAfterSignIn = async (): Promise<void> => {
+    if (inBrowser()) {
+      const destinationUrl = this.#constructAfterSignInUrl();
+      window.location.href = destinationUrl;
+    }
+  };
+
+  redirectAfterSignUp = (): void => {
+    throw new Error('redirectAfterSignUp is not implemented yet');
   };
 
   public constructSignInUrl = (options?: SignInRedirectOptions): string => {

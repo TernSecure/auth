@@ -1,12 +1,11 @@
 import type { 
-  TernSecureAuthProvider, 
-  TernSecureState 
-} from 'auth';
-
-import type { 
   TernSecureConfig, 
   TernSecureUser 
 } from './all';
+import type { 
+  TernSecureAuthProvider, 
+  TernSecureState 
+} from './auth';
 import type {
   AfterSignOutUrl,
   RedirectOptions,
@@ -18,7 +17,7 @@ import type {
   TernSecureSessionTree} from './session';
 import type { 
   AuthErrorTree,
-  SignInInitialValueTree} from './signIn';
+  SignInInitialValue} from './signIn';
 import type { 
   Appearance,
   SignInUIConfig,
@@ -121,9 +120,9 @@ export interface TernSecureInstanceTree {
   /** Construct URL with redirect parameters */
   constructUrlWithAuthRedirect: (to: string) => string;
   /** Navigate to SignIn page */
-  redirectToSignIn(options?: SignInRedirectOptions): Promise<unknown>;
+  redirectToSignIn(options?: SignInRedirectOptionss): Promise<unknown>;
   /** Navigate to SignUp page */
-  redirectToSignUp(options?: SignUpRedirectOptions): Promise<unknown>;
+  redirectToSignUp(options?: SignUpRedirectOptionss): Promise<unknown>;
 
   redirectAfterSignIn: () => void;
   
@@ -181,7 +180,7 @@ export type SignInPropsTree = {
   /** URL to navigate to after successfully sign-in */
   forceRedirectUrl?: string | null;
   /** Initial form values */
-  initialValue?: SignInInitialValueTree;
+  initialValue?: SignInInitialValue;
   /** UI configuration */
   ui?: SignInUIConfig;
   /** Callbacks */
@@ -206,5 +205,5 @@ export type SignUpPropsTree = {
   onSuccess?: (user: TernSecureUser | null) => void;
 } & SignInRedirectUrl
 
-export type SignInRedirectOptions = RedirectOptions
-export type SignUpRedirectOptions = RedirectOptions;
+export type SignInRedirectOptionss = RedirectOptions
+export type SignUpRedirectOptionss = RedirectOptions;

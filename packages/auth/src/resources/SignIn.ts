@@ -1,9 +1,9 @@
 import { handleFirebaseAuthError } from '@tern-secure/shared/errors';
 import type {
   ResendEmailVerification,
-  SignInFormValuesTree,
+  SignInFormValues,
   SignInResource,
-  SignInResponseTree,
+  SignInResponse,
   SignInStatus,
   TernSecureUser,
 } from '@tern-secure/types';
@@ -66,7 +66,7 @@ export class SignIn extends TernSecureBase implements SignInResource {
     });
   };
 
-  withEmailAndPassword = async (params: SignInFormValuesTree): Promise<SignInResponseTree> => {
+  withEmailAndPassword = async (params: SignInFormValues): Promise<SignInResponse> => {
     try {
       const { email, password } = params;
       const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
@@ -91,7 +91,7 @@ export class SignIn extends TernSecureBase implements SignInResource {
     }
   };
 
-  withCredential = async (params: SignInFormValuesTree): Promise<void> => {
+  withCredential = async (params: SignInFormValues): Promise<void> => {
     try {
       const { email, password } = params;
       const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
@@ -107,7 +107,7 @@ export class SignIn extends TernSecureBase implements SignInResource {
     options?: {
       mode?: 'popup' | 'redirect';
     },
-  ): Promise<SignInResponseTree | void> => {
+  ): Promise<SignInResponse | void> => {
     try {
       if (options?.mode === 'redirect') {
         const redirectResult = await this.authRedirectResult();
@@ -138,7 +138,7 @@ export class SignIn extends TernSecureBase implements SignInResource {
     }
   };
 
-  completeMfaSignIn = async (_mfaToken: string, _mfaContext?: any): Promise<SignInResponseTree> => {
+  completeMfaSignIn = async (_mfaToken: string, _mfaContext?: any): Promise<SignInResponse> => {
     throw new Error('Method not implemented.');
   };
 
@@ -201,7 +201,7 @@ export class SignIn extends TernSecureBase implements SignInResource {
     }
   }
 
-  private async authRedirectResult(): Promise<SignInResponseTree | null> {
+  private async authRedirectResult(): Promise<SignInResponse | null> {
     try {
       const result = await getRedirectResult(this.auth);
 
@@ -227,7 +227,7 @@ export class SignIn extends TernSecureBase implements SignInResource {
   private async executeAuthMethod(
     authMethod: AuthMethodFunction,
     providerName: string,
-  ): Promise<SignInResponseTree> {
+  ): Promise<SignInResponse> {
     const config = this.getProviderConfig(providerName);
     config.provider.setCustomParameters(config.customParameters);
     try {
@@ -244,15 +244,15 @@ export class SignIn extends TernSecureBase implements SignInResource {
     }
   }
 
-  private async _signInWithRedirect(providerName: string): Promise<SignInResponseTree> {
+  private async _signInWithRedirect(providerName: string): Promise<SignInResponse> {
     return this.executeAuthMethod(signInWithRedirect, providerName);
   }
 
-  private async _signInWithPopUp(providerName: string): Promise<SignInResponseTree> {
+  private async _signInWithPopUp(providerName: string): Promise<SignInResponse> {
     return this.executeAuthMethod(signInWithPopup, providerName);
   }
 
-  public async checkRedirectResult(): Promise<SignInResponseTree | null> {
+  public async checkRedirectResult(): Promise<SignInResponse | null> {
     return this.authRedirectResult();
   }
 }

@@ -4,14 +4,16 @@ export {
     useIdToken,
     useSession,
     useSignIn,
-    signIn
+    signIn,
+    useSignInContext,
+    SignInProvider
     //SignIn,
     //SignOut,
     //SignOutButton,
     //SignUp,
 } from './boundary/components'
 
-export type { TernSecureUser, TernSecureUserData, SignInResponseTree } from '@tern-secure/types'
+export type { TernSecureUser, TernSecureUserData, SignInResponse } from '@tern-secure/types'
 
 export type {
     UserInfo,
