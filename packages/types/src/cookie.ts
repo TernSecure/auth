@@ -5,9 +5,12 @@ export interface CookieStore {
 }
 
 export interface CookieOptions {
-  maxAge?: number;
-  httpOnly?: boolean;
-  secure?: boolean;
-  sameSite?: 'strict' | 'lax' | 'none';
-  path?: string;
+  httpOnly?: boolean | undefined;
+  path?: string | undefined;
+  partitioned?: boolean | undefined;
+  maxAge?: number | undefined;
+  expires?: Date | undefined;
+  priority?: 'low' | 'medium' | 'high' | undefined;
+  sameSite?: 'strict' | 'lax' | 'none' | undefined;
+  secure?: boolean | undefined;
 }

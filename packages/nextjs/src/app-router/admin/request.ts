@@ -15,16 +15,10 @@ import {
 } from './constants';
 import type { TernSecureHandlerOptions } from './types';
 
-const COOKIE_OPTIONS = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: 'strict' as const,
-};
-
 export async function refreshCookieWithIdToken(
   idToken: string,
   cookieStore: NextCookieStore,
-  options?: TernSecureHandlerOptions,
+  config?: TernSecureHandlerOptions,
   referrer?: string,
 ): Promise<void> {
   const backendClient = await ternSecureBackendClient();
@@ -37,9 +31,16 @@ export async function refreshCookieWithIdToken(
       storageBucket: FIREBASE_STORAGE_BUCKET,
       messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
       appId: FIREBASE_APP_ID,
-      tenantId: options?.tenantId || undefined,
+      tenantId: config?.tenantId || undefined,
     },
     apiClient: backendClient,
+  };
+
+  const COOKIE_OPTIONS = {
+    httpOnly: config?.cookies?.httpOnly,
+    secure: config?.cookies?.secure,
+    sameSite: config?.cookies?.sameSite,
+    maxAge: config?.cookies?.maxAge,
   };
 
   const { createCustomIdAndRefreshToken } = getAuth(authOptions);
@@ -61,7 +62,7 @@ export async function refreshCookieWithIdToken(
     ),
   ];
 
-  if (options?.enableCustomToken) {
+  if (config?.enableCustomToken) {
     cookiePromises.push(
       cookieStore.set(constants.Cookies.Custom, customTokens.customToken, COOKIE_OPTIONS),
     );

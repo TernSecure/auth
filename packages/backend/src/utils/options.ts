@@ -1,8 +1,8 @@
-import type {RequestOptions } from "../tokens/types";
+import type { AuthenticateRequestOptions} from "../tokens/types";
 
-export type RuntimeOptions = Omit<RequestOptions, "apiUrl">;
+export type RuntimeOptions = Omit<AuthenticateRequestOptions, "apiUrl">;
 
-export type buildTimeOptions = Partial<Pick<RequestOptions, "apiKey" |"apiUrl" | "apiVersion">>;
+export type buildTimeOptions = Partial<Pick<AuthenticateRequestOptions, "apiKey" | "apiUrl" | "apiVersion">>;
 
 const defaultOptions: buildTimeOptions = {
   apiKey: undefined,

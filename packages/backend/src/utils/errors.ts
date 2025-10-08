@@ -1,3 +1,15 @@
+export const RefreshTokenErrorReason = {
+  NonEligibleNoCookie: 'non-eligible-no-refresh-cookie',
+  NonEligibleNonGet: 'non-eligible-non-get',
+  InvalidSessionToken: 'invalid-session-token',
+  MissingApiClient: 'missing-api-client',
+  MissingIdToken: 'missing-id-token',
+  MissingSessionToken: 'missing-session-token',
+  MissingRefreshToken: 'missing-refresh-token',
+  ExpiredIdTokenDecodeFailed: 'expired-id-token-decode-failed',
+  ExpiredSessionTokenDecodeFailed: 'expired-session-token-decode-failed',
+  FetchError: 'fetch-error',
+} as const;
 
 export type TokenCarrier = 'header' | 'cookie';
 

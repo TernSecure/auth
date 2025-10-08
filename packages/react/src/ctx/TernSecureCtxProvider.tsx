@@ -2,7 +2,7 @@
 
 import { deriveAuthState } from '@tern-secure/shared/derivedAuthState';
 import { type InitialState, type TernSecureResources } from '@tern-secure/types';
-import React, { useEffect, useMemo,useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 import { IsoTernSecureAuth } from '../lib/isoTernSecureAuth';
 import type { IsoTernSecureAuthOptions } from '../types';
@@ -24,7 +24,7 @@ export function TernSecureCtxProvider(props: TernSecureCtxProviderProps) {
 
   const [authState, setAuthState] = useState<TernSecureCtxProviderState>({
     user: instance.user,
-    session: instance.currentSession
+    session: instance.currentSession,
   });
 
   React.useEffect(() => {
@@ -68,8 +68,6 @@ const useInitTernSecureAuth = (options: IsoTernSecureAuthOptions) => {
 
   useEffect(() => {
     void isoTernSecureAuth.on('status', setInstanceStatus);
-    console.warn('[useInitTernSecureAuth] Status changed:', instanceStatus);
-
     return () => isoTernSecureAuth.off('status', setInstanceStatus);
   }, [isoTernSecureAuth]);
 

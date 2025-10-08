@@ -4,9 +4,9 @@ import { ProtectedPageClient } from "./protectedClient";
 export const dynamic = "force-dynamic";
 
 export default async function ProtectedPage() {
-  const { sessionClaims, userId } = await auth();
+  const { sessionClaims, userId, redirectToSignIn } = await auth();
 
-  if (!userId) return null;
+  if (!userId) return redirectToSignIn();
 
   const user: BaseUser = {
     uid: sessionClaims.uid,

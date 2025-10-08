@@ -13,6 +13,8 @@ const authHandlerOptions: TernSecureHandlerOptions = {
   cookies: {
     httpOnly: true,
     sameSite: 'strict',
+    //maxAge: 5 * 60, // five minutes
+    maxAge: 12 * 60 * 60 * 24 // twelve days
   },
   security: {
     allowedReferers: ['https://ternsecure.com'],
