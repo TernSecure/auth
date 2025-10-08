@@ -52,16 +52,18 @@ function parseFirebaseResponse<T>(data: unknown): T {
 }
 
 export function getAuth(options: AuthenticateRequestOptions) {
-  const { apiKey } = options.firebaseConfig || {};
+  const { apiKey } = options;
+  const firebaseApiKey = options.firebaseConfig?.apiKey;
+  const effectiveApiKey = apiKey || firebaseApiKey;
 
   async function refreshExpiredIdToken(
     refreshToken: string,
     opts: CustomForIdAndRefreshTokenOptions,
   ): Promise<AuthResult> {
-    if (!apiKey) {
+    if (!effectiveApiKey) {
       return { data: null, error: new Error(API_KEY_ERROR) };
     }
-    const response = await options.apiClient?.tokens.refreshToken(apiKey, {
+    const response = await options.apiClient?.tokens.refreshToken(effectiveApiKey, {
       refresh_token: refreshToken,
       request_origin: opts.referer,
     });
@@ -88,11 +90,11 @@ export function getAuth(options: AuthenticateRequestOptions) {
     customToken: string,
     opts: CustomForIdAndRefreshTokenOptions,
   ): Promise<IdAndRefreshTokens> {
-    if (!apiKey) {
+    if (!effectiveApiKey) {
       throw new Error('API Key is required to create custom token');
     }
     const response = await options.apiClient?.tokens.exchangeCustomForIdAndRefreshTokens(
-      apiKey,
+      effectiveApiKey,
       {
         token: customToken,
         returnSecureToken: true,

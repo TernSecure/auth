@@ -1,39 +1,34 @@
+export { constants } from './constants';
 
-export { constants } from "./constants";
+export type { TernSecureRequest } from './tokens/ternSecureRequest';
+export { createTernSecureRequest } from './tokens/ternSecureRequest';
 
-export type { TernSecureRequest } from "./tokens/ternSecureRequest";
-export { createTernSecureRequest } from "./tokens/ternSecureRequest";
-
-export type { RequestOptions, AuthenticateRequestOptions } from "./tokens/types";
-
-export type { AuthObject, RequestState, SignedInAuthObject, SignedOutAuthObject } from "./tokens/authstate";
-export { signedIn, signedInAuthObject, signedOutAuthObject, AuthStatus} from './tokens/authstate'
-
-export {
-  createBackendInstanceClient
-} from "./instance/backendInstanceEdge";
-
-export { createFireClient } from "./instance/backendFireInstance";
+export type { AuthenticateRequestOptions, AuthenticateFireRequestOptions } from './tokens/types';
 
 export type {
-  BackendInstance,
-  TernSecureBackendOptions
-} from "./instance/backendInstanceEdge";
+  AuthObject,
+  RequestState,
+  SignedInAuthObject,
+  SignedOutAuthObject,
+} from './tokens/authstate';
+export { signedIn, signedInAuthObject, signedOutAuthObject, AuthStatus } from './tokens/authstate';
 
-export {
-  enableDebugLogging,
-  disableDebugLogging,
-  setLogLevel,
-} from "./utils/enableDebugLogging";
+export { createBackendInstanceClient } from './instance/backendInstanceEdge';
 
-export { LogLevel } from "./utils/logger";
+export { createFireClient } from './instance/backendFireInstance';
+
+export type { BackendInstance, TernSecureBackendOptions } from './instance/backendInstanceEdge';
+
+export { enableDebugLogging, disableDebugLogging, setLogLevel } from './utils/enableDebugLogging';
+
+export { LogLevel } from './utils/logger';
 
 export {
   RedisAdapter,
   PostgresAdapter,
   createAdapter,
   validateCheckRevokedOptions,
-} from "./adapters";
+} from './adapters';
 
 export type {
   DisabledUserAdapter,
@@ -44,4 +39,4 @@ export type {
   AdapterType,
   AdapterConfiguration,
   CheckRevokedOptions,
-} from "./adapters";
+} from './adapters';

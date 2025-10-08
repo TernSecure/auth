@@ -12,24 +12,27 @@ export interface CorsOptions {
 }
 
 export interface SessionCookieConfig {
-  domain?: string;
   path?: string;
   httpOnly?: boolean;
   sameSite?: 'strict' | 'lax' | 'none';
+  partitioned?: boolean;
   maxAge?: number; // Can be set from 5 minutes (300) to 2 weeks (1209600)
+  priority?: 'low' | 'medium' | 'high';
 }
 
 export interface TokenCookieConfig {
-  domain?: string;
   path: string;
   httpOnly: boolean;
   sameSite: 'strict' | 'lax' | 'none';
+  partitioned?: boolean;
   maxAge: number;
+  expires?: Date;
+  priority?: 'low' | 'medium' | 'high';
 }
 
 export interface CookieOpts extends CookieOptions {
-  namePrefix?: string;
   domain?: string;
+  namePrefix?: string;
   session?: SessionCookieConfig;
 }
 

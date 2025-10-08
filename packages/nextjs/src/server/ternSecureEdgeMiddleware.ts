@@ -1,18 +1,11 @@
 import type {
+  AuthenticateRequestOptions,
   AuthObject,
-  RequestOptions,
   TernSecureRequest,
 } from '@tern-secure/backend';
-import {
-  constants,
-  createTernSecureRequest,
-  enableDebugLogging,
-} from '@tern-secure/backend';
-import type {
-  TernSecureConfig,
-} from '@tern-secure/types';
+import { constants, createTernSecureRequest, enableDebugLogging } from '@tern-secure/backend';
 import { notFound as nextjsNotFound } from 'next/navigation';
-import type { NextMiddleware,NextRequest } from 'next/server';
+import type { NextMiddleware, NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { isRedirect, setHeader } from '../utils/response';
@@ -28,7 +21,7 @@ import {
   redirectToSignInError,
   redirectToSignUpError,
 } from './nextErrors';
-import { type AuthProtect,createProtect } from './protect';
+import { type AuthProtect, createProtect } from './protect';
 import { createRedirect, type RedirectFun } from './redirect';
 import { ternSecureBackendClient } from './ternsecureClient';
 import type {
@@ -55,9 +48,8 @@ type MiddlewareHandler = (
   event: NextMiddlewareEvtParam,
 ) => NextMiddlewareReturn;
 
-export interface MiddlewareOptions extends RequestOptions {
+export interface MiddlewareOptions extends AuthenticateRequestOptions {
   debug?: boolean;
-  firebaseConfig?: TernSecureConfig;
 }
 type MiddlewareOptionsCallback = (
   req: NextRequest,
@@ -112,14 +104,7 @@ export const ternSecureMiddleware = ((
         enableDebugLogging();
       }
 
-      //const { authObject, headers: authHeaders } =
-      //  await authenticateMiddlewareRequest(request, checkRevoked, logger);
-
-      //const reqBackend = await createBackendInstanceEdge(request, checkRevoked);
       const reqBackendClient = await ternSecureBackendClient();
-      //const requestState = reqBackend.requestState;
-      //const authObject = requestState.auth();
-      //const authHeaders = requestState.headers;
 
       const ternSecureRequest = createTernSecureRequest(request);
 
@@ -171,11 +156,7 @@ export const ternSecureMiddleware = ((
       return handlerResult;
     };
 
-
     const nextMiddleware: NextMiddleware = async (request, event) => {
-      if(isFirebaseCookieRequest(request)) {
-        return handleFirebaseAuthRequest(request);
-      }
       return withAuthNextMiddleware(request, event);
     };
 
@@ -201,24 +182,6 @@ const parseHandlerAndOptions = (args: unknown[]) => {
     (args.length === 2 ? args[1] : typeof args[0] === 'function' ? {} : args[0]) || {},
   ] as [MiddlewareHandler | undefined, MiddlewareOptions | MiddlewareOptionsCallback];
 };
-
-const isFirebaseRequest = (request: NextMiddlewareRequestParam) =>
-  request.nextUrl.pathname.startsWith('/__/');
-
-const rewriteFirebaseRequest = (options: MiddlewareOptions, request: NextMiddlewareRequestParam) => {
-  const newUrl = new URL(request.url);
-  newUrl.host = options.firebaseConfig?.authDomain || '';
-  newUrl.port = '';
-  return NextResponse.rewrite(newUrl);
-}
-
-const finalTarget = (request: NextMiddlewareRequestParam) => {
-  const finalTargetUrl = request.nextUrl.searchParams.get('finalTarget');
-  return finalTargetUrl ? new URL(finalTargetUrl, request.url) : undefined;
-};
-
-const isFirebaseCookieRequest = (request: NextMiddlewareRequestParam) =>
-  request.nextUrl.pathname === '/__cookies__';
 
 /**
  * Create middleware redirect functions
@@ -305,109 +268,4 @@ const handleControlError = (
   }
 
   throw error;
-};
-
-const handleFirebaseAuthRequest = async (
-  request: NextRequest,
-): Promise<NextResponse | null> => {
-
-  console.log('Checking for __cookies__ path');
-
-  const isDevMode = process.env.NODE_ENV === 'development';
-  const ID_TOKEN_COOKIE_NAME = isDevMode ? `__dev_FIREBASE_[DEFAULT]` : `__HOST-FIREBASE_[DEFAULT]`;
-  const REFRESH_TOKEN_COOKIE_NAME = isDevMode
-    ? '__dev_FIREBASEID_[DEFAULT]'
-    : `__HOST-FIREBASEID_[DEFAULT]`;
-  const ID_TOKEN_COOKIE = {
-    path: '/',
-    secure: !isDevMode,
-    sameSite: 'strict',
-    partitioned: true,
-    name: ID_TOKEN_COOKIE_NAME,
-    maxAge: 34560000,
-    priority: 'high',
-  } as const;
-  const REFRESH_TOKEN_COOKIE = {
-    ...ID_TOKEN_COOKIE,
-    httpOnly: true,
-    name: REFRESH_TOKEN_COOKIE_NAME,
-  } as const;
-
-  if (request.nextUrl.pathname === '/__cookies__') {
-    console.log('Handling /__cookies__ request');
-    const method = request.method;
-    if (method === 'DELETE') {
-      const response = new NextResponse('');
-      response.cookies.delete({ ...ID_TOKEN_COOKIE, maxAge: 0 });
-      response.cookies.delete({ ...REFRESH_TOKEN_COOKIE, maxAge: 0 });
-      return response;
-    }
-
-    const headers: Record<string, string> = {};
-        const headerNames = [
-      'content-type',
-      'X-Firebase-Client',
-      'X-Firebase-gmpid',
-      'X-Firebase-AppCheck',
-      'X-Client-Version',
-    ];
-
-    headerNames.forEach(headerName => {
-      const headerValue = request.headers.get(headerName);
-      if (headerValue) {
-        headers[headerName] = headerValue;
-      }
-    });
-
-    const finalTargetParam = request.nextUrl.searchParams.get('finalTarget');
-
-    const url = new URL(finalTargetParam || '');
-    let body: ReadableStream<any> | string | null = request.body;
-
-    const isTokenRequest = !!url.pathname.match(/^(\/securetoken\.googleapis\.com)?\/v1\/token/);
-    const isSignInRequest = !!url.pathname.match(
-      /^(\/identitytoolkit\.googleapis\.com)?\/v1\/accounts:signInWith/,
-    );
-
-    if (!isTokenRequest && !isSignInRequest)
-      throw new Error('Could not determine the request type to proxy');
-
-    if (isTokenRequest) {
-      body = await request.text();
-      const bodyParams = new URLSearchParams(body.trim());
-      if (bodyParams.has('refresh_token')) {
-        const refreshToken = request.cookies.get(REFRESH_TOKEN_COOKIE.name)?.value;
-        if (refreshToken) {
-          bodyParams.set('refresh_token', refreshToken);
-          body = bodyParams.toString();
-        }
-      }
-    }
-
-    const response = await fetch(url, { method, body, headers });
-    const json = await response.json();
-
-    if (!response.ok) {
-      return NextResponse.json(json, { status: response.status, statusText: response.statusText });
-    }
-
-    let refreshToken, idToken, maxAge;
-    if (isSignInRequest) {
-      refreshToken = json.refreshToken;
-      idToken = json.idToken;
-      maxAge = json.expiresIn;
-      json.refreshToken = 'REDACTED';
-    } else {
-      refreshToken = json.refresh_token;
-      idToken = json.id_token;
-      maxAge = json.expires_in;
-      json.refresh_token = 'REDACTED';
-    }
-
-    const nextResponse = NextResponse.json(json);
-    if (idToken) nextResponse.cookies.set({ ...ID_TOKEN_COOKIE, maxAge, value: idToken });
-    if (refreshToken) nextResponse.cookies.set({ ...REFRESH_TOKEN_COOKIE, value: refreshToken });
-    return nextResponse;
-  }
-  return null;
 };

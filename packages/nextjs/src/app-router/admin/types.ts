@@ -20,14 +20,14 @@ export const DEFAULT_CORS_OPTIONS: CorsOptions = {
 };
 
 export const DEFAULT_COOKIE_OPTIONS: CookieOptions = {
-  //namePrefix: '__session',
-  path: '/',
   httpOnly: true,
-  sameSite: 'lax',
-  //session: {
-  //  maxAge: 3600 * 24 * 7, // Default: 1 week (consumer can set 5 mins to 2 weeks)
-  //},
+  path: '/',
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 12 * 60 * 60 * 24, // twelve days
+  priority: 'high',
 };
+
 
 export const FIXED_TOKEN_CONFIGS = {
   id: {
@@ -188,7 +188,6 @@ export class CookieUtils {
     const defaultSession = DEFAULT_COOKIE_OPTIONS.session || {};
 
     return {
-      domain: sessionConfig.domain ?? cookieOptions.domain,
       path: sessionConfig.path ?? cookieOptions.path ?? '/',
       httpOnly: sessionConfig.httpOnly ?? cookieOptions.httpOnly ?? true,
       sameSite: sessionConfig.sameSite ?? cookieOptions.sameSite ?? 'lax',
@@ -197,13 +196,11 @@ export class CookieUtils {
   }
 
   static getFixedTokenConfig(
-    cookieOptions: CookieOptions,
     tokenType: Exclude<suffix, 'session'>,
   ): TokenCookieConfig {
     const fixedConfig = FIXED_TOKEN_CONFIGS[tokenType];
 
     return {
-      domain: cookieOptions.domain,
       path: fixedConfig.path,
       httpOnly: fixedConfig.httpOnly,
       sameSite: fixedConfig.sameSite,

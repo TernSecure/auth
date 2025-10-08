@@ -11,7 +11,7 @@ import type { SessionSubEndpoint, TernSecureHandlerOptions } from './types';
 
 export async function sessionEndpointHandler(
   context: RequestProcessorContext,
-  options: TernSecureHandlerOptions,
+  config: TernSecureHandlerOptions,
 ): Promise<Response> {
   const { subEndpoint, method, referrer } = context;
 
@@ -29,7 +29,7 @@ export async function sessionEndpointHandler(
     return createApiErrorResponse('SUB_ENDPOINT_REQUIRED', 'Session sub-endpoint required', 400);
   }
 
-  const sessionsConfig = options.endpoints?.sessions;
+  const sessionsConfig = config.endpoints?.sessions;
   const subEndpointConfig = sessionsConfig?.subEndpoints?.[subEndpoint];
 
   validateSubEndpoint(subEndpoint, subEndpointConfig);
@@ -80,7 +80,7 @@ export async function sessionEndpointHandler(
       idToken: string,
     ): Promise<Response> => {
       try {
-        await refreshCookieWithIdToken(idToken, cookieStore, options, referrer);
+        await refreshCookieWithIdToken(idToken, cookieStore, config, referrer);
         return SessionResponseHelper.createSessionCreationResponse({
           success: true,
           message: 'Session created successfully',
@@ -100,7 +100,7 @@ export async function sessionEndpointHandler(
           return createApiErrorResponse('INVALID_SESSION', 'Invalid session for refresh', 401);
         }
 
-        const refreshRes = await refreshCookieWithIdToken(idToken, cookieStore, options);
+        const refreshRes = await refreshCookieWithIdToken(idToken, cookieStore, config);
         return SessionResponseHelper.createRefreshResponse(refreshRes);
       } catch (error) {
         return createApiErrorResponse('REFRESH_FAILED', 'Session refresh failed', 500);

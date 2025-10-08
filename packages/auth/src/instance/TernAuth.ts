@@ -31,14 +31,12 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
   connectAuthEmulator,
-  getAuth,
   getRedirectResult,
+  initializeAuth,
   inMemoryPersistence,
   onAuthStateChanged,
   onIdTokenChanged,
-  setPersistence,
 } from 'firebase/auth';
-import { browserCookiePersistence } from 'firebase/auth/web-extension';
 import { getInstallations } from 'firebase/installations';
 
 import { AuthCookieManager, SignIn, SignUp, TernSecureBase } from '../resources/internal';
@@ -222,11 +220,9 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     this.firebaseClientApp = getApps().length === 0 ? initializeApp(config, appName) : getApps()[0];
 
     const persistence = this.#setPersistence();
-    ///const auth = initializeAuth(this.firebaseClientApp, {
-    //  persistence: browserCookiePersistence,
-    //});
-
-    const auth = getAuth(this.firebaseClientApp);
+    const auth = initializeAuth(this.firebaseClientApp, {
+      persistence,
+    });
 
     this.auth = auth;
 
@@ -237,10 +233,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     this.#configureEmulator();
 
     getInstallations(this.firebaseClientApp);
-
-    setPersistence(this.auth, browserCookiePersistence).catch(error => {
-      console.error('[TernSecureAuth] Error setting persistence:', error);
-    });
   }
 
   public signOut: SignOut = async (options?: SignOutOptions) => {
@@ -563,6 +555,8 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     const persistenceType = this.#options.persistence || 'none';
 
     switch (persistenceType) {
+      case 'browserCookie':
+        return inMemoryPersistence;
       case 'session':
         return browserSessionPersistence;
       case 'local':

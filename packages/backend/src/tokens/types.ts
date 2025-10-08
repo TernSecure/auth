@@ -22,18 +22,6 @@ export type MiddlewareCookiesOptions = {
   session_cookie: SessionCookieFromMiddleware;
 };
 
-export type RequestOptions = {
-  tenantId?: string;
-  signInUrl?: string;
-  signUpUrl?: string;
-  checkRevoked?: CheckRevokedOptions;
-  cookies?: MiddlewareCookiesOptions;
-  apiClient?: ApiClient;
-  apiKey?: string;
-  apiUrl?: string;
-  apiVersion?: string;
-  firebaseConfig?: TernSecureConfig
-} & VerifyTokenVOptions;
 
 export type AuthenticateFireRequestOptions = {
   signInUrl?: string;
@@ -51,7 +39,10 @@ export type AuthenticateRequestOptions = {
   signUpUrl?: string;
   checkRevoked?: CheckRevokedOptions;
   apiClient?: ApiClient;
+  apiKey?: string;
   apiUrl?: string;
   apiVersion?: string;
   firebaseConfig?: TernSecureConfig
 } & VerifyTokenVOptions;
+
+
