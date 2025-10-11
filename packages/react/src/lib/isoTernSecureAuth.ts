@@ -2,6 +2,7 @@ import { TernSecureAuth as TernSecureAuthImpl } from '@tern-secure/auth'
 import { createTernAuthEventBus, ternEvents } from '@tern-secure/shared/ternStatusEvent';
 import { handleValueOrFn } from '@tern-secure/shared/utils';
 import type {
+  CreateActiveSessionParams,
   DomainOrProxyUrl,
   ListenerCallback,
   SignedInSession,
@@ -243,6 +244,14 @@ export class IsoTernSecureAuth implements TernSecureAuth {
       return unsubscribe;
     }
   };
+
+  createActiveSession = (params: CreateActiveSessionParams): Promise<void> => {
+    if (this.ternauth) {
+      return this.ternauth.createActiveSession(params);
+    } else {
+      return Promise.reject(new Error('TernSecureAuth not initialized'));
+    }
+  }
 
   signOut = async (options?: SignOutOptions): Promise<void> => {
     if (!this.ternauth) {

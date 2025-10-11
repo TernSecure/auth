@@ -3,7 +3,7 @@ import type {
   ResendEmailVerification,
   SignInFormValues,
   SignInResource,
-  SignInResponse,
+  SignInResponse as SignInResponseFromTypes,
   SignInStatus,
   TernSecureUser,
 } from '@tern-secure/types';
@@ -19,6 +19,8 @@ import {
 } from 'firebase/auth';
 
 import { TernSecureBase } from './Base';
+
+type SignInResponse = SignInResponseFromTypes;
 
 interface ProviderConfig {
   provider: GoogleAuthProvider | OAuthProvider;
@@ -69,24 +71,25 @@ export class SignIn extends TernSecureBase implements SignInResource {
   withEmailAndPassword = async (params: SignInFormValues): Promise<SignInResponse> => {
     try {
       const { email, password } = params;
-      const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
-
-      await this.signInWithCredential(userCredential);
-
-      const { user } = userCredential;
+      const { user, providerId, operationType } = await signInWithEmailAndPassword(
+        this.auth,
+        email,
+        password,
+      );
       return {
-        success: true,
-        message: 'Authentication successful',
+        status: 'success',
         user,
+        providerId,
+        operationType,
+        message: 'Authentication successful',
         error: !user.emailVerified ? 'REQUIRES_VERIFICATION' : 'AUTHENTICATED',
       };
     } catch (error) {
       const authError = handleFirebaseAuthError(error);
       return {
-        success: false,
+        status: 'error',
         message: authError.message,
         error: authError.code,
-        user: null,
       };
     }
   };
@@ -113,7 +116,7 @@ export class SignIn extends TernSecureBase implements SignInResource {
         const redirectResult = await this.authRedirectResult();
 
         if (redirectResult) {
-          if (redirectResult.success) {
+          if (redirectResult.status === 'success') {
             console.log('Redirect after sign in');
           }
           return redirectResult;
@@ -124,16 +127,15 @@ export class SignIn extends TernSecureBase implements SignInResource {
       } else {
         await this._signInWithPopUp(provider);
         return {
-          success: true,
+          status: 'success',
           message: 'Sign in successful',
         };
       }
     } catch (error: any) {
       return {
-        success: false,
+        status: 'error',
         message: error.message || `Sign in with ${provider} failed`,
         error,
-        user: null,
       };
     }
   };
@@ -156,8 +158,6 @@ export class SignIn extends TernSecureBase implements SignInResource {
 
     if (user.emailVerified) {
       return {
-        success: true,
-        message: 'Email is already verified. You can sign in.',
         isVerified: true,
       };
     }
@@ -169,8 +169,6 @@ export class SignIn extends TernSecureBase implements SignInResource {
 
     await sendEmailVerification(user, actionCodeSettings);
     return {
-      success: true,
-      message: 'Verification email sent. Please check your inbox.',
       isVerified: false,
     };
   };
@@ -206,20 +204,21 @@ export class SignIn extends TernSecureBase implements SignInResource {
       const result = await getRedirectResult(this.auth);
 
       if (result) {
-        const user = result.user;
+        const { user, providerId, operationType } = result;
         return {
-          success: true,
+          status: 'success',
           user,
+          providerId,
+          operationType,
         };
       }
       return null;
     } catch (error) {
       const authError = handleFirebaseAuthError(error);
       return {
-        success: false,
+        status: 'error',
         message: authError.message,
         error: authError.code,
-        user: null,
       };
     }
   }
@@ -232,14 +231,13 @@ export class SignIn extends TernSecureBase implements SignInResource {
     config.provider.setCustomParameters(config.customParameters);
     try {
       await authMethod(this.auth, config.provider);
-      return { success: true, message: 'Authentication initiated' };
+      return { status: 'success', message: 'Authentication initiated' };
     } catch (error) {
       const authError = handleFirebaseAuthError(error);
       return {
-        success: false,
+        status: 'error',
         message: authError.message,
         error: authError.code,
-        user: null,
       };
     }
   }

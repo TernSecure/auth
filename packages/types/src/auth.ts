@@ -99,6 +99,13 @@ export interface TernSecureResources {
   session?: SignedInSession | null;
 }
 
+export type CreateActiveSessionParams = {
+  session?: TernSecureUser | null;
+  redirectUrl?: string;
+}
+
+export type CreateActiveSession = (params: CreateActiveSessionParams) => Promise<void>;
+
 export type TernSecureAuthOptions = {
   apiUrl?: string;
   sdkMetadata?: TernAuthSDK;
@@ -228,9 +235,15 @@ export interface TernSecureAuth {
   /** Remove event listener */
   off: OffEventListener;
 
+  /** Subscribe to all auth state changes */
   addListener: (callback: ListenerCallback) => UnsubscribeCallback;
+
   /** Get redirect result from OAuth flows */
   getRedirectResult: () => Promise<any>;
+
+  /** Create an active session */
+  createActiveSession: CreateActiveSession;
+
   /** Navigate to SignIn page */
   redirectToSignIn(options?: SignInRedirectOptions): Promise<unknown>;
   /** Navigate to SignUp page */
@@ -309,3 +322,4 @@ export type SignUpProps = {
 
 export type SignInRedirectOptions = RedirectOptions;
 export type SignUpRedirectOptions = RedirectOptions;
+

@@ -7,14 +7,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useSignIn, useSignInContext } from '@tern-secure/nextjs';
+import { useSignIn, useSignInContext, useTernSecure } from '@tern-secure/nextjs';
 import type { SignInResponse, TernSecureUser } from '@tern-secure/nextjs';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { signIn, isLoaded } = useSignIn();
-  const { handleSignInSuccess } = useSignInContext();
+  const { handleSignInSuccess, redirectAfterSignIn } = useSignInContext();
+  const { createActiveSession } = useTernSecure();
   const [formError, setFormError] = useState<SignInResponse | null>(null);
 
   if (!isLoaded) {
@@ -27,23 +28,17 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     }
   };
 
-
   const signInPasswordField = async () => {
-    try {
-      const res = await signIn.withEmailAndPassword({ email, password });
-      if (!res.success) {
-        setFormError({
-          success: false,
-          message: res.message,
-          user: null,
-          error: res.error,
-        });
-        return;
-      }
-
-      handleSuccess(res.user);
-    } catch (error) {
-      console.error('Sign-in error:', error);
+    const res = await signIn.withEmailAndPassword({ email, password });
+    if (res.status === 'error') {
+      setFormError({
+        status: 'error',
+        message: res.message,
+        error: res.error,
+      });
+    }
+    if (res.status === 'success') {
+      createActiveSession({ session: res.user });
     }
   };
 

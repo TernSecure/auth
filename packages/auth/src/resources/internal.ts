@@ -1,4 +1,5 @@
 export type { TernSecureAuth } from '../instance/TernAuth';
+export * from './Session';
 export * from './SignUp';
 export * from './SignIn';
 export * from './Base';

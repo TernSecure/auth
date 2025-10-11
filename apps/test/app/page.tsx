@@ -12,6 +12,8 @@ export default function Home() {
     return <div>Loading...</div>;
   }
 
+  console.log('Home page user:', user);
+
   if (!user) return null;
 
   const redirectToMoPage = () => {

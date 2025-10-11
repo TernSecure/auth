@@ -1,19 +1,17 @@
-import { 
-  type CookieAttributes,
-  cookieHandler} from '@tern-secure/shared/cookie';
+import { type CookieAttributes, cookieHandler } from '@tern-secure/shared/cookie';
 
 const CSRF_COOKIE_NAME = '_session_terncf';
 
 type CSRFToken = {
   token: string | null;
-}
+};
 
-type CookieOptions = CookieAttributes
+type CookieOptions = CookieAttributes;
 
 const CSRF_COOKIE_OPTIONS: CookieOptions = {
   secure: true,
   sameSite: 'strict',
-  expires: 1 / 24 //1 hour
+  expires: 1 / 24, //1 hour
 };
 
 /**
@@ -26,11 +24,10 @@ export class AuthCookieManager {
     this.ensureCSRFToken();
   }
 
-  
   private generateCSRFToken(): string {
     const array = new Uint8Array(32);
     crypto.getRandomValues(array);
-    return Array.from(array, (byte) => byte.toString(16).padStart(2, '0')).join('');
+    return Array.from(array, byte => byte.toString(16).padStart(2, '0')).join('');
   }
 
   private ensureCSRFToken(): string {
@@ -41,11 +38,10 @@ export class AuthCookieManager {
     }
     return ctoken;
   }
-  
 
   /**
    * Set CSRFcookie
-  */
+   */
 
   setCSRFToken(token: CSRFToken): void {
     try {
@@ -57,7 +53,6 @@ export class AuthCookieManager {
       throw new Error('Unable to store CSRF token');
     }
   }
-  
 
   /**
    * Get CSRF token from cookies
@@ -70,7 +65,6 @@ export class AuthCookieManager {
       return undefined;
     }
   }
-
 
   /**
    * Clear all authentication cookies

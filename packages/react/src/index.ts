@@ -4,7 +4,7 @@ export { useSession } from './hooks/useSession';
 export { useSignIn, signIn } from './hooks/useSignIn';
 export { TernSecureCtxProvider } from './ctx/TernSecureCtxProvider';
 export { TernSecureProvider } from './ctx/TernSecureProvider';
-export { useSignInContext, SignInProvider } from './ctx/SignInCtx';
+export { useSignInContext, SignInProvider, useTernSecure } from './ctx/SignInCtx';
 
 export {
   isAuthRoute,

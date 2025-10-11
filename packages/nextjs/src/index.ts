@@ -6,6 +6,7 @@ export {
     useSignIn,
     signIn,
     useSignInContext,
+    useTernSecure,
     SignInProvider
     //SignIn,
     //SignOut,
