@@ -2,6 +2,7 @@ export {
   ternSecureMiddleware,
 } from "./ternSecureEdgeMiddleware";
 export { createRouteMatcher } from "./routeMatcher";
+export { ternSecureBackendClient } from "./ternsecureClient";
 export {
   auth
 } from "../app-router/server/auth";

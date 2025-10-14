@@ -1,4 +1,4 @@
-
+import type { ProviderUserInfo } from "@tern-secure/types";
 
 export const ObjectType = {
   Client: 'client',
@@ -55,4 +55,23 @@ export interface IdAndRefreshTokenJSON {
   object: typeof ObjectType.IdAndRefreshTokens;
   idToken: string;
   refreshToken: string;
+}
+
+export interface UserJson {
+  object: typeof ObjectType.User;
+  localId: string;
+  email: string;
+  emailVerified: boolean;
+  displayName: string;
+  providerUserInfo: ProviderUserInfo[];
+  photoUrl: string;
+  passwordHash: string;
+  passwordUpdatedAt: number;
+  validSince: string;
+  disabled: boolean;
+  lastLoginAt: string;
+  createdAt: string;
+  phoneNumber?: string;
+  customAuth: boolean;
+  tenantId?: string;
 }

@@ -43,7 +43,7 @@ export const useAuth = (): UseAuthReturn => {
   return {
     userId: ctx.userId,
     email: ctx.email,
-    token: ctx.token,
+    //token: ctx.token,
     user: ctx.user,
     isLoaded,
     isValid,

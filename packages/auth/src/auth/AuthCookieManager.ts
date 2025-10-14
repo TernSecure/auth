@@ -1,4 +1,8 @@
-import { type CookieAttributes, cookieHandler } from '@tern-secure/shared/cookie';
+import type { CookieAttributes } from '@tern-secure/shared/cookie';
+import { cookieHandler } from '@tern-secure/shared/cookie';
+
+import type { SessionCookieHandler } from './cookies/session';
+import { createIdTokenCookie, createSessionCookie } from './cookies/session';
 
 const CSRF_COOKIE_NAME = '_session_terncf';
 
@@ -19,9 +23,13 @@ const CSRF_COOKIE_OPTIONS: CookieOptions = {
  */
 export class AuthCookieManager {
   private readonly csrfCookieHandler = cookieHandler(CSRF_COOKIE_NAME);
+  private sessionCookie: SessionCookieHandler;
+  private idTokenCookie: SessionCookieHandler;
 
   constructor() {
     this.ensureCSRFToken();
+    this.sessionCookie = createSessionCookie();
+    this.idTokenCookie = createIdTokenCookie();
   }
 
   private generateCSRFToken(): string {
@@ -64,6 +72,14 @@ export class AuthCookieManager {
       console.error('Failed to get CSRF token:', error);
       return undefined;
     }
+  }
+
+  public getSessionCookie() {
+    return this.sessionCookie.get();
+  }
+
+  public getIdTokenCookie() {
+    return this.idTokenCookie.get();
   }
 
   /**

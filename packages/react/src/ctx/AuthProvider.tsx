@@ -3,7 +3,6 @@ import type { TernSecureUser } from "@tern-secure/types";
 
 export type AuthProviderCtxValue = {
   userId: string | null | undefined;
-  token: string | null;
   email: string | null;
   user?: TernSecureUser | null;
 };

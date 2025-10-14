@@ -1,4 +1,10 @@
-import type { IdTokenResult, SessionResource, SessionStatus, TernSecureUser } from '@tern-secure/types';
+import type {
+  IdTokenResult,
+  SessionJson,
+  SessionResource,
+  SessionStatus,
+  TernSecureUser,
+} from '@tern-secure/types';
 
 import { eventBus, events } from '../instance/events';
 import { TernSecureBase } from './Base';
@@ -25,11 +31,9 @@ export class Session extends TernSecureBase implements SessionResource {
   signInSecondFactor!: string | null;
   user?: TernSecureUser;
 
-  constructor(sessionData?: Partial<SessionResource>) {
+  constructor(sessionData: Partial<SessionResource>) {
     super();
-    if (sessionData) {
-      this.initializeFromSessionData(sessionData);
-    }
+    this.initializeFromSessionData(sessionData);
   }
 
   /**
@@ -47,12 +51,11 @@ export class Session extends TernSecureBase implements SessionResource {
     this.user = sessionData.user;
   }
 
-
   /**
    * Create custom token from current session for server-side sync
    * This calls the backend API to create a custom token from the current ID token
    */
-  private createCustomTokenFromIdToken = (idToken: string, csrfToken: string) => {
+  private createSession = (idToken: string, csrfToken: string) => {
     return this._post({
       path: this.pathRoot,
       body: {
@@ -62,49 +65,29 @@ export class Session extends TernSecureBase implements SessionResource {
     });
   };
 
+
   /**
-   * Create session from user after successful authentication
-   * This is called from createActiveSession in TernAuth.ts
+   * FIXED: Now properly returns the custom token string instead of the full API response
+   * This method correctly extracts the token from the API response structure
    */
-  static async fromUser(user: TernSecureUser, csrfToken: string): Promise<Session> {
-    const session = new Session();
+  getIdAndRefreshToken = async (idToken: string, csrfToken: string): Promise<void> => {
+    await this.createSession(idToken, csrfToken);
+  };
 
-    try {
-      // Get ID token result from the user
-      const idTokenResult = await user.getIdTokenResult();
-
-      // Initialize session with user data
-      session.status = 'active';
-      session.token = idTokenResult.token;
-      session.claims = idTokenResult.claims;
-      session.authTime = idTokenResult.authTime;
-      session.expirationTime = idTokenResult.expirationTime;
-      session.issuedAtTime = idTokenResult.issuedAtTime;
-      session.signInProvider = idTokenResult.signInProvider;
-      session.signInSecondFactor = idTokenResult.signInSecondFactor;
-      session.user = user;
-
-      // Create custom token for server-side sync
-      const customToken = await session.createCustomTokenFromIdToken(
-        idTokenResult.token,
-        csrfToken,
-      );
-      if (customToken) {
-        eventBus.emit(events.SessionChanged, null);
-      }
-
-      return session;
-    } catch (error) {
-      console.error('[Session] Error creating session from user:', error);
-      session.status = 'expired';
-      throw error;
-    }
-  }
+  /**
+   * NEW: create method that calls API to create session
+   * API handles everything, no return value needed
+   * This method works with the existing sessionData passed to constructor
+   */
+  create = async (csrfToken: string): Promise<void> => {
+    await this.createSession(this.token, csrfToken);
+    eventBus.emit(events.SessionChanged, null);
+  };
 
   /**
    * Convert session to plain object for serialization
    */
-  toJSON(): SessionResource {
+  toJSON(): SessionJson {
     return {
       status: this.status,
       token: this.token,

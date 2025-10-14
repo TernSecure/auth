@@ -1,5 +1,5 @@
 import { createCustomToken } from '../jwt/customJwt';
-import type { AuthenticateRequestOptions } from '../tokens/types';
+import type { AuthenticateRequestOptions, TernSecureUserData } from '../tokens/types';
 import { verifyToken } from '../tokens/verify';
 
 export interface IdAndRefreshTokens {
@@ -55,6 +55,23 @@ export function getAuth(options: AuthenticateRequestOptions) {
   const { apiKey } = options;
   const firebaseApiKey = options.firebaseConfig?.apiKey;
   const effectiveApiKey = apiKey || firebaseApiKey;
+
+  async function getUserData(idToken?: string, localId?: string): Promise<TernSecureUserData> {
+    if (!effectiveApiKey) {
+      throw new Error(API_KEY_ERROR);
+    }
+    const response = await options.apiClient?.userData.getUserData(effectiveApiKey, {
+      idToken,
+      localId,
+    });
+
+    if (!response?.data) {
+      throw new Error(NO_DATA_ERROR);
+    }
+
+    const parsedData = parseFirebaseResponse<TernSecureUserData>(response.data);
+    return parsedData;
+  }
 
   async function refreshExpiredIdToken(
     refreshToken: string,
@@ -142,6 +159,7 @@ export function getAuth(options: AuthenticateRequestOptions) {
   }
 
   return {
+    getUserData,
     customForIdAndRefreshToken,
     createCustomIdAndRefreshToken,
     refreshExpiredIdToken,

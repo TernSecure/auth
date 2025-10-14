@@ -8,8 +8,6 @@ export default function Dashboard() {
  const router = useRouter();
  const { user } = useAuth();
  
- console.log('Dashboard user:', user);
- 
  if (!user) return null;
  
  const redirectToHome = () => {

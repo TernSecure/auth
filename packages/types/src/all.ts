@@ -91,11 +91,28 @@ export interface TernSecureUser extends UserInfo {
   toJSON(): object;
 }
 
-export type TernSecureUserData = {
-  uid: string;
-  email: string | null;
-  emailVerified?: boolean;
-  displayName?: string | null;
+export interface ProviderUserInfo {
+  rawId: string;
+  displayName?: string;
+  email?: string;
+  photoUrl?: string;
+  phoneNumber?: string;
+  providerId: string;
+  federatedId?: string;
+}
+
+export interface TernSecureUserData {
+  localId: string;
+  email: string;
+  emailVerified: boolean;
+  displayName: string;
+  providerUserInfo: ProviderUserInfo[];
+  photoUrl: string;
+  validSince: string;
+  disabled: boolean;
+  lastLoginAt: string;
+  createdAt: string;
+  customAuth: boolean;
 };
 
 export type UserCredential = {

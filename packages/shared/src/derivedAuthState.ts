@@ -29,13 +29,13 @@ const fromInitialState = (initialState: InitialState) => {
 
 const fromClientSideState = (authState: TernSecureResources) => {
   const userId: string | null | undefined = authState.user ? authState.user.uid : authState.user;
-  const token = authState.user ? authState.user.getIdToken() : null;
+  //const token = authState.user ? authState.user.getIdToken() : null;
   const email = authState.user ? authState.user.email : null;
   const user = authState.user;
 
   return {
     userId,
-    token,
+    //token,
     email,
     user
   };

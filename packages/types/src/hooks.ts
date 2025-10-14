@@ -8,7 +8,7 @@ export type UseAuthReturn = {
     isValid: boolean
     isVerified: boolean
     isAuthenticated: boolean
-    token: any | null
+    //token: any | null
     email: string | null
     status: "loading" | "authenticated" | "unauthenticated" | "unverified"
     user?: TernSecureUser | null

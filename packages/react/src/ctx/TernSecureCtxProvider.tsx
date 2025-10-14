@@ -32,17 +32,16 @@ export function TernSecureCtxProvider(props: TernSecureCtxProviderProps) {
   }, []);
 
   const derivedState = deriveAuthState(authState, initialState);
-  const { token, email, user, userId } = derivedState;
+  const { email, user, userId } = derivedState;
 
   const authCtx = useMemo(() => {
     const value = {
       userId: userId,
-      token: token,
       email: email,
       user: user,
     };
     return { value };
-  }, [userId, token, email, user]);
+  }, [userId, email, user]);
 
   const ternAuthCtx = useMemo(
     () => ({

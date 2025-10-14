@@ -52,4 +52,6 @@ export interface SessionResult {
 export interface SessionResource extends IdTokenResult {
   status: SessionStatus;
   user?: TernSecureUser;
+  create: (csrfToken: string) => Promise<void>;
+  getIdAndRefreshToken: (idToken: string, csrfToken: string) => Promise<void>;
 }
