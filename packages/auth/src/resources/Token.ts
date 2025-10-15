@@ -1,3 +1,5 @@
 import { TernSecureBase } from './Base';
 
-export class Token extends TernSecureBase {}
+export class Token extends TernSecureBase {
+    pathroot = 'tokens';
+}

@@ -8,7 +8,7 @@ export default function MoPage() {
   const [isUserDataExpanded, setIsUserDataExpanded] = useState(false);
   const [isTokenDataExpanded, setIsTokenDataExpanded] = useState(false);
   const { user, userId } = useAuth();
-  const { accessToken, expirationTime, status } = useSession();
+  const { expirationTime, status } = useSession();
   const { tokenResult, refreshToken } = useIdToken();
 
   const currentUser = user;
@@ -63,7 +63,7 @@ export default function MoPage() {
             <ul className="space-y-2 text-white">
               <li className="flex flex-col">
                 <span className="font-semibold">Access Token:</span>
-                <span className="text-sm break-all">{accessToken}</span>
+                {/*<span className="text-sm break-all">{accessToken}</span>*/}
               </li>
               <li className="flex flex-col">
                 <span className="font-semibold">Status:</span>

@@ -37,8 +37,7 @@ export async function refreshCookieWithIdToken(
   };
 
   const COOKIE_OPTIONS = {
-    //httpOnly: config?.cookies?.httpOnly,
-    httpOnly: false,
+    httpOnly: config?.cookies?.httpOnly,
     secure: config?.cookies?.secure,
     sameSite: config?.cookies?.sameSite,
     maxAge: config?.cookies?.maxAge,

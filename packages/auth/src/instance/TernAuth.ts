@@ -224,8 +224,9 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       this.#authCookieManager = new AuthCookieManager();
       this.csrfToken = this.#authCookieManager.getCSRFToken();
 
-      this.#clientAuthRequest = createClientAuthRequest(this.#apiClient);
-      this.initClient();
+      this.#clientAuthRequest = createClientAuthRequest();
+      //this.initClient();
+      this.initClientAuthRequest();
 
       this.signIn = new SignIn(this.auth, this.csrfToken);
       this.signUp = new SignUp(this.auth);
@@ -272,6 +273,22 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     const jwtClient = createClientFromJwt(idTokenInCookie || null);
     this.user = jwtClient as TernSecureUser | null;
     this.#emit();
+  };
+
+  initClientAuthRequest = () => {
+    this.#clientAuthRequest
+      ?.getIdTokenFromCookie()
+      .then(idTokenInCookie => {
+        const { token } = idTokenInCookie;
+        const jwtClient = createClientFromJwt(token || null);
+        this.user = jwtClient as TernSecureUser | null;
+        this.#emit();
+      })
+      .catch(error => {
+        console.error('[ternauth] Error during client auth request initialization:', error);
+        this.user = null;
+        this.#emit();
+      });
   };
 
   public signOut: SignOut = async (options?: SignOutOptions) => {

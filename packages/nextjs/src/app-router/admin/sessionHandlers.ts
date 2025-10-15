@@ -1,15 +1,15 @@
 import { clearSessionCookie } from '@tern-secure/backend/admin';
 import { ternDecodeJwtUnguarded } from '@tern-secure/backend/jwt';
-import { cookies } from 'next/headers';
+import type { CookieSubEndpoint } from '@tern-secure/types';
 
 import { NextCookieStore } from '../../utils/NextCookieAdapter';
 import { type RequestProcessorContext } from './c-authenticateRequestProcessor';
 import { createValidators } from './fnValidators';
 import { refreshCookieWithIdToken } from './request';
-import { createApiErrorResponse, HttpResponseHelper, SessionResponseHelper } from './responses';
+import { createApiErrorResponse, createApiSuccessResponse, HttpResponseHelper, SessionResponseHelper } from './responses';
 import type { SessionSubEndpoint, TernSecureHandlerOptions } from './types';
 
-export async function sessionEndpointHandler(
+async function sessionEndpointHandler(
   context: RequestProcessorContext,
   config: TernSecureHandlerOptions,
 ): Promise<Response> {
@@ -41,8 +41,7 @@ export async function sessionEndpointHandler(
   const SessionGetHandler = async (subEndpoint: SessionSubEndpoint): Promise<Response> => {
     const handleSessionVerify = async (): Promise<Response> => {
       try {
-        const cookieStore = await cookies();
-        const sessionCookie = cookieStore.get('_session_cookie')?.value;
+        const sessionCookie = context.sessionTokenInCookie;
         if (!sessionCookie) {
           return SessionResponseHelper.createUnauthorizedResponse();
         }
@@ -142,3 +141,90 @@ export async function sessionEndpointHandler(
       return HttpResponseHelper.createMethodNotAllowedResponse();
   }
 }
+
+async function cookieEndpointHandler(
+  context: RequestProcessorContext,
+  config: TernSecureHandlerOptions,
+): Promise<Response> {
+  const { subEndpoint, method } = context;
+
+  const validators = createValidators(context);
+  const { validateSecurity } = validators;
+
+  if (!subEndpoint) {
+    return createApiErrorResponse('SUB_ENDPOINT_REQUIRED', 'Cookie sub-endpoint required', 400);
+  }
+
+  const cookiesConfig = config.endpoints?.cookies;
+  const subEndpointConfig = cookiesConfig?.subEndpoints?.[subEndpoint as CookieSubEndpoint];
+
+  if (!subEndpointConfig || !subEndpointConfig.enabled) {
+    return createApiErrorResponse('ENDPOINT_NOT_FOUND', 'Cookie endpoint not found or disabled', 404);
+  }
+
+  if (subEndpointConfig?.security) {
+    await validateSecurity(subEndpointConfig.security);
+  }
+
+  const CookieGetHandler = async (subEndpoint: CookieSubEndpoint): Promise<Response> => {
+    const handleGetCookie = async (): Promise<Response> => {
+      try {
+        const url = new URL(context.ternUrl);
+        const tokenName = url.searchParams.get('tokenName');
+
+        if (!tokenName) {
+          return createApiErrorResponse('TOKEN_NAME_REQUIRED', 'tokenName query parameter is required', 400);
+        }
+
+        let cookieValue: string | undefined;
+
+        switch (tokenName) {
+          case 'idToken':
+            cookieValue = context.idTokenInCookie;
+            break;
+          case 'sessionToken':
+            cookieValue = context.sessionTokenInCookie;
+            break;
+          case 'refreshToken':
+            cookieValue = context.refreshTokenInCookie;
+            break;
+          case 'customToken':
+            cookieValue = context.customTokenInCookie;
+            break;
+          default:
+            return createApiErrorResponse('INVALID_TOKEN_NAME', 'Invalid token name. Must be one of: idToken, sessionToken, refreshToken, customToken', 400);
+        }
+
+        if (!cookieValue) {
+          return createApiErrorResponse(
+            'TOKEN_NOT_FOUND',
+            `${tokenName} not found in httpOnly cookies`,
+            404
+          );
+        }
+
+        return createApiSuccessResponse({
+          token: cookieValue,
+        });
+      } catch (error) {
+        return createApiErrorResponse('COOKIE_RETRIEVAL_FAILED', 'Failed to retrieve cookie', 500);
+      }
+    };
+
+    switch (subEndpoint) {
+      case 'get':
+        return handleGetCookie();
+      default:
+        return HttpResponseHelper.createNotFoundResponse();
+    }
+  };
+
+  switch (method) {
+    case 'GET':
+      return CookieGetHandler(subEndpoint as CookieSubEndpoint);
+    default:
+      return HttpResponseHelper.createMethodNotAllowedResponse();
+  }
+}
+
+export { sessionEndpointHandler, cookieEndpointHandler };

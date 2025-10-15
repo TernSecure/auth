@@ -22,6 +22,7 @@ export type PostMutateParams = {
   body?: any;
   method?: HTTPMethod | undefined;
   path?: string;
+  search?: ConstructorParameters<typeof URLSearchParams>[0];
 };
 
 export abstract class TernSecureBase {
@@ -117,6 +118,14 @@ export abstract class TernSecureBase {
    */
   protected async basePost(params: PostMutateParams): Promise<ApiResponseJSON<any> | null> {
     return TernSecureBase.basePost(params);
+  }
+
+  /**
+   * Instance method to make GET requests
+   * This is a convenience method that sets the HTTP method to GET
+   */
+  protected async baseGet(params: Omit<PostMutateParams, 'method'>): Promise<ApiResponseJSON<any> | null> {
+    return this.fetchFromCoreApi({ ...params, method: 'GET' });
   }
 
   /**
