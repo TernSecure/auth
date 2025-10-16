@@ -285,7 +285,10 @@ export class TernSecureAuth implements TernSecureAuthInterface {
         this.#emit();
       })
       .catch(error => {
-        console.error('[ternauth] Error during client auth request initialization:', error);
+        console.error(
+          '[ternauth] Error during client auth request initialization:',
+          error
+        );
         this.user = null;
         this.#emit();
       });
