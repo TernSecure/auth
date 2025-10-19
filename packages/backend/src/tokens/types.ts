@@ -1,6 +1,6 @@
 import type { CheckRevokedOptions } from '../adapters';
 import type { ApiClient } from '../fireRestApi';
-import type { TernSecureConfig,VerifyTokenVOptions } from './verify';
+import type { TernSecureConfig, TernSecureUserData, VerifyTokenVOptions } from './verify';
 
 export type SessionCookieAttributes = {
   path?: string;
@@ -44,5 +44,7 @@ export type AuthenticateRequestOptions = {
   apiVersion?: string;
   firebaseConfig?: TernSecureConfig
 } & VerifyTokenVOptions;
+
+export type { TernSecureUserData };
 
 

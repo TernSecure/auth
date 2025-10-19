@@ -1,4 +1,4 @@
-import type { DecodedIdToken, Jwt,JWTPayload } from '@tern-secure/types';
+import type { DecodedIdToken, Jwt, JWTPayload } from '@tern-secure/types';
 import {
   decodeJwt,
   decodeProtectedHeader,

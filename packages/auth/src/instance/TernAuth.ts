@@ -3,10 +3,12 @@ import { createTernAuthEventBus, ternEvents } from '@tern-secure/shared/ternStat
 import { stripScheme } from '@tern-secure/shared/url';
 import { handleValueOrFn } from '@tern-secure/shared/utils';
 import type {
+  CreateActiveSession,
   DomainOrProxyUrl,
   InstanceType,
   ListenerCallback,
   RedirectOptions,
+  SessionResource,
   SignedInSession,
   SignInRedirectOptions,
   SignInResource,
@@ -22,6 +24,7 @@ import type {
   TernSecureConfig,
   TernSecureResources,
   TernSecureUser,
+  TernSecureUserData,
   UnsubscribeCallback,
 } from '@tern-secure/types';
 import type { FirebaseApp } from 'firebase/app';
@@ -31,6 +34,7 @@ import {
   browserLocalPersistence,
   browserSessionPersistence,
   connectAuthEmulator,
+  getIdToken,
   getRedirectResult,
   initializeAuth,
   inMemoryPersistence,
@@ -39,10 +43,12 @@ import {
 } from 'firebase/auth';
 import { getInstallations } from 'firebase/installations';
 
-import { AuthCookieManager, SignIn, SignUp, TernSecureBase } from '../resources/internal';
+import { type ClientAuthRequest, createClientAuthRequest } from '../auth/request';
+import { AuthCookieManager, Session, SignIn, SignUp, TernSecureBase } from '../resources/internal';
 import { buildURL, hasRedirectLoop } from '../utils/construct';
 import { type ApiClient, createCoreApiClient } from './c_coreApiClient';
 import { eventBus, events } from './events';
+import { createClientFromJwt } from './jwtClient';
 
 export function inBrowser(): boolean {
   return typeof window !== 'undefined';
@@ -79,10 +85,12 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   #listeners: Array<(emission: TernSecureResources) => void> = [];
   #options: TernSecureAuthOptions = {};
   #authCookieManager?: AuthCookieManager;
+  #clientAuthRequest?: ClientAuthRequest;
   #publicEventBus = createTernAuthEventBus();
 
   signIn!: SignInResource;
   signUp!: SignUpResource;
+  session!: SessionResource;
 
   get isReady(): boolean {
     return this.status === 'ready';
@@ -146,6 +154,17 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
   public getApiClient = (): ApiClient => this.#apiClient;
 
+  /**
+   * Get user data for the provided ID token via backend API
+   */
+  public async getUserData(): Promise<TernSecureUserData | null> {
+    if (!this.#clientAuthRequest) {
+      throw new Error('Client auth request not initialized');
+    }
+
+    return this.#clientAuthRequest.getUserData();
+  }
+
   public setLoading(isLoading: boolean): void {
     this.isLoading = isLoading;
   }
@@ -200,14 +219,25 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       }
 
       this.initializeFirebaseApp(this.#options.ternSecureConfig);
-      this.authStateUnsubscribe = this.initAuthStateListener();
-      // /this.authStateUnsubscribe = this._onIdTokenChanged();
+
+      const isBrowserCookiePersistence = this.#options.persistence === 'browserCookie';
+
+      if (!isBrowserCookiePersistence) {
+        this.authStateUnsubscribe = this.initAuthStateListener();
+      }
 
       this.#authCookieManager = new AuthCookieManager();
       this.csrfToken = this.#authCookieManager.getCSRFToken();
 
+      this.#clientAuthRequest = createClientAuthRequest();
+
       this.signIn = new SignIn(this.auth, this.csrfToken);
       this.signUp = new SignUp(this.auth);
+
+      eventBus.on(events.SessionChanged, () => {
+        this.#setCreatedActiveSession(this.user || null);
+        this.#emit();
+      });
 
       this.#setStatus('ready');
       this.#publicEventBus.emit(ternEvents.Status, 'ready');
@@ -241,6 +271,40 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     getInstallations(this.firebaseClientApp);
   }
 
+
+  /**
+   * use when cookie are not httpOnly
+   */
+  initClient = () => {
+    const idTokenInCookie = this.#authCookieManager?.getIdTokenCookie();
+    const jwtClient = createClientFromJwt(idTokenInCookie || null);
+    this.user = jwtClient as TernSecureUser | null;
+    this.#emit();
+  };
+
+
+  /**
+   * @deprecated will be removed in future releases.
+   */
+  initClientAuthRequest = () => {
+    this.#clientAuthRequest
+      ?.getIdTokenFromCookie()
+      .then(idTokenInCookie => {
+        const { token } = idTokenInCookie;
+        const jwtClient = createClientFromJwt(token || null);
+        this.user = jwtClient as TernSecureUser | null;
+        this.#emit();
+      })
+      .catch(error => {
+        console.error(
+          '[ternauth] Error during client auth request initialization:',
+          error
+        );
+        this.user = null;
+        this.#emit();
+      });
+  };
+
   public signOut: SignOut = async (options?: SignOutOptions) => {
     const redirectUrl = options?.redirectUrl || this.#constructAfterSignOutUrl();
     if (options?.onBeforeSignOut) {
@@ -256,7 +320,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       window.location.href = redirectUrl;
     }
     eventBus.emit(events.UserSignOut, null);
-    eventBus.emit(events.TokenRefreshed, { token: null });
+    eventBus.emit(events.TokenUpdate, { token: null });
     this.#emit();
   };
 
@@ -264,10 +328,27 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return this.signedInSession;
   }
 
+  private initAuthListener(): () => void {
+    (async () => {
+      await this.auth.authStateReady();
+      const user = this.auth.currentUser as TernSecureUser | null;
+      this._currentUser = user;
+      this.user = user;
+      await this.updateCurrentSession();
+      this.#emit();
+    })();
+
+    // Return a no-op unsubscribe function since we're not setting up a listener
+    return () => {
+      // No-op: nothing to unsubscribe from
+    };
+  }
+
   private initAuthStateListener(): () => void {
     return onAuthStateChanged(this.auth, async (user: TernSecureUser | null) => {
       await this.auth.authStateReady();
       this._currentUser = user;
+      this.user = user;
       await this.updateCurrentSession();
 
       this.#emit();
@@ -278,11 +359,19 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return onIdTokenChanged(this.auth, async (user: TernSecureUser | null) => {
       await this.auth.authStateReady();
       this._currentUser = user;
+      this.user = user;
       await this.updateCurrentSession();
 
-      //eventBus.emit(events.TokenRefreshed, { token: user ? await user.getIdTokenResult() : null });
       this.#emit();
     });
+  }
+
+  private async getIdToken(): Promise<string | null> {
+    await this.auth.authStateReady();
+    if (!this.auth.currentUser) {
+      return null;
+    }
+    return getIdToken(this.auth.currentUser);
   }
 
   public onAuthStateChanged(callback: (cb: any) => void): () => void {
@@ -309,6 +398,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
         expirationTime: res.expirationTime,
         authTime: res.authTime,
         signInProvider: res.signInProvider || 'unknown',
+        signInSecondFactor: res.signInSecondFactor,
       };
     } catch (error) {
       console.error('[TernSecureAuth] Error updating session:', error);
@@ -321,7 +411,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       const result = await getRedirectResult(this.auth);
       if (result) {
         return {
-          success: true,
+          status: 'success',
           user: result.user as TernSecureUser,
         };
       }
@@ -329,10 +419,9 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     } catch (error) {
       const authError = handleFirebaseAuthError(error);
       return {
-        success: false,
+        status: 'error',
         message: authError.message,
         error: authError.code,
-        user: null,
       };
     }
   }
@@ -362,6 +451,25 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
   public off: TernSecureAuthInterface['off'] = (...args) => {
     this.#publicEventBus.off(...args);
+  };
+
+  public createActiveSession: CreateActiveSession = async ({
+    session,
+    redirectUrl,
+  }): Promise<void> => {
+    try {
+      if (!session) {
+        throw new Error('No session provided to createActiveSession');
+      }
+      const sessionResult = await session.getIdTokenResult();
+      const sessionData = new Session(sessionResult);
+      await sessionData.create(this.csrfToken || '');
+      await this.redirectAfterSignIn();
+      this.#setCreatedActiveSession(session);
+      this.#emit();
+    } catch (error) {
+      console.error('[TernSecureAuth] Error creating active session:', error);
+    }
   };
 
   public initialize(options: TernSecureAuthOptions): Promise<void> {
@@ -482,11 +590,11 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       // Check if a redirect URL was determined
       if (inBrowser()) {
         const absoluteRedirectUrl = new URL(effectiveRedirectUrl, window.location.origin).href;
-        paramsForBuildUrl.searchParams?.set('redirect', absoluteRedirectUrl);
+        paramsForBuildUrl.searchParams?.set('redirect_url', absoluteRedirectUrl);
       } else {
         // If not in browser, use the effectiveRedirectUrl as is.
         // This assumes it's either absolute or a path the server can interpret.
-        paramsForBuildUrl.searchParams?.set('redirect', effectiveRedirectUrl);
+        paramsForBuildUrl.searchParams?.set('redirect_url', effectiveRedirectUrl);
       }
     }
 
@@ -604,13 +712,11 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   };
 
   #emit = (): void => {
-    if (this._currentUser) {
-      for (const listener of this.#listeners) {
-        listener({
-          user: this._currentUser,
-          session: this.signedInSession,
-        });
-      }
+    for (const listener of this.#listeners) {
+      listener({
+        user: this.user,
+        session: this.signedInSession,
+      });
     }
   };
 
@@ -625,8 +731,12 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
   }
 
+  #setCreatedActiveSession = (session: TernSecureUser | null) => {
+    this.user = session;
+  };
+
   #setPersistence = () => {
-    const persistenceType = this.#options.persistence || 'none';
+    const persistenceType = this.#options.persistence;
 
     switch (persistenceType) {
       case 'browserCookie':

@@ -1,5 +1,6 @@
 import type {
   AuthEndpoint,
+  CookieEndpointConfig,
   CookieOpts as CookieOptions,
   CorsOptions,
   EndpointConfig,
@@ -74,6 +75,21 @@ export const DEFAULT_ENDPOINT_CONFIG: EndpointConfig = {
   security: DEFAULT_SECURITY_OPTIONS,
 };
 
+export const DEFAULT_COOKIE_REQUEST_CONFIG: CookieEndpointConfig = {
+  ...DEFAULT_ENDPOINT_CONFIG,
+  subEndpoints: {
+    get: {
+      enabled: true,
+      methods: ['GET'],
+      requireAuth: false,
+      security: {
+        requireCSRF: true,
+        allowedReferers: [],
+      },
+    },
+  },
+};
+
 export const DEFAULT_SESSIONS_CONFIG: SessionEndpointConfig = {
   ...DEFAULT_ENDPOINT_CONFIG,
   subEndpoints: {
@@ -126,6 +142,7 @@ export const DEFAULT_HANDLER_OPTIONS: Required<TernSecureHandlerOptions> & {
   },
   security: DEFAULT_SECURITY_OPTIONS,
   endpoints: {
+    cookies: DEFAULT_COOKIE_REQUEST_CONFIG,
     sessions: DEFAULT_SESSIONS_CONFIG,
   },
   tenantId: '',

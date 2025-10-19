@@ -14,3 +14,12 @@ export interface CookieOptions {
   sameSite?: 'strict' | 'lax' | 'none' | undefined;
   secure?: boolean | undefined;
 }
+
+
+
+export interface CookieResource {
+  idToken?: string;
+  sessionToken?: string;
+  refreshToken?: string;
+  customToken?: string;
+}

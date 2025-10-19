@@ -1,6 +1,6 @@
 import type { RequestProcessorContext } from './c-authenticateRequestProcessor';
 import { createApiErrorResponse } from './responses';
-import { sessionEndpointHandler } from './sessionHandlers';
+import { cookieEndpointHandler, sessionEndpointHandler } from './sessionHandlers';
 import type { AuthEndpoint, TernSecureHandlerOptions } from './types';
 
 export interface EndpointHandler {
@@ -33,8 +33,25 @@ class UsersHandler implements EndpointHandler {
   }
 }
 
+class CookieHandler implements EndpointHandler {
+  canHandle(endpoint: AuthEndpoint): boolean {
+    return endpoint === 'cookies';
+  }
+
+  async handle(
+    context: RequestProcessorContext,
+    config: TernSecureHandlerOptions,
+  ): Promise<Response> {
+    return await cookieEndpointHandler(context, config);
+  }
+}
+
 export class EndpointRouter {
-  private static readonly handlers: EndpointHandler[] = [new SessionsHandler(), new UsersHandler()];
+  private static readonly handlers: EndpointHandler[] = [
+    new SessionsHandler(),
+    new UsersHandler(),
+    new CookieHandler(),
+  ];
 
   static async route(
     context: RequestProcessorContext,

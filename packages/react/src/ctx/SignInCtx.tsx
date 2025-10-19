@@ -12,7 +12,6 @@ import { useTernSecure } from '@tern-secure/shared/react';
 import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useMemo } from 'react';
 
-
 export type SignInCtx = SignInProps & SignInRedirectUrl & SignUpRedirectUrl;
 
 interface SignInContextType extends Omit<SignInCtx, 'forceRedirectUrl' | 'signInForceRedirectUrl'> {
@@ -81,12 +80,9 @@ export function SignInProvider({
     [onSuccess, redirectAfterSignIn],
   );
 
-  const handleSignInError = useCallback(
-    (authError: AuthErrorTree) => {
-      console.error(authError);
-    },
-    [],
-  );
+  const handleSignInError = useCallback((authError: AuthErrorTree) => {
+    console.error(authError);
+  }, []);
 
   const checkRedirectResult = useCallback(async (): Promise<void> => {
     try {
@@ -155,3 +151,5 @@ export function SignInProvider({
 
   return <SignInContext.Provider value={contextValue}>{children}</SignInContext.Provider>;
 }
+
+export { useTernSecure }

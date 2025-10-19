@@ -1,3 +1,4 @@
+import type { UserCredential } from "./all";
 import type { ErrorCode} from "./errors";
 
 export type SignInStatus =
@@ -28,19 +29,35 @@ export interface AuthErrorTree extends Error {
   response?: any | string;
 }
 
-
-export interface SignInResponse {
-  success: boolean;
+interface BaseSignInResponse {
+  status?: SignInStatus;
   message?: string;
   error?: any | undefined;
-  user?: any;
 }
+
+
+export interface SignInSuccessResponse extends BaseSignInResponse, UserCredential {
+  status: 'success';
+}
+
+export interface SignInErrorResponse extends BaseSignInResponse {
+  status: 'error';
+}
+
+export interface SignInPendingResponse extends BaseSignInResponse {
+  status: 'redirecting' | 'pending_social' | 'pending_email_password';
+}
+
+export type SignInResponse = 
+  | SignInSuccessResponse 
+  | SignInErrorResponse 
+  | SignInPendingResponse;
 
 
 export type SignInInitialValue = Partial<SignInFormValues>;
 
 
-export interface ResendEmailVerification extends SignInResponse {
+export interface ResendEmailVerification {
   isVerified?: boolean;
 }
 

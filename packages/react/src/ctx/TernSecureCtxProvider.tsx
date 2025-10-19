@@ -1,7 +1,7 @@
 'use client';
 
 import { deriveAuthState } from '@tern-secure/shared/derivedAuthState';
-import { type InitialState, type TernSecureResources } from '@tern-secure/types';
+import type  { TernSecureResources, TernSecureStateExtended } from '@tern-secure/types';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { IsoTernSecureAuth } from '../lib/isoTernSecureAuth';
@@ -12,7 +12,7 @@ import { IsoTernSecureAuthCtx } from './IsomorphicTernSecureCtx';
 type TernSecureCtxProviderProps = {
   children: React.ReactNode;
   instanceOptions: IsoTernSecureAuthOptions;
-  initialState: InitialState | undefined;
+  initialState: TernSecureStateExtended | undefined;
 };
 
 export type TernSecureCtxProviderState = TernSecureResources;
@@ -31,18 +31,17 @@ export function TernSecureCtxProvider(props: TernSecureCtxProviderProps) {
     return instance.addListener(e => setAuthState({ ...e }));
   }, []);
 
-  const derivedState = deriveAuthState(authState, initialState);
-  const { token, email, user, userId } = derivedState;
+  const derivedState = deriveAuthState(instance.isReady, authState, initialState);
+  const { sessionClaims, user, userId } = derivedState;
 
   const authCtx = useMemo(() => {
     const value = {
       userId: userId,
-      token: token,
-      email: email,
       user: user,
+      sessionClaims: sessionClaims,
     };
     return { value };
-  }, [userId, token, email, user]);
+  }, [userId, user, sessionClaims]);
 
   const ternAuthCtx = useMemo(
     () => ({
@@ -69,13 +68,6 @@ const useInitTernSecureAuth = (options: IsoTernSecureAuthOptions) => {
   useEffect(() => {
     void isoTernSecureAuth.on('status', setInstanceStatus);
     return () => isoTernSecureAuth.off('status', setInstanceStatus);
-  }, [isoTernSecureAuth]);
-
-  useEffect(() => {
-    const un = isoTernSecureAuth.addListener(event => {
-      console.warn('[useInitTernSecureAuth] Event received:', event);
-    });
-    return () => un();
   }, [isoTernSecureAuth]);
 
   useEffect(() => {

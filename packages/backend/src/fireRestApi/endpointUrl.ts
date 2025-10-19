@@ -1,5 +1,13 @@
 import { FIREBASE_AUTH_EMULATOR_HOST, useEmulator } from './emulator';
 
+export const topLevelEndpoint = (apiKey: string, projectId: string, version: string) => {
+  return `https://identitytoolkit.googleapis.com/${version}/projects/${projectId}${apiKey}`;
+};
+
+export const lookupEndpoint = (apiKey: string) => {
+  return `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`;
+};
+
 export const getRefreshTokenEndpoint = (apiKey: string) => {
   return `https://securetoken.googleapis.com/v1/token?key=${apiKey}`;
 };

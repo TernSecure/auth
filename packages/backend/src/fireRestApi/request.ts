@@ -8,6 +8,7 @@ import { runtime } from "../runtime";
 import {
   getCustomTokenEndpoint,
   getRefreshTokenEndpoint,
+  lookupEndpoint,
   passwordResetEndpoint,
   signInWithPassword,
   signUpEndpoint,
@@ -15,6 +16,7 @@ import {
 
 export type HTTPMethod = "DELETE" | "GET" | "PATCH" | "POST" | "PUT";
 export type FirebaseEndpoint =
+  | "lookup"
   | "refreshToken"
   | "signInWithPassword"
   | "signUp"
@@ -62,6 +64,7 @@ const FIREBASE_ENDPOINT_MAP: Record<FirebaseEndpoint, (apiKey: string) => string
   signInWithCustomToken: getCustomTokenEndpoint,
   passwordReset: passwordResetEndpoint,
   sendOobCode: signInWithPassword,
+  lookup: lookupEndpoint
 };
 
 

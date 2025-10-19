@@ -53,9 +53,9 @@ export async function createTenantUser(
     });
 
     return {
-      success: true,
+      status: 'success',
+      user: userRecord,
       message: 'Tenant user created successfully',
-      user: userRecord.uid,
     };
   } catch (error) {
     console.error('Error creating tenant user:', error);

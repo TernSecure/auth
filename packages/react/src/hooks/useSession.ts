@@ -13,7 +13,7 @@ import { useAssertWrappedByTernSecureAuthProvider } from './useAssertWrappedTern
 import { useAuth } from './useAuth'
 
 interface SessionData {
-  accessToken: string | null
+  //accessToken: string | null
   expirationTime: string | null
   error: Error | null
   isLoading: boolean
@@ -26,12 +26,12 @@ export function useSession() {
 
   useAssertWrappedByTernSecureAuthProvider('useSession')
   
-  const { user, token } = useAuth()
+  const { user } = useAuth()
   const instance = instanceCtx
   const session = instance.currentSession
 
   const [sessionData, setSessionData] = useState<SessionData>({
-    accessToken: token || null,
+    //accessToken: token || null,
     expirationTime: session?.expirationTime|| null, 
     error: null,
     isLoading: true
@@ -39,7 +39,7 @@ export function useSession() {
 
   const status = useMemo((): SessionStatus => {
     if (sessionData.isLoading) return 'refreshing'
-    if (!sessionData.accessToken) return 'inactive'
+    //if (!sessionData.accessToken) return 'inactive'
     if (sessionData.error) return 'expired'
     if (sessionData.expirationTime) return 'expired'
     return 'active'
@@ -57,7 +57,7 @@ export function useSession() {
       const expirationTime = Date.now() + (60 * 60 * 1000)
 
       setSessionData({
-        accessToken: token,
+        //accessToken: token,
         expirationTime: expirationTime.toString(), // Store as string for consistency
         error: null,
         isLoading: false
@@ -90,7 +90,7 @@ export function useSession() {
   }, [refreshSession])
 
   return {
-    accessToken: sessionData.accessToken,
+    //accessToken: sessionData.accessToken,
     expirationTime: sessionData.expirationTime,
     error: sessionData.error,
     isLoading: sessionData.isLoading,

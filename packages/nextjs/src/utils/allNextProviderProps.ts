@@ -2,10 +2,10 @@ import type {
   IsoTernSecureAuthOptions,
   TernSecureProviderProps} from "@tern-secure/react";
 
-import type { TernSecureNextProps } from "../types";
+import type { NextProviderProcessedProps, TernSecureNextProps } from "../types";
 
 // Helper type for the return value, as children are handled by the consuming component
-type NextProviderProcessedProps = Omit<TernSecureProviderProps, 'children'>;
+
 
 export const allNextProviderPropsWithEnv = (
   nextProps: Omit<TernSecureNextProps, 'children'>
@@ -13,12 +13,13 @@ export const allNextProviderPropsWithEnv = (
   const {
     signInUrl,
     signUpUrl,
-    apiKey: propsApiKey,
+    //apiKey: propsApiKey,
     apiUrl: propsApiUrl,
     requiresVerification: propsRequiresVerification,
     isTernSecureDev: propsIsTernSecureDev,
     enableServiceWorker: propsEnableServiceWorker,
     loadingComponent: propsLoadingComponent,
+    persistence: propsPersistence,
     ...baseProps 
   } = nextProps;
 
@@ -31,7 +32,7 @@ export const allNextProviderPropsWithEnv = (
     environment: process.env.NEXT_PUBLIC_TERN_ENVIRONMENT,
     signInUrl: process.env.NEXT_PUBLIC_SIGN_IN_URL,
     signUpUrl: process.env.NEXT_PUBLIC_SIGN_UP_URL,
-    persistence: process.env.NEXT_PUBLIC_TERN_PERSISTENCE as 'local' | 'session' | 'none',
+    persistence: process.env.NEXT_PUBLIC_TERN_PERSISTENCE as 'local' | 'session' | 'browserCookie' | 'none',
     useEmulator: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR,
     projectIdAdmin: process.env.FIREBASE_PROJECT_ID,
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
@@ -51,11 +52,11 @@ export const allNextProviderPropsWithEnv = (
   };
 
   // Merge config values: props take precedence over environment variables
-  const finalApiKey = propsApiKey ?? envConfig.apiKey;
+  //const finalApiKey = propsApiKey ?? envConfig.apiKey;
   const finalApiUrl = propsApiUrl ?? envConfig.apiUrl;
   const finalSignInUrl = signInUrl ?? envConfig.signInUrl;
   const finalSignUpUrl = signUpUrl ?? envConfig.signUpUrl;
-  const finalPersistence = baseProps.persistence ?? envConfig.persistence;
+  const finalPersistence = propsPersistence ?? envConfig.persistence;
 
   // Construct the result, ensuring it conforms to NextProviderProcessedProps
   // (Omit<TernSecureProviderProps, 'children'>)
