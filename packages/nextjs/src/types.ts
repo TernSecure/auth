@@ -187,4 +187,6 @@ export interface BaseUser {
     error?: string
   }
 
+  export type NextProviderProcessedProps = Omit<TernSecureProviderProps, 'children'>;
+
 

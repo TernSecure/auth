@@ -4,7 +4,7 @@ import type {
   TernSecureConfig,
   TernSecureInstanceTree,
   TernSecureInstanceTreeOptions,
-  TernSecureState,
+  TernSecureStateExtended,
 } from "@tern-secure/types";
 
 declare global {
@@ -114,7 +114,7 @@ export interface HeadlessUIBrowserConstructor {
 
 export type TernSecureProviderPropsOld = IsomorphicTernSecureOptions & {
   children: React.ReactNode;
-  initialState?: TernSecureState;
+  initialState?: TernSecureStateExtended;
   loadingComponent?: React.ReactNode;
   bypassApiKey?: boolean;
 };
@@ -147,15 +147,15 @@ export type IsomorphicTernSecureOptions = TernSecureInstanceTreeOptions & {
   ternSecureConfig?: TernSecureConfig;
 };
 
+export type IsoTernSecureAuthOptions = TernSecureAuthOptions & {
+  TernSecureAuth?: TernSecureAuthProps;
+};
+
 export type TernSecureProviderProps = IsoTernSecureAuthOptions & {
   children: React.ReactNode;
-  initialState?: TernSecureState;
+  initialState?: TernSecureStateExtended;
   loadingComponent?: React.ReactNode;
   bypassApiKey?: boolean;
 };
 
 export type TernSecureAuthProps = TernSecureAuth | undefined | null;
-
-export type IsoTernSecureAuthOptions = TernSecureAuthOptions & {
-  TernSecureAuth?: TernSecureAuthProps;
-};

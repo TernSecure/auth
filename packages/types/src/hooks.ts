@@ -1,5 +1,6 @@
 import type { TernSecureUser } from "./all";
 import type { SignOut } from './auth'
+import type { DecodedIdToken } from './jwt';
 import type { SignInResource } from "./signIn";
 
 export type UseAuthReturn = {
@@ -8,10 +9,9 @@ export type UseAuthReturn = {
     isValid: boolean
     isVerified: boolean
     isAuthenticated: boolean
-    //token: any | null
-    email: string | null
     status: "loading" | "authenticated" | "unauthenticated" | "unverified"
     user?: TernSecureUser | null
+    sessionClaims?: DecodedIdToken | null | undefined
     signOut: SignOut
 }
 

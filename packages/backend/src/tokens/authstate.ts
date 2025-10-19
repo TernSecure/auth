@@ -39,6 +39,7 @@ export type SignedInAuthObject = {
 export type SignedOutAuthObject = {
   sessionClaims: null;
   userId: null;
+  token: null;
   require: CheckAuthorizationFromSessionClaims;
   error: string | null;
 };
@@ -123,6 +124,7 @@ export function signedOutAuthObject(): SignedOutAuthObject {
   return {
     sessionClaims: null,
     userId: null,
+    token: null,
     require: () => false,
     error: 'No active session',
   };

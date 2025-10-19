@@ -219,14 +219,17 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       }
 
       this.initializeFirebaseApp(this.#options.ternSecureConfig);
-      //this.authStateUnsubscribe = this.initAuthStateListener();
+
+      const isBrowserCookiePersistence = this.#options.persistence === 'browserCookie';
+
+      if (!isBrowserCookiePersistence) {
+        this.authStateUnsubscribe = this.initAuthStateListener();
+      }
 
       this.#authCookieManager = new AuthCookieManager();
       this.csrfToken = this.#authCookieManager.getCSRFToken();
 
       this.#clientAuthRequest = createClientAuthRequest();
-      //this.initClient();
-      this.initClientAuthRequest();
 
       this.signIn = new SignIn(this.auth, this.csrfToken);
       this.signUp = new SignUp(this.auth);
@@ -268,6 +271,10 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     getInstallations(this.firebaseClientApp);
   }
 
+
+  /**
+   * use when cookie are not httpOnly
+   */
   initClient = () => {
     const idTokenInCookie = this.#authCookieManager?.getIdTokenCookie();
     const jwtClient = createClientFromJwt(idTokenInCookie || null);
@@ -275,6 +282,10 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     this.#emit();
   };
 
+
+  /**
+   * @deprecated will be removed in future releases.
+   */
   initClientAuthRequest = () => {
     this.#clientAuthRequest
       ?.getIdTokenFromCookie()
@@ -725,7 +736,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   };
 
   #setPersistence = () => {
-    const persistenceType = this.#options.persistence || 'none';
+    const persistenceType = this.#options.persistence;
 
     switch (persistenceType) {
       case 'browserCookie':

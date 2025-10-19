@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 
 export default function Dashboard() {
  const router = useRouter();
- const { user } = useAuth();
+ const { user, sessionClaims } = useAuth();
  
  if (!user) return null;
  
@@ -24,7 +24,7 @@ const redirectToProtected = () => {
 return (
   <div>
     <h1>Dashboard</h1>
-    <p>Welcome, {user?.displayName || user?.email}!</p>
+    <p>Welcome, {user?.displayName || user?.email || sessionClaims?.email}!</p>
     <button 
       onClick={redirectToMoPage}
       className="bg-blue-500 text-white px-4 py-2 rounded"

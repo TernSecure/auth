@@ -31,6 +31,13 @@ export interface TernSecureState {
   user?: TernSecureUser | null;
 }
 
+export type TernSecureStateExtended = {
+  sessionClaims: DecodedIdToken | null;
+  userId: string | null;
+  token: string | null;
+  user?: TernSecureUser | null;
+}
+
 export type AuthProviderStatus = 'idle' | 'pending' | 'error' | 'success';
 
 export const DEFAULT_TERN_SECURE_STATE: TernSecureState = {

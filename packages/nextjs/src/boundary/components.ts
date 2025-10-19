@@ -1,5 +1,4 @@
 export { 
-    useAuth,
     useIdToken,
     useSession,
     useSignIn,
@@ -8,3 +7,5 @@ export {
     SignInProvider,
     signIn,
 } from '@tern-secure/react';
+
+export { usePromiseAuth as useAuth } from './PromiseAuthProvider';

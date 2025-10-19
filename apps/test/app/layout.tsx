@@ -27,9 +27,9 @@ export default async function RootLayout({
     <html lang='en'>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <TernSecureProvider
-          requiresVerification={true}
+          requiresVerification={false}
           isTernSecureDev={true}
-          persistence='browserCookie'
+          persistence='local'
         >
           {children}
         </TernSecureProvider>

@@ -1,4 +1,4 @@
-export { useAuth } from './hooks/useAuth';
+export { useAuth, useDeriveAuth} from './hooks/useAuth';
 export { useIdToken } from './hooks/useIdToken';
 export { useSession } from './hooks/useSession';
 export { useSignIn, signIn } from './hooks/useSignIn';

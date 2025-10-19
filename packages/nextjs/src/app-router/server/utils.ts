@@ -33,9 +33,9 @@ export async function buildRequestLike(): Promise<NextRequest> {
       throw e;
     }
 
-    throw new Error(
-      `Clerk: auth(), currentUser() and clerkClient(), are only supported in App Router (/app directory).\nIf you're using /pages, try getAuth() instead.\nOriginal error: ${e}`,
-    );
+      throw new Error(
+        `auth() is only supported in the App Router (/app directory).\n/pages is not supported yet.\nOriginal error: ${e}`,
+      );
   }
 }
 

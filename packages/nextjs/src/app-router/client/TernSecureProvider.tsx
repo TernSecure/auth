@@ -1,48 +1,34 @@
-import { 
-  TernSecureProvider as TernSecureReactProvider 
-} from "@tern-secure/react"
-import React from "react"
+'use client';
 
-import type { TernSecureNextProps } from "../../types"
-import { allNextProviderPropsWithEnv } from "../../utils/allNextProviderProps"
+import { TernSecureProvider as TernSecureReactProvider } from '@tern-secure/react';
 
+import { TernNextOptionsProvider, useTernNextOptions } from '../../boundary/NextOptionsCtx';
+import type { TernSecureNextProps } from '../../types';
+import { allNextProviderPropsWithEnv } from '../../utils/allNextProviderProps';
 
+const NextClientProvider = (props: TernSecureNextProps) => {
+  const { children } = props;
 
-// Loading fallback component
-/*function TernSecureLoadingFallback() {
+  const isNested = Boolean(useTernNextOptions());
+  if (isNested) {
+    return props.children;
+  }
+
+  const providerProps = allNextProviderPropsWithEnv({...props});
   return (
-    <div>
-      <span className="sr-only">Loading...</span>
-    </div>
-  )
-}*/
-/**
- * Root Provider for TernSecure
- * Use this in your Next.js App Router root layout
- * Automatically handles client/server boundary and authentication state
- * 
- * @example
- * /// app/layout.tsx
- * import { TernSecureProvider } from '@tern/secure'
- * 
- * export default function RootLayout({ children }) {
- *   return (
- *     <html>
- *       <body>
- *         <TernSecureProvider>
- *           {children}
- *         </TernSecureProvider>
- *       </body>
- *     </html>
- *   )
- * }
- */
-export function TernSecureProvider(props: React.PropsWithChildren<TernSecureNextProps>) {
-  const {children, enableServiceWorker, ...nextProps } = props;
-  const providerProps = allNextProviderPropsWithEnv(nextProps);
-  return (
-    <TernSecureReactProvider {...providerProps}>
+    <TernNextOptionsProvider options={providerProps}>
+      <TernSecureReactProvider {...providerProps}>
         {children}
-    </TernSecureReactProvider>
-  )
-}
+      </TernSecureReactProvider>
+    </TernNextOptionsProvider>
+  );
+};
+
+export const ClientTernSecureProvider = (props: TernSecureNextProps) => {
+  const { children, ...rest } = props;
+  return (
+    <NextClientProvider {...rest}>
+      {children}
+    </NextClientProvider>
+  );
+};

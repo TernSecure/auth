@@ -1,16 +1,11 @@
 import type { AuthObject } from '@tern-secure/backend';
-import {
-  AuthStatus,
-  createTernSecureRequest,
-  signedInAuthObject,
-  signedOutAuthObject,
-} from '@tern-secure/backend';
-import { ternDecodeJwt } from '@tern-secure/backend/jwt';
+import { createTernSecureRequest } from '@tern-secure/backend';
 import { notFound, redirect } from 'next/navigation';
 
 import { SIGN_IN_URL, SIGN_UP_URL } from '../../server/constant';
+import { getAuthDataFromRequest } from '../../server/data/getAuthDataFromRequest';
 import { getAuthKeyFromRequest } from '../../server/headers-utils';
-import { type AuthProtect,createProtect } from '../../server/protect';
+import { type AuthProtect, createProtect } from '../../server/protect';
 import { createRedirect, type RedirectFun } from '../../server/redirect';
 import type { BaseUser, RequestLike } from '../../server/types';
 import { buildRequestLike } from './utils';
@@ -39,23 +34,6 @@ const createAuthObject = () => {
     return getAuthDataFromRequest(req);
   };
 };
-
-function getAuthDataFromRequest(req: RequestLike): AuthObject {
-  const authStatus = getAuthKeyFromRequest(req, 'AuthStatus');
-  const authToken = getAuthKeyFromRequest(req, 'AuthToken');
-  const authSignature = getAuthKeyFromRequest(req, 'AuthSignature');
-  const authReason = getAuthKeyFromRequest(req, 'AuthReason');
-
-  let authObject;
-  if (!authStatus || authStatus !== AuthStatus.SignedIn) {
-    authObject = signedOutAuthObject();
-  } else {
-    const jwt = ternDecodeJwt(authToken as string);
-
-    authObject = signedInAuthObject(jwt.raw.text, jwt.payload);
-  }
-  return authObject;
-}
 
 /**
  * Get the current authenticated user from the session or token
