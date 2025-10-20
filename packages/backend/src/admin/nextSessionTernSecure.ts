@@ -2,7 +2,7 @@
 
 import { getCookieName, getCookiePrefix } from '@tern-secure/shared/cookie';
 import { handleFirebaseAuthError } from "@tern-secure/shared/errors";
-import type { TernVerificationResult } from "@tern-secure/types";
+import type { TernVerificationResult} from "@tern-secure/types";
 import { cookies } from "next/headers";
 
 import { constants } from '../constants';
@@ -158,16 +158,16 @@ export async function VerifyNextTernSessionCookie(
 
 export async function ClearNextSessionCookie(tenantId?: string) {
   try {
-    console.log("[clearSessionCookie] Clearing session for tenant:", tenantId);
     const tenantAuth = getAuthForTenant(tenantId);
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(SESSION_CONSTANTS.COOKIE_NAME);
     const cookiePrefix = getCookiePrefix();
+    const cookieOptions = { path: '/' };
 
-    cookieStore.delete(SESSION_CONSTANTS.COOKIE_NAME);
-    cookieStore.delete(getCookieName(constants.Cookies.IdToken, cookiePrefix));
-    cookieStore.delete(getCookieName(constants.Cookies.Refresh, cookiePrefix));
-    cookieStore.delete(constants.Cookies.Custom);
+    cookieStore.delete({ name: SESSION_CONSTANTS.COOKIE_NAME, ...cookieOptions });
+    cookieStore.delete({ name: getCookieName(constants.Cookies.IdToken, cookiePrefix), ...cookieOptions });
+    cookieStore.delete({ name: getCookieName(constants.Cookies.Refresh, cookiePrefix), ...cookieOptions });
+    cookieStore.delete({ name: constants.Cookies.Custom, ...cookieOptions });
 
     if (
       SESSION_CONSTANTS.REVOKE_REFRESH_TOKENS_ON_SIGNOUT &&
