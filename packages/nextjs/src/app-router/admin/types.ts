@@ -146,6 +146,7 @@ export const DEFAULT_HANDLER_OPTIONS: Required<TernSecureHandlerOptions> & {
     sessions: DEFAULT_SESSIONS_CONFIG,
   },
   tenantId: '',
+  revokeRefreshTokensOnSignOut: true,
   enableCustomToken: false,
   debug: false,
   environment: 'production',

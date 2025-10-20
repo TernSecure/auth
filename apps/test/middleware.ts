@@ -16,18 +16,4 @@ export default ternSecureMiddleware(
       await auth.protect();
     }
   },
-  {
-    debug: true,
-    checkRevoked: {
-      enabled: true,
-      adapter: {
-        type: 'redis',
-        config: {
-          url: process.env.KV_REST_API_URL,
-          token: process.env.KV_REST_API_TOKEN,
-          keyPrefix: process.env.REDIS_KEY_PREFIX,
-        },
-      },
-    },
-  },
 );

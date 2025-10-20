@@ -14,19 +14,15 @@ import { useRouter } from 'next/navigation';
 export default function Home() {
   const router = useRouter();
   const auth = useAuth();
-  const { user, isLoaded, isAuthenticated, isValid, sessionClaims, signOut } = auth;
+  const { user, isLoaded, isAuthenticated, isValid, sessionClaims } = auth;
 
   // on server userObject is undefined, if we dont check !user, there will hydration error
   //if (!user) return <div>Loading...</div>;
 
-  if (!isLoaded) return <div>Loading...</div>;
+  //if (!isLoaded) return <div>Loading...</div>;
 
   //if (!isAuthenticated) return <div>User is not valid. Please sign in.</div>;
 
-
-  console.log('user object:', user);
-  console.log('useAuth:', auth);
-  console.log('sessionClaims object:', sessionClaims);
 
   const redirectToMoPage = () => {
     router.push('/mo');
