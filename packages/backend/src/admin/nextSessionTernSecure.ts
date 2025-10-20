@@ -1,13 +1,12 @@
-"use server";
+'use server';
 
 import { getCookieName, getCookiePrefix } from '@tern-secure/shared/cookie';
-import { handleFirebaseAuthError } from "@tern-secure/shared/errors";
-import type { TernVerificationResult} from "@tern-secure/types";
-import { cookies } from "next/headers";
+import { handleFirebaseAuthError } from '@tern-secure/shared/errors';
+import type { CookieStore, SessionResult, TernVerificationResult } from '@tern-secure/types';
+import { cookies } from 'next/headers';
 
 import { constants } from '../constants';
-import { adminTernSecureAuth as adminAuth, getAuthForTenant } from "../utils/admin-init";
-
+import { adminTernSecureAuth as adminAuth, getAuthForTenant } from '../utils/admin-init';
 
 const SESSION_CONSTANTS = {
   COOKIE_NAME: constants.Cookies.Session,
@@ -15,6 +14,25 @@ const SESSION_CONSTANTS = {
   DEFAULT_EXPIRES_IN_SECONDS: 60 * 60 * 24 * 5,
   REVOKE_REFRESH_TOKENS_ON_SIGNOUT: true,
 } as const;
+
+/**
+ * Helper function to log debug messages only in development environment
+ */
+const debugLog = {
+  log: (...args: unknown[]) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.log(...args);
+    }
+  },
+  warn: (...args: unknown[]) => {
+    if (process.env.NODE_ENV === 'development') {
+      console.warn(...args);
+    }
+  },
+  error: (...args: unknown[]) => {
+    console.error(...args);
+  },
+};
 
 export async function CreateNextSessionCookie(idToken: string) {
   try {
@@ -27,44 +45,41 @@ export async function CreateNextSessionCookie(idToken: string) {
     cookieStore.set(constants.Cookies.Session, sessionCookie, {
       maxAge: expiresIn,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
+      secure: process.env.NODE_ENV === 'production',
+      path: '/',
     });
-    return { success: true, message: "Session created" };
+    return { success: true, message: 'Session created' };
   } catch (error) {
-    return { success: false, message: "Failed to create session" };
+    return { success: false, message: 'Failed to create session' };
   }
 }
 
 export async function GetNextServerSessionCookie() {
   const cookieStore = await cookies();
-  const sessionCookie = cookieStore.get("_session_cookie")?.value;
+  const sessionCookie = cookieStore.get('_session_cookie')?.value;
 
   if (!sessionCookie) {
-    throw new Error("No session cookie found");
+    throw new Error('No session cookie found');
   }
 
   try {
-    const decondeClaims = await adminAuth.verifySessionCookie(
-      sessionCookie,
-      true
-    );
+    const decondeClaims = await adminAuth.verifySessionCookie(sessionCookie, true);
     return {
       token: sessionCookie,
       userId: decondeClaims.uid,
     };
   } catch (error) {
-    console.error("Error verifying session:", error);
-    throw new Error("Invalid Session");
+    console.error('Error verifying session:', error);
+    throw new Error('Invalid Session');
   }
 }
 
 export async function GetNextIdToken() {
   const cookieStore = await cookies();
-  const token = cookieStore.get("_session_token")?.value;
+  const token = cookieStore.get('_session_token')?.value;
 
   if (!token) {
-    throw new Error("No session cookie found");
+    throw new Error('No session cookie found');
   }
 
   try {
@@ -74,46 +89,44 @@ export async function GetNextIdToken() {
       userId: decodedClaims.uid,
     };
   } catch (error) {
-    console.error("Error verifying session:", error);
-    throw new Error("Invalid Session");
+    console.error('Error verifying session:', error);
+    throw new Error('Invalid Session');
   }
 }
 
 export async function SetNextServerSession(token: string) {
   try {
     const cookieStore = await cookies();
-    cookieStore.set("_session_token", token, {
+    cookieStore.set('_session_token', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
       maxAge: 60 * 60, // 1 hour
-      path: "/",
+      path: '/',
     });
-    return { success: true, message: "Session created" };
+    return { success: true, message: 'Session created' };
   } catch {
-    return { success: false, message: "Failed to create session" };
+    return { success: false, message: 'Failed to create session' };
   }
 }
 
 export async function SetNextServerToken(token: string) {
   try {
     const cookieStore = await cookies();
-    cookieStore.set("_tern", token, {
+    cookieStore.set('_tern', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
       maxAge: 60 * 60, // 1 hour
-      path: "/",
+      path: '/',
     });
-    return { success: true, message: "Session created" };
+    return { success: true, message: 'Session created' };
   } catch {
-    return { success: false, message: "Failed to create session" };
+    return { success: false, message: 'Failed to create session' };
   }
 }
 
-export async function VerifyNextTernIdToken(
-  token: string
-): Promise<TernVerificationResult> {
+export async function VerifyNextTernIdToken(token: string): Promise<TernVerificationResult> {
   try {
     const decodedToken = await adminAuth.verifyIdToken(token);
     return {
@@ -121,7 +134,7 @@ export async function VerifyNextTernIdToken(
       valid: true,
     };
   } catch (error) {
-    console.error("[VerifyNextTernIdToken] Error verifying session:", error);
+    console.error('[VerifyNextTernIdToken] Error verifying session:', error);
     const authError = handleFirebaseAuthError(error);
     return {
       valid: false,
@@ -131,23 +144,17 @@ export async function VerifyNextTernIdToken(
 }
 
 export async function VerifyNextTernSessionCookie(
-  session: string
+  session: string,
 ): Promise<TernVerificationResult> {
   try {
     const res = await adminAuth.verifySessionCookie(session);
-    console.warn(
-      "[VerifyNextTernSessionCookie] uid in Decoded Token:",
-      res.uid
-    );
+    console.warn('[VerifyNextTernSessionCookie] uid in Decoded Token:', res.uid);
     return {
       valid: true,
       ...res,
     };
   } catch (error) {
-    console.error(
-      "[VerifyNextTernSessionCookie] Error verifying session:",
-      error
-    );
+    console.error('[VerifyNextTernSessionCookie] Error verifying session:', error);
     const authError = handleFirebaseAuthError(error);
     return {
       valid: false,
@@ -156,41 +163,123 @@ export async function VerifyNextTernSessionCookie(
   }
 }
 
-export async function ClearNextSessionCookie(tenantId?: string) {
+export async function ClearNextSessionCookie(
+  tenantId?: string,
+  deleteOptions?: {
+    path?: string;
+    domain?: string;
+    httpOnly?: boolean;
+    secure?: boolean;
+    sameSite?: 'lax' | 'strict' | 'none';
+    revokeRefreshTokensOnSignOut?: boolean;
+  },
+): Promise<SessionResult> {
   try {
-    const tenantAuth = getAuthForTenant(tenantId);
+    const tenantAuth = getAuthForTenant(tenantId || '');
     const cookieStore = await cookies();
     const sessionCookie = cookieStore.get(SESSION_CONSTANTS.COOKIE_NAME);
     const cookiePrefix = getCookiePrefix();
-    const cookieOptions = { path: '/' };
+    const idTokenCookieName = getCookieName(constants.Cookies.IdToken, cookiePrefix);
+    const idTokenCookie = cookieStore.get(idTokenCookieName);
 
-    cookieStore.delete({ name: SESSION_CONSTANTS.COOKIE_NAME, ...cookieOptions });
-    cookieStore.delete({ name: getCookieName(constants.Cookies.IdToken, cookiePrefix), ...cookieOptions });
-    cookieStore.delete({ name: getCookieName(constants.Cookies.Refresh, cookiePrefix), ...cookieOptions });
-    cookieStore.delete({ name: constants.Cookies.Custom, ...cookieOptions });
+    const finalDeleteOptions = {
+      path: deleteOptions?.path,
+      domain: deleteOptions?.domain,
+      httpOnly: deleteOptions?.httpOnly,
+      secure: deleteOptions?.secure,
+      sameSite: deleteOptions?.sameSite,
+    };
 
-    if (
-      SESSION_CONSTANTS.REVOKE_REFRESH_TOKENS_ON_SIGNOUT &&
-      sessionCookie?.value
-    ) {
+    cookieStore.delete({ name: SESSION_CONSTANTS.COOKIE_NAME, ...finalDeleteOptions });
+    cookieStore.delete({ name: idTokenCookieName, ...finalDeleteOptions });
+    cookieStore.delete({
+      name: getCookieName(constants.Cookies.Refresh, cookiePrefix),
+      ...finalDeleteOptions,
+    });
+    cookieStore.delete({ name: constants.Cookies.Custom, ...finalDeleteOptions });
+
+    const shouldRevokeTokens =
+      deleteOptions?.revokeRefreshTokensOnSignOut ??
+      SESSION_CONSTANTS.REVOKE_REFRESH_TOKENS_ON_SIGNOUT;
+
+    if (shouldRevokeTokens) {
       try {
-        const decodedClaims = await tenantAuth.verifySessionCookie(
-          sessionCookie.value
-        );
-        await tenantAuth.revokeRefreshTokens(decodedClaims.sub);
-        console.log(
-          `[clearSessionCookie] Successfully revoked tokens for user: ${decodedClaims.sub}`
-        );
+        let userSub: string | undefined;
+
+        // Try to get user sub from session cookie first
+        if (sessionCookie?.value) {
+          try {
+            const decodedClaims = await tenantAuth.verifySessionCookie(sessionCookie.value);
+            userSub = decodedClaims.sub;
+          } catch (sessionError) {
+            debugLog.warn(
+              '[ClearNextSessionCookie] Session cookie verification failed:',
+              sessionError,
+            );
+          }
+        }
+
+        // If no session cookie, try idToken cookie
+        if (!userSub) {
+          if (idTokenCookie?.value) {
+            try {
+              const decodedIdToken = await tenantAuth.verifyIdToken(idTokenCookie.value);
+              userSub = decodedIdToken.sub;
+            } catch (idTokenError) {
+              debugLog.warn('[ClearNextSessionCookie] ID token verification failed:', idTokenError);
+            }
+          }
+        }
+
+        // Revoke tokens if we got a user sub
+        if (userSub) {
+          await tenantAuth.revokeRefreshTokens(userSub);
+          debugLog.log(`[ClearNextSessionCookie] Successfully revoked tokens for user: ${userSub}`);
+        } else {
+          debugLog.warn('[ClearNextSessionCookie] No valid token found for revocation');
+        }
       } catch (revokeError) {
-        console.error(
-          "[ClearNextSessionCookie] Failed to revoke refresh tokens:",
-          revokeError
-        );
+        debugLog.error('[ClearNextSessionCookie] Failed to revoke refresh tokens:', revokeError);
       }
     }
-    return { success: true, message: "Session cleared successfully" };
+    return { success: true, message: 'Session cleared successfully' };
   } catch (error) {
-    console.error("Error clearing session:", error);
-    return { success: false, message: "Failed to clear session cookies" };
+    debugLog.error('Error clearing session:', error);
+    return { success: false, message: 'Failed to clear session cookies' };
+  }
+}
+
+export async function ClearNextSessionCookie_old(cookieStore: CookieStore): Promise<SessionResult> {
+  try {
+    const cookiePrefix = getCookiePrefix();
+
+    const deletionPromises: Promise<void>[] = [];
+
+    // Always delete default cookies
+    const idTokenCookieName = getCookieName(constants.Cookies.IdToken, cookiePrefix);
+    deletionPromises.push(cookieStore.delete(idTokenCookieName));
+
+    const refreshTokenCookieName = getCookieName(constants.Cookies.Refresh, cookiePrefix);
+    deletionPromises.push(cookieStore.delete(refreshTokenCookieName));
+
+    const customTokenCookieName = getCookieName(constants.Cookies.Custom, cookiePrefix);
+    deletionPromises.push(cookieStore.delete(customTokenCookieName));
+
+    // Also delete legacy cookie names for backward compatibility
+    deletionPromises.push(cookieStore.delete(constants.Cookies.Session));
+
+    await Promise.all(deletionPromises);
+
+    return {
+      success: true,
+      message: 'Session cleared successfully',
+    };
+  } catch (error) {
+    const authError = handleFirebaseAuthError(error);
+    return {
+      success: false,
+      message: authError.message || 'Failed to clear session',
+      error: authError.code || 'INTERNAL_ERROR',
+    };
   }
 }

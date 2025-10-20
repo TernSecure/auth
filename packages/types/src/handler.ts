@@ -85,6 +85,7 @@ export interface TernSecureHandlerOptions {
     sessions?: SessionEndpointConfig;
   };
   tenantId?: string | null;
+  revokeRefreshTokensOnSignOut?: boolean;
   enableCustomToken?: boolean;
   debug?: boolean;
   environment?: 'development' | 'production' | 'test';
