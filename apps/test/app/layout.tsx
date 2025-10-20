@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { TernSecureProvider } from '@tern-secure/nextjs';
+import { Header} from '@/components/header';
 import './globals.css';
 
 const geistSans = Geist({
@@ -31,6 +32,7 @@ export default async function RootLayout({
           isTernSecureDev={true}
           persistence='local'
         >
+          <Header />
           {children}
         </TernSecureProvider>
       </body>
