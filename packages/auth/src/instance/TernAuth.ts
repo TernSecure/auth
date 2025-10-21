@@ -7,6 +7,7 @@ import type {
   DomainOrProxyUrl,
   InstanceType,
   ListenerCallback,
+  NavigateOptions,
   RedirectOptions,
   SessionResource,
   SignedInSession,
@@ -32,6 +33,7 @@ import { getApps, initializeApp } from 'firebase/app';
 import type { Auth, Auth as TernAuth } from 'firebase/auth';
 import {
   browserLocalPersistence,
+  browserPopupRedirectResolver,
   browserSessionPersistence,
   connectAuthEmulator,
   getIdToken,
@@ -45,7 +47,13 @@ import { getInstallations } from 'firebase/installations';
 
 import { type ClientAuthRequest, createClientAuthRequest } from '../auth/request';
 import { AuthCookieManager, Session, SignIn, SignUp, TernSecureBase } from '../resources/internal';
-import { buildURL, hasRedirectLoop } from '../utils/construct';
+import {
+  ALLOWED_PROTOCOLS,
+  buildURL,
+  hasRedirectLoop,
+  stripOrigin,
+  windowNavigate,
+} from '../utils/';
 import { type ApiClient, createCoreApiClient } from './c_coreApiClient';
 import { eventBus, events } from './events';
 import { createClientFromJwt } from './jwtClient';
@@ -88,9 +96,9 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   #clientAuthRequest?: ClientAuthRequest;
   #publicEventBus = createTernAuthEventBus();
 
-  signIn!: SignInResource;
-  signUp!: SignUpResource;
-  session!: SessionResource;
+  signIn!: SignInResource | null | undefined;
+  signUp!: SignUpResource | null | undefined;
+  session!: SessionResource | null | undefined;
 
   get isReady(): boolean {
     return this.status === 'ready';
@@ -183,7 +191,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return Object.freeze({ ...this.#options });
   }
 
-  static getorCreateInstance(options?: TernSecureAuthOptions): TernSecureAuth {
+  static getOrCreateInstance(options?: TernSecureAuthOptions): TernSecureAuth {
     if (!this.instance) {
       this.instance = new TernSecureAuth(options);
     }
@@ -201,12 +209,22 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   }
 
   public static initialize(options: TernSecureAuthOptions): TernSecureAuth {
-    const instance = this.getorCreateInstance(options);
+    const instance = this.getOrCreateInstance(options);
     instance.#initialize(options);
     return instance;
   }
 
-  #initialize = (options: TernSecureAuthOptions): TernSecureAuth => {
+  initialize = async (options?: TernSecureAuthOptions): Promise<void> => {
+    void this.#initialize(options || {});
+  };
+
+  public static create(options: TernSecureAuthOptions): TernSecureAuth {
+    const instance = this.getOrCreateInstance();
+    void instance.initialize(options);
+    return instance;
+  }
+
+  #initialize = (options: TernSecureAuthOptions): void => {
     this.#options = this.#initOptions(options);
 
     try {
@@ -242,7 +260,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       this.#setStatus('ready');
       this.#publicEventBus.emit(ternEvents.Status, 'ready');
 
-      return this;
+      //return this;
     } catch (error) {
       this.error = error as Error;
       this.#setStatus('error');
@@ -258,6 +276,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     const persistence = this.#setPersistence();
     const auth = initializeAuth(this.firebaseClientApp, {
       persistence,
+      popupRedirectResolver: browserPopupRedirectResolver,
     });
 
     this.auth = auth;
@@ -271,7 +290,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     getInstallations(this.firebaseClientApp);
   }
 
-
   /**
    * use when cookie are not httpOnly
    */
@@ -281,7 +299,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     this.user = jwtClient as TernSecureUser | null;
     this.#emit();
   };
-
 
   /**
    * @deprecated will be removed in future releases.
@@ -296,10 +313,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
         this.#emit();
       })
       .catch(error => {
-        console.error(
-          '[ternauth] Error during client auth request initialization:',
-          error
-        );
+        console.error('[ternauth] Error during client auth request initialization:', error);
         this.user = null;
         this.#emit();
       });
@@ -472,35 +486,30 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
   };
 
-  public initialize(options: TernSecureAuthOptions): Promise<void> {
-    this._initialize(options);
-    return Promise.resolve();
-  }
-
-  public static create(options: TernSecureAuthOptions): TernSecureAuth {
-    const instance = this.getorCreateInstance();
-    instance.initialize(options);
-    return instance;
-  }
-
-  _initialize = (options: TernSecureAuthOptions): void => {
-    this.#options = this.#initOptions(options);
-    try {
-      if (!this.#options.ternSecureConfig) {
-        throw new Error('TernSecureConfig is required to initialize TernSecureAuth');
-      }
-
-      this.initializeFirebaseApp(this.#options.ternSecureConfig);
-
-      this.signIn = new SignIn(this.auth, this.csrfToken);
-      this.signUp = new SignUp(this.auth);
-
-      this.#setStatus('ready');
-    } catch (error) {
-      this.error = error as Error;
-      this.#setStatus('error');
-      throw error;
+  public navigate = async (to: string | undefined, options?: NavigateOptions): Promise<unknown> => {
+    if (!to || !inBrowser()) {
+      return;
     }
+
+    let toURL = new URL(to, window.location.href);
+
+    if (!this.#allowedRedirectProtocols.includes(toURL.protocol)) {
+      console.warn(
+        `TernSecureAuth: "${toURL.protocol}" is not a valid protocol. Redirecting to "/" instead. If you think this is a mistake, please open an issue.`,
+      );
+      toURL = new URL('/', window.location.href);
+    }
+
+    const customNavigate =
+      options?.replace && this.#options.routerReplace
+        ? this.#options.routerReplace
+        : this.#options.routerPush;
+
+    if ((toURL.origin !== 'null' && toURL.origin !== window.location.origin) || !customNavigate) {
+      windowNavigate(toURL);
+      return;
+    }
+    return customNavigate(stripOrigin(toURL));
   };
 
   public constructUrlWithAuthRedirect = (to: string): string => {
@@ -666,25 +675,23 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
   public redirectToSignIn = async (options?: SignInRedirectOptions): Promise<unknown> => {
     if (inBrowser()) {
-      const url = this.constructSignInUrl(options);
-      window.location.href = url;
+      return this.navigate(this.constructSignInUrl(options));
     }
     return;
   };
 
   public redirectToSignUp = async (options?: SignUpRedirectOptions): Promise<unknown> => {
     if (inBrowser()) {
-      const redirectUrl = this.constructSignUpUrl();
-      window.location.href = redirectUrl;
+      return this.navigate(this.constructSignUpUrl());
     }
     return;
   };
 
-  redirectAfterSignIn = async (): Promise<void> => {
+  public redirectAfterSignIn = async (): Promise<unknown> => {
     if (inBrowser()) {
-      const destinationUrl = this.#constructAfterSignInUrl();
-      window.location.href = destinationUrl;
+      return this.navigate(this.#constructAfterSignInUrl());
     }
+    return;
   };
 
   redirectAfterSignUp = (): void => {
@@ -698,6 +705,16 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   public constructSignUpUrl = (options?: SignUpRedirectOptions): string => {
     return this.#buildUrl('signUpUrl', { ...options });
   };
+
+  get #allowedRedirectProtocols() {
+    let allowedProtocols = ALLOWED_PROTOCOLS;
+
+    if (this.#options.allowedRedirectProtocols) {
+      allowedProtocols = allowedProtocols.concat(this.#options.allowedRedirectProtocols);
+    }
+
+    return allowedProtocols;
+  }
 
   __internal_setCountry = (country: string | null) => {
     if (!this.__internal_country) {

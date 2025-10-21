@@ -71,7 +71,7 @@ const useInitTernSecureAuth = (options: IsoTernSecureAuthOptions) => {
   }, [isoTernSecureAuth]);
 
   useEffect(() => {
-    isoTernSecureAuth.initialize();
+    void isoTernSecureAuth.initialize();
   }, [isoTernSecureAuth]);
 
   useEffect(() => {

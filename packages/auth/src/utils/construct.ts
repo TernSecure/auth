@@ -247,3 +247,20 @@ const validateUrl = (url: string): string => {
 export function toURL(url: string | URL): URL {
   return new URL(url.toString(), window.location.origin);
 }
+
+/**
+ *
+ * stripOrigin(url: URL | string): string
+ *
+ * Strips the origin part of a URL and preserves path, search and hash is applicable
+ *
+ * References:
+ * https://developer.mozilla.org/en-US/docs/Web/API/URL
+ *
+ * @param {URL | string} url
+ * @returns {string} Returns the URL href without the origin
+ */
+export function stripOrigin(url: URL | string): string {
+  url = toURL(url);
+  return url.href.replace(url.origin, '');
+}

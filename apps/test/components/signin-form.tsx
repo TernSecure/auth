@@ -28,6 +28,22 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     }
   };
 
+  const signInWithSocialProvider = async (provider: string) => {
+    const res = await signIn.withSocialProvider(provider, { mode: 'popup' });
+    if (res?.status === 'error') {
+      setFormError({
+        status: 'error',
+        message: res.message,
+        error: res.error,
+      });
+    }
+
+    if (res?.status === 'success') {
+      //handleSuccess(res.user || null);
+      createActiveSession({ session: res.user });
+    }
+  };
+
   const signInPasswordField = async () => {
     const res = await signIn.withEmailAndPassword({ email, password });
     if (res.status === 'error') {
@@ -72,6 +88,8 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                 <Button
                   variant='outline'
                   className='w-full'
+                  type='button'
+                  onClick={() => signInWithSocialProvider('apple')}
                 >
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
@@ -87,6 +105,8 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                 <Button
                   variant='outline'
                   className='w-full'
+                  type='button'
+                  onClick={() => signInWithSocialProvider('google')}
                 >
                   <svg
                     xmlns='http://www.w3.org/2000/svg'

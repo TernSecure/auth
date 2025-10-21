@@ -1,4 +1,4 @@
-import { TernSecureAuth as TernSecureAuthImpl } from '@tern-secure/auth'
+import { TernSecureAuth as TernSecureAuthImpl } from '@tern-secure/auth';
 import { createTernAuthEventBus, ternEvents } from '@tern-secure/shared/ternStatusEvent';
 import { handleValueOrFn } from '@tern-secure/shared/utils';
 import type {
@@ -67,16 +67,16 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     return this.options.requiresVerification ?? true;
   }
 
-  get signIn(): SignInResource | undefined | null {
+  get signIn(): SignInResource | undefined {
     if (this.ternauth) {
-      return this.ternauth.signIn;
+      return this.ternauth.signIn || undefined;
     }
     return undefined;
   }
 
-  get signUp(): SignUpResource | undefined | null {
+  get signUp(): SignUpResource | undefined {
     if (this.ternauth) {
-      return this.ternauth.signUp;
+      return this.ternauth.signUp || undefined;
     }
     return undefined;
   }
@@ -85,6 +85,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     if (this.ternauth) {
       return this.ternauth.user;
     }
+    return null;
   }
 
   static getOrCreateInstance(options: IsoTernSecureAuthOptions) {
@@ -95,7 +96,6 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     ) {
       this.#instance = new IsoTernSecureAuth(options);
     }
-    //console.log('[IsoTernSecureAuth] getOrCreateInstance', this.#instance);
     return this.#instance;
   }
 
@@ -137,13 +137,17 @@ export class IsoTernSecureAuth implements TernSecureAuth {
   /**
    * @internal
    */
-  public _internal_getOption<K extends keyof TernSecureAuthOptions>(key: K): TernSecureAuthOptions[K] | undefined {
-    return this.ternauth?._internal_getOption ? this.ternauth?._internal_getOption(key) : this.options[key];
+  public _internal_getOption<K extends keyof TernSecureAuthOptions>(
+    key: K,
+  ): TernSecureAuthOptions[K] | undefined {
+    return this.ternauth?._internal_getOption
+      ? this.ternauth?._internal_getOption(key)
+      : this.options[key];
   }
 
-  /** 
+  /**
    * @internal
-  */
+   */
   public _internal_getAllOptions(): Readonly<TernSecureAuthOptions> {
     return Object.freeze({ ...this.options });
   }
@@ -159,8 +163,6 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     if (!this.options.sdkMetadata) {
       this.options.sdkMetadata = SDK_METADATA;
     }
-
-    this.initTernSecureAuth();
   }
 
   get sdkMetadata() {
@@ -179,8 +181,8 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     return this.#apiUrl || '';
   }
 
-  async initTernSecureAuth() {
-    if (this._mode !== 'browser' && this.isReady) {
+  initTernSecureAuth() {
+    if (this._mode !== 'browser' || this.isReady) {
       return;
     }
 
@@ -251,7 +253,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     } else {
       return Promise.reject(new Error('TernSecureAuth not initialized'));
     }
-  }
+  };
 
   signOut = async (options?: SignOutOptions): Promise<void> => {
     if (!this.ternauth) {
@@ -265,7 +267,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
       return null;
     }
     return this.ternauth.currentSession;
-  };
+  }
 
   onAuthStateChanged(callback: (user: any) => void): () => void {
     if (!this.ternauth) {
@@ -300,7 +302,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     if (this.ternauth?.redirectAfterSignIn) {
       this.ternauth.redirectAfterSignIn();
     }
-  }
+  };
 
   redirectAfterSignUp = (redirectUrl?: string): void => {
     if (this.ternauth?.redirectAfterSignUp) {
@@ -315,6 +317,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
   }
 
   initialize = async (): Promise<void> => {
+    this.initTernSecureAuth();
     try {
       await this.#awaitForTernSecureAuth();
     } catch (error) {

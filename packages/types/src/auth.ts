@@ -36,7 +36,7 @@ export type TernSecureStateExtended = {
   userId: string | null;
   token: string | null;
   user?: TernSecureUser | null;
-}
+};
 
 export type AuthProviderStatus = 'idle' | 'pending' | 'error' | 'success';
 
@@ -109,9 +109,31 @@ export interface TernSecureResources {
 export type CreateActiveSessionParams = {
   session?: TernSecureUser | null;
   redirectUrl?: string;
-}
+};
 
 export type CreateActiveSession = (params: CreateActiveSessionParams) => Promise<void>;
+
+/**
+ * Navigation options used to replace or push history changes.
+ * Both `routerPush` & `routerReplace` OR none options should be passed.
+ */
+type TernSecureOptionsNavigation =
+  | {
+      /**
+       * A function which takes the destination path as an argument and performs a "push" navigation.
+       */
+      routerPush?: never;
+      /**
+       * A function which takes the destination path as an argument and performs a "replace" navigation.
+       */
+      routerReplace?: never;
+      routerDebug?: boolean;
+    }
+  | {
+      routerPush: RouterFn;
+      routerReplace: RouterFn;
+      routerDebug?: boolean;
+    };
 
 export type TernSecureAuthOptions = {
   apiUrl?: string;
@@ -124,11 +146,20 @@ export type TernSecureAuthOptions = {
   ternSecureConfig?: TernSecureConfig;
   persistence?: Persistence;
   enableServiceWorker?: boolean;
+  /**
+   * An optional array of domains to validate user-provided redirect URLs against. If no match is made, the redirect is considered unsafe and the default redirect will be used with a warning logged in the console.
+   */
+  allowedRedirectOrigins?: Array<string | RegExp>;
+  /**
+   * An optional array of protocols to validate user-provided redirect URLs against. If no match is made, the redirect is considered unsafe and the default redirect will be used with a warning logged in the console.
+   */
+  allowedRedirectProtocols?: Array<string>;
   experimental?: {
     /** rethrow network errors that occur while the offline */
     rethrowOfflineNetworkErrors?: boolean;
   };
-} & SignInRedirectUrl &
+} & TernSecureOptionsNavigation &
+  SignInRedirectUrl &
   SignUpRedirectUrl &
   AfterSignOutUrl;
 
@@ -138,6 +169,11 @@ export type TernAuthListenerEventPayload = {
   sessionChanged: SignedInSession | null;
   tokenRefreshed: string | null;
 };
+
+export interface NavigateOptions {
+  replace?: boolean;
+  metadata?: RouterMetadata;
+}
 
 export type TernAuthListenerEvent = keyof TernAuthListenerEventPayload;
 
@@ -203,7 +239,7 @@ export interface TernSecureAuth {
   requiresVerification: boolean;
 
   /** Initialize TernSecureAuth */
-  initialize(options?: TernSecureAuthOptions): Promise<void>;
+  initialize: (options?: TernSecureAuthOptions) => Promise<void>;
 
   /**
    * @internal
@@ -330,3 +366,54 @@ export type SignUpProps = {
 export type SignInRedirectOptions = RedirectOptions;
 export type SignUpRedirectOptions = RedirectOptions;
 
+export type RoutingStrategy = 'path' | 'hash' | 'virtual';
+
+/**
+ * Internal is a navigation type that affects the component
+ *
+ */
+type NavigationType =
+  /**
+   * Internal navigations affect the components and alter the
+   * part of the URL that comes after the `path` passed to the component.
+   * eg  <SignIn path='sign-in'>
+   * going from /sign-in to /sign-in/factor-one is an internal navigation
+   */
+  | 'internal'
+  /**
+   * Internal navigations affect the components and alter the
+   * part of the URL that comes before the `path` passed to the component.
+   * eg  <SignIn path='sign-in'>
+   * going from /sign-in to / is an external navigation
+   */
+  | 'external'
+  /**
+   * Window navigations are navigations towards a different origin
+   * and are not handled by the TernSecure component or the host app router.
+   */
+  | 'window';
+
+type RouterMetadata = { routing?: RoutingStrategy; navigationType?: NavigationType };
+
+/**
+ * @inline
+ */
+type RouterFn = (
+  /**
+   * The destination path
+   */
+  to: string,
+  /**
+   * Optional metadata
+   */
+  metadata?: {
+    /**
+     * @internal
+     */
+    __internal_metadata?: RouterMetadata;
+    /**
+     * Provide a function to be used for navigation.
+     */
+    windowNavigate: (to: URL | string) => void;
+  },
+) => Promise<unknown> | unknown;

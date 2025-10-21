@@ -1,6 +1,7 @@
 .cache
 .changeset
 .github
+.gemini
 .idea
 .next
 .temp_integration
