@@ -20,7 +20,6 @@ import {
 
 import { TernSecureBase } from './Base';
 
-
 type SignInResponse = SignInResponseFromTypes;
 
 interface ProviderConfig {
@@ -117,17 +116,13 @@ export class SignIn extends TernSecureBase implements SignInResource {
         const redirectResult = await this.authRedirectResult();
 
         if (redirectResult) {
-          if (redirectResult.status === 'success') {
-            console.log('Redirect after sign in');
-          }
           return redirectResult;
         }
 
         await this._signInWithRedirect(provider);
         return;
       } else {
-        const result = await this._signInWithPopUp(provider);
-        return result;
+        return await this._signInWithPopUp(provider);
       }
     } catch (error: any) {
       return {
@@ -238,9 +233,9 @@ export class SignIn extends TernSecureBase implements SignInResource {
     try {
       const config = this.getProviderConfig(providerName);
       config.provider.setCustomParameters(config.customParameters);
-      
+
       const credential = await authMethod(this.auth, config.provider);
-      
+
       if (credential) {
         return {
           status: 'success',
@@ -250,10 +245,10 @@ export class SignIn extends TernSecureBase implements SignInResource {
           operationType: credential.operationType,
         };
       }
-      
-      return { 
-        status: 'success', 
-        message: 'Redirect initiated' 
+
+      return {
+        status: 'success',
+        message: 'Redirect initiated',
       };
     } catch (error) {
       const authError = handleFirebaseAuthError(error);
@@ -263,7 +258,7 @@ export class SignIn extends TernSecureBase implements SignInResource {
         error: authError.code,
       };
     }
-  }
+  };
 
   private async _signInWithRedirect(providerName: string): Promise<SignInResponse> {
     return this.executeAuthMethod(signInWithRedirect, providerName);

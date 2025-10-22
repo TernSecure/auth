@@ -8,13 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useSignIn, useSignInContext, useTernSecure } from '@tern-secure/nextjs';
-import type { SignInResponse, TernSecureUser } from '@tern-secure/nextjs';
+import type { SignInResponse } from '@tern-secure/nextjs';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { signIn, isLoaded } = useSignIn();
-  const { handleSignInSuccess, redirectAfterSignIn } = useSignInContext();
+  const ctx = useSignInContext();
+  const { afterSignInUrl, handleSignInSuccess } = ctx;
   const { createActiveSession } = useTernSecure();
   const [formError, setFormError] = useState<SignInResponse | null>(null);
 
@@ -22,11 +23,11 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     return null;
   }
 
-  const handleSuccess = (user: TernSecureUser | null) => {
-    if (user) {
-      handleSignInSuccess(user);
-    }
-  };
+  //const handleSuccess = (user: TernSecureUser) => {
+  //  if (user) {
+  //    handleSignInSuccess(user);
+  //  }
+  //};
 
   const signInWithSocialProvider = async (provider: string) => {
     const res = await signIn.withSocialProvider(provider, { mode: 'popup' });
@@ -39,8 +40,8 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     }
 
     if (res?.status === 'success') {
-      //handleSuccess(res.user || null);
-      createActiveSession({ session: res.user });
+      //handleSuccess(res.user);
+      createActiveSession({ session: res.user, redirectUrl: afterSignInUrl });
     }
   };
 
@@ -54,7 +55,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       });
     }
     if (res.status === 'success') {
-      createActiveSession({ session: res.user });
+      createActiveSession({ session: res.user, redirectUrl: afterSignInUrl });
     }
   };
 

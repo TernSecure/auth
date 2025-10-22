@@ -102,7 +102,7 @@ export async function authenticateRequest(
       }
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const signedInRequestState = signedIn(data, undefined, context.idTokenInCookie!);
+      const signedInRequestState = signedIn(context, data, undefined, context.idTokenInCookie!);
       return signedInRequestState;
     } catch (err) {
       return handleError(err, 'cookie');
@@ -120,7 +120,7 @@ export async function authenticateRequest(
       }
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const signedInRequestState = signedIn(data, undefined, sessionTokenInHeader!);
+      const signedInRequestState = signedIn(context, data, undefined, sessionTokenInHeader!);
       return signedInRequestState;
     } catch (err) {
       return handleError(err, 'header');
@@ -132,14 +132,14 @@ export async function authenticateRequest(
     tokenCarrier: TokenCarrier,
   ): Promise<SignedInState | SignedOutState> {
     if (!(err instanceof TokenVerificationError)) {
-      return signedOut(AuthErrorReason.UnexpectedError);
+      return signedOut(context, AuthErrorReason.UnexpectedError);
     }
 
     let refreshError: string | null;
     if (isRequestForRefresh(err, context, request)) {
       const { data, error } = await handleRefresh();
       if (data) {
-        return signedIn(data.decoded, data.headers, data.token);
+        return signedIn(context, data.decoded, data.headers, data.token);
       }
 
       if (error?.cause?.reason) {
@@ -157,7 +157,7 @@ export async function authenticateRequest(
 
     err.tokenCarrier = tokenCarrier;
 
-    return signedOut(err.reason, err.getFullMessage());
+    return signedOut(context, err.reason, err.getFullMessage());
   }
 
   if (hasAuthorizationHeader(request)) {

@@ -1,4 +1,4 @@
-import {createTernSecureRequest,  type TernSecureRequest } from "@tern-secure/backend";
+import {createRedirect,  createTernSecureRequest, type TernSecureRequest } from "@tern-secure/backend";
 import {
   createBackendInstance,
 } from "@tern-secure/backend/admin";
@@ -13,7 +13,6 @@ import {
   redirectToSignInError,
   redirectToSignUpError,
 } from "../nextErrors";
-import { createRedirect } from "../redirect";
 import type { BaseUser ,
   NextMiddlewareEvtParam,
   NextMiddlewareRequestParam,

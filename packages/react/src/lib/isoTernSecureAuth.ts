@@ -286,6 +286,13 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     return this.ternauth.getRedirectResult();
   };
 
+  constructUrlWithAuthRedirect = (to: string): string => {
+    if (this.ternauth && this.isReady) {
+      return this.ternauth.constructUrlWithAuthRedirect(to);
+    }
+    return '';
+  };
+
   redirectToSignIn = async (options?: SignInRedirectOptions) => {
     if (this.ternauth?.redirectToSignIn) {
       this.ternauth.redirectToSignIn(options);

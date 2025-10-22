@@ -1,4 +1,3 @@
-
 const buildUrl = (
   _baseUrl: string | URL,
   _targetUrl: string | URL,
@@ -17,8 +16,6 @@ const buildUrl = (
   }
   return res.toString();
 };
-
-
 
 const legacyBuildUrl = (targetUrl: string, redirectUrl?: string) => {
   let url;
@@ -40,7 +37,6 @@ const legacyBuildUrl = (targetUrl: string, redirectUrl?: string) => {
   return url.toString();
 };
 
-
 type RedirectAdapter<RedirectReturn> = (url: string) => RedirectReturn;
 type RedirectToParams = { returnBackUrl?: string | URL | null };
 export type RedirectFun<ReturnType> = (params?: RedirectToParams) => ReturnType;
@@ -58,17 +54,16 @@ type CreateRedirect = <ReturnType>(params: {
   redirectToSignUp: RedirectFun<ReturnType>;
 };
 
-
 export const createRedirect: CreateRedirect = params => {
   const { redirectAdapter, signInUrl, signUpUrl, baseUrl } = params;
 
   const redirectToSignUp = ({ returnBackUrl }: RedirectToParams = {}) => {
     if (!signUpUrl) {
-        throw new Error("SignUp URL is not defined");
+      throw new Error('SignUp URL is not defined');
     }
 
     const pathToSignUpUrl = `${baseUrl}/sign-up`;
-    
+
     function buildSignUpUrl(signIn: string | URL | undefined) {
       if (!signIn) {
         return;
@@ -80,13 +75,12 @@ export const createRedirect: CreateRedirect = params => {
 
     const targetUrl = signUpUrl || buildSignUpUrl(signInUrl) || pathToSignUpUrl;
 
-
     return redirectAdapter(buildUrl(baseUrl, targetUrl, returnBackUrl));
   };
 
   const redirectToSignIn = ({ returnBackUrl }: RedirectToParams = {}) => {
     if (!signInUrl) {
-      throw new Error("SignIn URL is not defined");
+      throw new Error('SignIn URL is not defined');
     }
 
     const pathToSignInUrl = `${baseUrl}/sign-in`;

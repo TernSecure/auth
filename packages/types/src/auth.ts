@@ -6,8 +6,10 @@ import type { DecodedIdToken } from './jwt';
 import type {
   AfterSignOutUrl,
   RedirectOptions,
-  SignInRedirectUrl,
-  SignUpRedirectUrl,
+  SignInFallbackRedirectUrl,
+  SignInForceRedirectUrl,
+  SignUpFallbackRedirectUrl,
+  SignUpForceRedirectUrl,
 } from './redirect';
 import type { AuthErrorResponse, SignInInitialValue, SignInResource } from './signIn';
 
@@ -135,33 +137,35 @@ type TernSecureOptionsNavigation =
       routerDebug?: boolean;
     };
 
-export type TernSecureAuthOptions = {
-  apiUrl?: string;
-  sdkMetadata?: TernAuthSDK;
-  signInUrl?: string;
-  signUpUrl?: string;
-  mode?: Mode;
-  requiresVerification?: boolean;
-  isTernSecureDev?: boolean;
-  ternSecureConfig?: TernSecureConfig;
-  persistence?: Persistence;
-  enableServiceWorker?: boolean;
-  /**
-   * An optional array of domains to validate user-provided redirect URLs against. If no match is made, the redirect is considered unsafe and the default redirect will be used with a warning logged in the console.
-   */
-  allowedRedirectOrigins?: Array<string | RegExp>;
-  /**
-   * An optional array of protocols to validate user-provided redirect URLs against. If no match is made, the redirect is considered unsafe and the default redirect will be used with a warning logged in the console.
-   */
-  allowedRedirectProtocols?: Array<string>;
-  experimental?: {
-    /** rethrow network errors that occur while the offline */
-    rethrowOfflineNetworkErrors?: boolean;
+export type TernSecureAuthOptions = TernSecureOptionsNavigation &
+  SignInForceRedirectUrl &
+  SignInFallbackRedirectUrl &
+  SignUpForceRedirectUrl &
+  SignUpFallbackRedirectUrl &
+  AfterSignOutUrl & {
+    apiUrl?: string;
+    sdkMetadata?: TernAuthSDK;
+    signInUrl?: string;
+    signUpUrl?: string;
+    mode?: Mode;
+    requiresVerification?: boolean;
+    isTernSecureDev?: boolean;
+    ternSecureConfig?: TernSecureConfig;
+    persistence?: Persistence;
+    enableServiceWorker?: boolean;
+    /**
+     * An optional array of domains to validate user-provided redirect URLs against. If no match is made, the redirect is considered unsafe and the default redirect will be used with a warning logged in the console.
+     */
+    allowedRedirectOrigins?: Array<string | RegExp>;
+    /**
+     * An optional array of protocols to validate user-provided redirect URLs against. If no match is made, the redirect is considered unsafe and the default redirect will be used with a warning logged in the console.
+     */
+    allowedRedirectProtocols?: Array<string>;
+    experimental?: {
+      /** rethrow network errors that occur while the offline */
+      rethrowOfflineNetworkErrors?: boolean;
+    };
   };
-} & TernSecureOptionsNavigation &
-  SignInRedirectUrl &
-  SignUpRedirectUrl &
-  AfterSignOutUrl;
 
 export type TernAuthListenerEventPayload = {
   authStateChanged: TernSecureState;
@@ -287,6 +291,11 @@ export interface TernSecureAuth {
   /** Create an active session */
   createActiveSession: CreateActiveSession;
 
+  /**
+   * @param {string} to
+   */
+  constructUrlWithAuthRedirect(to: string): string;
+
   /** Navigate to SignIn page */
   redirectToSignIn(options?: SignInRedirectOptions): Promise<unknown>;
   /** Navigate to SignUp page */
@@ -348,7 +357,7 @@ export type SignInProps = {
   initialValue?: SignInInitialValue;
   /** Callbacks */
   onSuccess?: (user: TernSecureUser | null) => void;
-} & SignUpRedirectUrl;
+} & SignUpForceRedirectUrl;
 
 /**
  * Props for SignUp component focusing on UI concerns
@@ -361,7 +370,7 @@ export type SignUpProps = {
   /** Callbacks */
   onSubmit?: (values: SignUpFormValues) => Promise<void>;
   onSuccess?: (user: TernSecureUser | null) => void;
-} & SignInRedirectUrl;
+} & SignInForceRedirectUrl;
 
 export type SignInRedirectOptions = RedirectOptions;
 export type SignUpRedirectOptions = RedirectOptions;

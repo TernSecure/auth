@@ -1,4 +1,6 @@
 export { constants } from './constants';
+export { createRedirect } from './createRedirect';
+export type { RedirectFun } from './createRedirect';
 
 export type { TernSecureRequest } from './tokens/ternSecureRequest';
 export { createTernSecureRequest } from './tokens/ternSecureRequest';
@@ -14,8 +16,6 @@ export type {
 export { signedIn, signedInAuthObject, signedOutAuthObject, AuthStatus } from './tokens/authstate';
 
 export { createBackendInstanceClient } from './instance/backendInstanceEdge';
-
-export { createFireClient } from './instance/backendFireInstance';
 
 export type { BackendInstance, TernSecureBackendOptions } from './instance/backendInstanceEdge';
 

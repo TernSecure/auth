@@ -47,13 +47,8 @@ import { getInstallations } from 'firebase/installations';
 
 import { type ClientAuthRequest, createClientAuthRequest } from '../auth/request';
 import { AuthCookieManager, Session, SignIn, SignUp, TernSecureBase } from '../resources/internal';
-import {
-  ALLOWED_PROTOCOLS,
-  buildURL,
-  hasRedirectLoop,
-  stripOrigin,
-  windowNavigate,
-} from '../utils/';
+import { ALLOWED_PROTOCOLS, buildURL, stripOrigin, windowNavigate } from '../utils/';
+import { RedirectUrls } from '../utils/redirectUrls';
 import { type ApiClient, createCoreApiClient } from './c_coreApiClient';
 import { eventBus, events } from './events';
 import { createClientFromJwt } from './jwtClient';
@@ -330,9 +325,9 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     if (options?.onAfterSignOut) {
       await options.onAfterSignOut();
     }
-    if (inBrowser()) {
-      window.location.href = redirectUrl;
-    }
+    
+    await this.navigate(redirectUrl);
+
     eventBus.emit(events.UserSignOut, null);
     eventBus.emit(events.TokenUpdate, { token: null });
     this.#emit();
@@ -478,7 +473,11 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       const sessionResult = await session.getIdTokenResult();
       const sessionData = new Session(sessionResult);
       await sessionData.create(this.csrfToken || '');
-      await this.redirectAfterSignIn();
+
+      if (redirectUrl) {
+        await this.navigate(this.constructUrlWithAuthRedirect(redirectUrl));
+      }
+
       this.#setCreatedActiveSession(session);
       this.#emit();
     } catch (error) {
@@ -509,10 +508,20 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       windowNavigate(toURL);
       return;
     }
-    return customNavigate(stripOrigin(toURL));
+
+    const metadata = {
+      ...(options?.metadata ? { __internal_metadata: options?.metadata } : {}),
+      windowNavigate,
+    };
+
+    // React router only wants the path, search or hash portion.
+    return await customNavigate(stripOrigin(toURL), metadata);
   };
 
   public constructUrlWithAuthRedirect = (to: string): string => {
+    if (this.#instanceType === 'production') {
+      return to;
+    }
     const baseUrl = window.location.origin;
     const url = new URL(to, baseUrl);
 
@@ -532,138 +541,22 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     const defaultPagePath = key === 'signInUrl' ? '/sign-in' : '/sign-up';
     const base = baseUrlConfig || defaultPagePath;
 
-    let effectiveRedirectUrl: string | null | undefined;
-
-    // Priority 1: Get redirect URL from options (signInForceRedirectUrl or signUpForceRedirectUrl)
-    if (key === 'signInUrl' && 'signInForceRedirectUrl' in options) {
-      effectiveRedirectUrl = options.signInForceRedirectUrl;
-    } else if (key === 'signUpUrl' && 'signUpForceRedirectUrl' in options) {
-      effectiveRedirectUrl = options.signUpForceRedirectUrl;
-    }
-
-    // Priority 2: If no force redirect from options, check 'redirect' param in current URL (only in browser)
-    if (!effectiveRedirectUrl && inBrowser()) {
-      const currentUrlParams = new URLSearchParams(window.location.search);
-      const existingRedirectParam = currentUrlParams.get('redirect_url');
-      if (existingRedirectParam) {
-        effectiveRedirectUrl = existingRedirectParam;
-      }
-    }
-
-    // Priority 3: If still no redirect URL, fallback to current page's full path (only in browser)
-    // This ensures that if the call originates from a page, it attempts to redirect back there by default.
-    if (!effectiveRedirectUrl && inBrowser()) {
-      effectiveRedirectUrl =
-        window.location.pathname + window.location.search + window.location.hash;
-    }
-
-    if (effectiveRedirectUrl && inBrowser()) {
-      let signInPagePath: string | undefined;
-      try {
-        signInPagePath = this.#options.signInUrl
-          ? new URL(this.#options.signInUrl, window.location.origin).pathname
-          : defaultPagePath;
-      } catch {
-        signInPagePath = defaultPagePath;
-      }
-
-      let signUpPagePath: string | undefined;
-      try {
-        signUpPagePath = this.#options.signUpUrl
-          ? new URL(this.#options.signUpUrl, window.location.origin).pathname
-          : key === 'signUpUrl'
-            ? defaultPagePath
-            : '/sign-in';
-      } catch {
-        signUpPagePath = key === 'signUpUrl' ? defaultPagePath : '/sign-in';
-      }
-
-      const redirectTargetObj = new URL(effectiveRedirectUrl, window.location.origin);
-
-      if (
-        redirectTargetObj.pathname === signInPagePath ||
-        redirectTargetObj.pathname === signUpPagePath
-      ) {
-        // If the intended redirect path is the sign-in or sign-up page itself,
-        // change the redirect target to the application root ('/').
-        effectiveRedirectUrl = '/';
-      }
-    }
-
-    const paramsForBuildUrl: Parameters<typeof buildURL>[0] = {
-      base,
-      searchParams: new URLSearchParams(),
-    };
-
-    if (effectiveRedirectUrl) {
-      // Check if a redirect URL was determined
-      if (inBrowser()) {
-        const absoluteRedirectUrl = new URL(effectiveRedirectUrl, window.location.origin).href;
-        paramsForBuildUrl.searchParams?.set('redirect_url', absoluteRedirectUrl);
-      } else {
-        // If not in browser, use the effectiveRedirectUrl as is.
-        // This assumes it's either absolute or a path the server can interpret.
-        paramsForBuildUrl.searchParams?.set('redirect_url', effectiveRedirectUrl);
-      }
-    }
-
-    const constructedUrl = buildURL(paramsForBuildUrl, {
-      stringify: true,
-      skipOrigin: false,
-    });
-
-    if (typeof constructedUrl !== 'string') {
-      console.error(
-        '[TernSecure] Error: buildURL did not return a string as expected. Falling back to base URL.',
-      );
-      if (inBrowser()) {
-        try {
-          return new URL(base, window.location.origin).href;
-        } catch {
-          return base;
-        }
-      }
-      return base;
-    }
-
+    const redirectUrls = new RedirectUrls(this.#options, options).toSearchParams();
+    const constructedUrl = buildURL(
+      {
+        base,
+        hashSearchParams: [redirectUrls],
+      },
+      {
+        stringify: true,
+        skipOrigin: false,
+      },
+    );
     return this.constructUrlWithAuthRedirect(constructedUrl);
   };
 
   #constructAfterSignInUrl = (): string => {
-    if (!inBrowser()) {
-      return '/';
-    }
-
-    let redirectPath: string | null | undefined = undefined;
-    const defaultRedirectPath = '/';
-
-    // Priority 1: Check for signInForceRedirectUrl from instance options
-    if (this.#options.signInForceRedirectUrl) {
-      redirectPath = this.#options.signInForceRedirectUrl;
-    }
-
-    // Priority 2: If no force redirect, check 'redirect' param in current URL
-    if (!redirectPath) {
-      const urlParams = new URLSearchParams(window.location.search);
-      const redirectPathFromParams = urlParams.get('redirect_url');
-      if (redirectPathFromParams) {
-        redirectPath = redirectPathFromParams;
-      }
-    }
-
-    // Priority 3: Fallback to default path
-    if (!redirectPath) {
-      redirectPath = defaultRedirectPath;
-    }
-
-    const currentPath = window.location.pathname;
-
-    if (hasRedirectLoop(currentPath, redirectPath)) {
-      //console.warn('[TernSecure] Redirect loop detected. Redirecting to default path.');
-      return defaultRedirectPath;
-    }
-
-    return this.constructUrlWithAuthRedirect(redirectPath);
+    return this.constructUrlWithAuthRedirect(new RedirectUrls(this.#options).getAfterSignInUrl());
   };
 
   #constructAfterSignOutUrl = (): string => {
@@ -699,11 +592,17 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   };
 
   public constructSignInUrl = (options?: SignInRedirectOptions): string => {
-    return this.#buildUrl('signInUrl', { ...options });
+    return this.#buildUrl('signInUrl', {
+      ...options,
+      signInForceRedirectUrl: options?.signInForceRedirectUrl || window.location.href,
+    });
   };
 
   public constructSignUpUrl = (options?: SignUpRedirectOptions): string => {
-    return this.#buildUrl('signUpUrl', { ...options });
+    return this.#buildUrl('signUpUrl', {
+      ...options,
+      signUpForceRedirectUrl: options?.signUpForceRedirectUrl || window.location.href,
+    });
   };
 
   get #allowedRedirectProtocols() {
