@@ -2,24 +2,26 @@
 
 import type {
   AuthErrorTree,
+  SignInForceRedirectUrl,
   SignInProps,
-  SignInRedirectUrl,
-  SignUpRedirectUrl,
+  SignUpForceRedirectUrl,
   TernSecureUser,
 } from '@tern-secure/auth';
-import { buildURL } from '@tern-secure/auth';
+import { buildURL, RedirectUrls } from '@tern-secure/auth';
 import { useTernSecure } from '@tern-secure/shared/react';
 import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useMemo } from 'react';
 
-export type SignInCtx = SignInProps & SignInRedirectUrl & SignUpRedirectUrl;
+export type SignInCtx = SignInProps & SignInForceRedirectUrl & SignUpForceRedirectUrl;
 
-interface SignInContextType extends Omit<SignInCtx, 'forceRedirectUrl' | 'signInForceRedirectUrl'> {
+interface SignInContextType extends Omit<SignInCtx, 'forceRedirectUrl'> {
   handleSignInSuccess: (user?: TernSecureUser | null, options?: { skipRedirect?: boolean }) => void;
   handleSignInError: (error: AuthErrorTree) => void;
   redirectAfterSignIn: () => void;
-  SignInUrl: string;
-  SignUpUrl: string;
+  signInUrl: string;
+  signUpUrl: string;
+  afterSignUpUrl: string;
+  afterSignInUrl: string;
   checkRedirectResult: () => Promise<void>;
 }
 
@@ -27,9 +29,11 @@ const SignInContext = createContext<SignInContextType>({
   handleSignInSuccess: () => {},
   handleSignInError: () => {},
   redirectAfterSignIn: () => {},
-  SignInUrl: '',
-  SignUpUrl: '',
   checkRedirectResult: async () => {},
+  signInUrl: '',
+  signUpUrl: '',
+  afterSignUpUrl: '',
+  afterSignInUrl: '',
 });
 
 export const useSignInContext = () => useContext(SignInContext);
@@ -46,6 +50,7 @@ export function SignInProvider({
   signUpForceRedirectUrl,
   ...ctxProps
 }: SignInProviderProps) {
+  const context = useSignInContext();
   const ternSecure = useTernSecure();
   const ternSecureOptions = ternSecure._internal_getAllOptions();
   const currentParams = useMemo(() => {
@@ -109,24 +114,39 @@ export function SignInProvider({
     }
   }, [ternSecure, handleSignInSuccess, handleSignInError, createAuthError]);
 
+  const { ...ctx } = context;
+
+  const redirectUrls = new RedirectUrls(
+    ternSecureOptions,
+    {
+      ...ctx,
+      signInForceRedirectUrl: ctx.signInForceRedirectUrl || forceRedirectUrl,
+    },
+    currentParams,
+  );
+
+  const afterSignInUrl = ternSecure.constructUrlWithAuthRedirect(redirectUrls.getAfterSignInUrl());
+  const afterSignUpUrl = ternSecure.constructUrlWithAuthRedirect(redirectUrls.getAfterSignUpUrl());
+
+  const preservedParams = redirectUrls.getPreservedSearchParams();
   const baseSignInUrl = ctxProps.path || ternSecureOptions.signInUrl;
   const baseSignUpUrl = ternSecureOptions.signUpUrl;
 
-  const SignInUrl = buildURL(
+  const signInUrl = buildURL(
     {
       base: baseSignInUrl,
-      searchParams: currentParams,
+      hashSearchParams: [currentParams, preservedParams],
     },
-    { stringify: true, skipOrigin: false },
-  ) as string;
+    { stringify: true },
+  );
 
-  const SignUpUrl = buildURL(
+  const signUpUrl = buildURL(
     {
       base: baseSignUpUrl,
-      searchParams: currentParams,
+      hashSearchParams: [currentParams, preservedParams],
     },
-    { stringify: true, skipOrigin: false },
-  ) as string;
+    { stringify: true },
+  );
 
   const contextValue: SignInContextType = useMemo(
     () => ({
@@ -134,8 +154,10 @@ export function SignInProvider({
       handleSignInError,
       redirectAfterSignIn,
       checkRedirectResult,
-      SignInUrl,
-      SignUpUrl,
+      signInUrl,
+      signUpUrl,
+      afterSignUpUrl,
+      afterSignInUrl,
       onSuccess,
     }),
     [
@@ -143,8 +165,10 @@ export function SignInProvider({
       handleSignInError,
       redirectAfterSignIn,
       checkRedirectResult,
-      SignInUrl,
-      SignUpUrl,
+      signInUrl,
+      signUpUrl,
+      afterSignUpUrl,
+      afterSignInUrl,
       onSuccess,
     ],
   );
@@ -152,4 +176,4 @@ export function SignInProvider({
   return <SignInContext.Provider value={contextValue}>{children}</SignInContext.Provider>;
 }
 
-export { useTernSecure }
+export { useTernSecure };

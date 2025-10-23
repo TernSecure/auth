@@ -81,6 +81,7 @@
   },
   "main": "./dist/index.js",
   "devDependencies": {
+    "@types/glob-to-regexp": "0.4.4",
     "@types/js-cookie": "^3.0.6",
     "prettier": "^3.3.3",
     "rimraf": "^6.0.1",
@@ -89,6 +90,7 @@
   },
   "dependencies": {
     "@tern-secure/types": "workspace:*",
+    "glob-to-regexp": "0.4.1",
     "js-cookie": "^3.0.5",
     "tslib": "2.4.1"
   },

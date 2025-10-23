@@ -1,10 +1,9 @@
-import type { AuthObject, SignedInAuthObject } from "@tern-secure/backend";
+import type { AuthObject, RedirectFun, SignedInAuthObject } from "@tern-secure/backend";
 import { constants } from "@tern-secure/backend";
 import type { CheckAuthorizationFromSessionClaims } from "@tern-secure/types";
 
 import { constants as nextConstants } from "../constants";
 import { isNextFetcher } from "./nextFetcher";
-import type { RedirectFun } from "./redirect";
 
 type AuthProtectOptions = {
   /**

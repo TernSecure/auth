@@ -5,6 +5,7 @@ import type {
   SignInResource,
   SignInResponse as SignInResponseFromTypes,
   SignInStatus,
+  SocialProviderOptions,
   TernSecureUser,
 } from '@tern-secure/types';
 import type { Auth, UserCredential } from 'firebase/auth';
@@ -24,7 +25,7 @@ type SignInResponse = SignInResponseFromTypes;
 
 interface ProviderConfig {
   provider: GoogleAuthProvider | OAuthProvider;
-  customParameters: Record<string, string>;
+  //customParameters: Record<string, string>;
 }
 
 export type TernRequestInit = RequestInit;
@@ -40,6 +41,19 @@ type AuthMethodFunction = (
   auth: Auth,
   provider: GoogleAuthProvider | OAuthProvider,
 ) => Promise<FirebaseAuthResult>;
+
+/**
+ * Supported OAuth providers
+ */
+export type SupportedProvider =
+  | 'google'
+  | 'apple'
+  | 'microsoft'
+  | 'github'
+  | 'twitter'
+  | 'facebook'
+  | string; // Allow custom providers like 'custom.provider.com'
+
 
 export class SignIn extends TernSecureBase implements SignInResource {
   pathRoot = '/sessions/createsession';
@@ -106,30 +120,22 @@ export class SignIn extends TernSecureBase implements SignInResource {
   };
 
   withSocialProvider = async (
-    provider: string,
-    options?: {
-      mode?: 'popup' | 'redirect';
-    },
+    provider: SupportedProvider,
+    options: SocialProviderOptions = {},
   ): Promise<SignInResponse | void> => {
     try {
-      if (options?.mode === 'redirect') {
+      const { mode = 'popup' } = options;
+      if (mode === 'redirect') {
         const redirectResult = await this.authRedirectResult();
 
         if (redirectResult) {
-          if (redirectResult.status === 'success') {
-            console.log('Redirect after sign in');
-          }
           return redirectResult;
         }
 
-        await this._signInWithRedirect(provider);
+        await this._signInWithRedirect(provider, options);
         return;
       } else {
-        await this._signInWithPopUp(provider);
-        return {
-          status: 'success',
-          message: 'Sign in successful',
-        };
+        return await this._signInWithPopUp(provider, options);
       }
     } catch (error: any) {
       return {
@@ -173,26 +179,31 @@ export class SignIn extends TernSecureBase implements SignInResource {
     };
   };
 
-  private getProviderConfig(providerName: string): ProviderConfig {
+  private getProviderConfig(providerName: SupportedProvider): ProviderConfig {
     switch (providerName.toLowerCase()) {
       case 'google': {
         const googleProvider = new GoogleAuthProvider();
-        return {
-          provider: googleProvider,
-          customParameters: {
-            login_hint: 'user@example.com',
-            prompt: 'select_account',
-          },
-        };
+        return { provider: googleProvider };
+      }
+      case 'apple': {
+        const appleProvider = new OAuthProvider('apple.com');
+        return { provider: appleProvider };
       }
       case 'microsoft': {
         const microsoftProvider = new OAuthProvider('microsoft.com');
-        return {
-          provider: microsoftProvider,
-          customParameters: {
-            prompt: 'consent',
-          },
-        };
+        return { provider: microsoftProvider };
+      }
+      case 'github': {
+        const githubProvider = new OAuthProvider('github.com');
+        return { provider: githubProvider };
+      }
+      case 'twitter': {
+        const twitterProvider = new OAuthProvider('twitter.com');
+        return { provider: twitterProvider };
+      }
+      case 'facebook': {
+        const facebookProvider = new OAuthProvider('facebook.com');
+        return { provider: facebookProvider };
       }
       default:
         throw new Error(`Unsupported provider: ${providerName}`);
@@ -223,15 +234,83 @@ export class SignIn extends TernSecureBase implements SignInResource {
     }
   }
 
-  private async executeAuthMethod(
+  /**
+   * Sets custom OAuth parameters on the provider if provided by consumer
+   * @param provider - Firebase auth provider instance
+   * @param customParameters - Consumer-provided OAuth parameters
+   */
+  private setProviderCustomParameters(
+    provider: GoogleAuthProvider | OAuthProvider,
+    customParameters?: Record<string, string>,
+  ): void {
+    if (!customParameters || Object.keys(customParameters).length === 0) {
+      return;
+    }
+
+    provider.setCustomParameters(customParameters);
+  }
+
+  /**
+   * Adds OAuth scopes to the provider if provided by consumer
+   * Handles provider-specific scope setting logic
+   * @param provider - Firebase auth provider instance
+   * @param scopes - Array of OAuth scopes to request
+   */
+  private setProviderScopes(provider: GoogleAuthProvider | OAuthProvider, scopes?: string[]): void {
+    if (!scopes || scopes.length === 0) {
+      return;
+    }
+
+    if (provider instanceof GoogleAuthProvider) {
+      // Google provider supports individual scope addition
+      scopes.forEach(scope => {
+        (provider as GoogleAuthProvider).addScope(scope);
+      });
+    } else if (provider instanceof OAuthProvider) {
+      // OAuth providers expect space-separated scope string
+      (provider as OAuthProvider).addScope(scopes.join(' '));
+    }
+  }
+
+  /**
+   * Configures OAuth provider with consumer-provided options
+   * @param provider - Firebase auth provider instance
+   * @param options - Consumer options containing custom parameters and scopes
+   */
+  private configureProvider(
+    provider: GoogleAuthProvider | OAuthProvider,
+    options: SocialProviderOptions,
+  ): void {
+    this.setProviderCustomParameters(provider, options.customParameters);
+    this.setProviderScopes(provider, options.scopes);
+  }
+
+  private executeAuthMethod = async (
     authMethod: AuthMethodFunction,
-    providerName: string,
-  ): Promise<SignInResponse> {
-    const config = this.getProviderConfig(providerName);
-    config.provider.setCustomParameters(config.customParameters);
+    providerName: SupportedProvider,
+    options: SocialProviderOptions = {},
+  ): Promise<SignInResponse> => {
     try {
-      await authMethod(this.auth, config.provider);
-      return { status: 'success', message: 'Authentication initiated' };
+      const config = this.getProviderConfig(providerName);
+
+      this.configureProvider(config.provider, options);
+
+      const credential = await authMethod(this.auth, config.provider);
+
+      if (credential) {
+        return {
+          status: 'success',
+          message: 'Authentication successful',
+          user: credential.user,
+          providerId: credential.providerId,
+          operationType: credential.operationType,
+        };
+      }
+
+      return {
+        status: 'success',
+        message: 'Redirect initiated',
+      };
     } catch (error) {
       const authError = handleFirebaseAuthError(error);
       return {
@@ -240,14 +319,20 @@ export class SignIn extends TernSecureBase implements SignInResource {
         error: authError.code,
       };
     }
+  };
+
+  private async _signInWithRedirect(
+    providerName: SupportedProvider,
+    options: SocialProviderOptions = {},
+  ): Promise<SignInResponse> {
+    return this.executeAuthMethod(signInWithRedirect, providerName, options);
   }
 
-  private async _signInWithRedirect(providerName: string): Promise<SignInResponse> {
-    return this.executeAuthMethod(signInWithRedirect, providerName);
-  }
-
-  private async _signInWithPopUp(providerName: string): Promise<SignInResponse> {
-    return this.executeAuthMethod(signInWithPopup, providerName);
+  private async _signInWithPopUp(
+    providerName: SupportedProvider,
+    options: SocialProviderOptions = {},
+  ): Promise<SignInResponse> {
+    return this.executeAuthMethod(signInWithPopup, providerName, options);
   }
 
   public async checkRedirectResult(): Promise<SignInResponse | null> {

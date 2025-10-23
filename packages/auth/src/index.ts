@@ -21,9 +21,11 @@ export type {
     SignInProps,
     SignUpProps,
     SignInResponse,
-    SignInRedirectUrl,
-    SignUpRedirectUrl,
+    SignInForceRedirectUrl,
+    SignUpForceRedirectUrl,
     ResendEmailVerification,
     TernSecureUser,
     TernSecureState
 } from '@tern-secure/types';
+
+export { RedirectUrls } from './utils/redirectUrls';

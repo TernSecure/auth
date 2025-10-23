@@ -4,6 +4,7 @@ import type { JWTPayload } from 'jose';
 import { constants } from '../constants';
 import type { TokenVerificationErrorReason } from '../utils/errors';
 import { mapJwtPayloadToDecodedIdToken } from '../utils/mapDecode';
+import type { RequestProcessorContext } from './c-authenticateRequestProcessor';
 import type { TernSecureRequest } from './ternSecureRequest';
 
 export const AuthStatus = {
@@ -47,6 +48,8 @@ export type SignedOutAuthObject = {
 export type SignedInState = {
   status: typeof AuthStatus.SignedIn;
   reason: null;
+  signInUrl: string;
+  signUpUrl: string;
   isSignedIn: true;
   auth: () => SignedInAuthObject;
   token: string;
@@ -57,6 +60,8 @@ export type SignedOutState = {
   status: typeof AuthStatus.SignedOut;
   reason: string;
   isSignedIn: false;
+  signInUrl: string;
+  signUpUrl: string;
   auth: () => SignedOutAuthObject;
   token: null;
   headers: Headers;
@@ -131,6 +136,7 @@ export function signedOutAuthObject(): SignedOutAuthObject {
 }
 
 export function signedIn(
+  authCtx: RequestProcessorContext,
   sessionClaims: JWTPayload,
   headers: Headers = new Headers(),
   token: string,
@@ -139,6 +145,8 @@ export function signedIn(
   return {
     status: AuthStatus.SignedIn,
     reason: null,
+    signInUrl: authCtx.signInUrl || '',
+    signUpUrl: authCtx.signUpUrl || '',
     isSignedIn: true,
     auth: () => authObject,
     token,
@@ -147,6 +155,7 @@ export function signedIn(
 }
 
 export function signedOut(
+  authCtx: RequestProcessorContext,
   reason: AuthReason,
   message = '',
   headers: Headers = new Headers(),
@@ -155,6 +164,8 @@ export function signedOut(
     status: AuthStatus.SignedOut,
     reason,
     message,
+    signInUrl: authCtx.signInUrl || '',
+    signUpUrl: authCtx.signUpUrl || '',
     isSignedIn: false,
     auth: () => signedOutAuthObject(),
     token: null,

@@ -1,16 +1,17 @@
 import type {
   AuthenticateRequestOptions,
   AuthObject,
+  RedirectFun,
+  RequestState,
   TernSecureRequest,
 } from '@tern-secure/backend';
-import { constants, createTernSecureRequest, enableDebugLogging } from '@tern-secure/backend';
+import { constants, createRedirect, createTernSecureRequest } from '@tern-secure/backend';
 import { notFound as nextjsNotFound } from 'next/navigation';
 import type { NextMiddleware, NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { isRedirect, setHeader } from '../utils/response';
 import { serverRedirectWithAuth } from '../utils/serverRedirectAuth';
-import { createEdgeCompatibleLogger } from '../utils/withLogger';
 import { SIGN_IN_URL, SIGN_UP_URL } from './constant';
 import {
   isNextjsNotFoundError,
@@ -22,7 +23,6 @@ import {
   redirectToSignUpError,
 } from './nextErrors';
 import { type AuthProtect, createProtect } from './protect';
-import { createRedirect, type RedirectFun } from './redirect';
 import { ternSecureBackendClient } from './ternsecureClient';
 import type {
   NextMiddlewareEvtParam,
@@ -89,6 +89,7 @@ export const ternSecureMiddleware = ((
   const middleware = () => {
     const withAuthNextMiddleware: NextMiddleware = async (request, event) => {
       const resolvedParams = typeof params === 'function' ? await params(request) : params;
+
       const signInUrl = resolvedParams.signInUrl || SIGN_IN_URL;
       const signUpUrl = resolvedParams.signUpUrl || SIGN_UP_URL;
 
@@ -97,12 +98,6 @@ export const ternSecureMiddleware = ((
         signUpUrl,
         ...resolvedParams,
       };
-
-      const logger = createEdgeCompatibleLogger(options.debug);
-
-      if (options.debug) {
-        enableDebugLogging();
-      }
 
       const reqBackendClient = await ternSecureBackendClient();
 
@@ -139,7 +134,7 @@ export const ternSecureMiddleware = ((
         const userHandlerResult = await handler?.(authHandler, request, event);
         handlerResult = userHandlerResult || handlerResult;
       } catch (error: any) {
-        handlerResult = handleControlError(error, ternSecureRequest, request);
+        handlerResult = handleControlError(error, ternSecureRequest, request, requestStateClient);
       }
 
       if (requestStateClient.headers) {
@@ -236,6 +231,7 @@ const handleControlError = (
   error: any,
   ternSecureRequest: TernSecureRequest,
   nextrequest: NextRequest,
+  requestState: RequestState,
 ): Response => {
   if (isNextjsNotFoundError(error)) {
     return setHeader(
@@ -252,8 +248,8 @@ const handleControlError = (
     const redirect = createRedirect({
       redirectAdapter,
       baseUrl: ternSecureRequest.ternUrl,
-      signInUrl: SIGN_IN_URL,
-      signUpUrl: SIGN_UP_URL,
+      signInUrl: requestState.signInUrl,
+      signUpUrl: requestState.signUpUrl,
     });
 
     const { returnBackUrl } = error;

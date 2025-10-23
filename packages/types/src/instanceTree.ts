@@ -9,8 +9,8 @@ import type {
 import type {
   AfterSignOutUrl,
   RedirectOptions,
-  SignInRedirectUrl,
-  SignUpRedirectUrl
+  SignInForceRedirectUrl,
+  SignUpForceRedirectUrl
 } from './redirect';
 import type { 
   SignedInSession, 
@@ -68,7 +68,7 @@ export type TernSecureInstanceTreeOptions = {
   isTernSecureDev?: boolean;
   ternSecureConfig?: TernSecureConfig;
   enableServiceWorker?: boolean;
-} & SignInRedirectUrl & SignUpRedirectUrl & AfterSignOutUrl;
+} & SignInForceRedirectUrl & SignUpForceRedirectUrl & AfterSignOutUrl;
 
 export type TernSecureInstanceTreeStatus = 'error' | 'loading' | 'ready';
 
@@ -186,7 +186,7 @@ export type SignInPropsTree = {
   /** Callbacks */
   onError?: (error: AuthErrorTree) => void;
   onSuccess?: (user: TernSecureUser | null) => void;
-} & SignUpRedirectUrl
+} & SignUpForceRedirectUrl
 
 
 /**
@@ -203,7 +203,7 @@ export type SignUpPropsTree = {
   onSubmit?: (values: SignUpFormValuesTree) => Promise<void>;
   onError?: (error: AuthErrorTree) => void;
   onSuccess?: (user: TernSecureUser | null) => void;
-} & SignInRedirectUrl
+} & SignInForceRedirectUrl
 
 export type SignInRedirectOptionss = RedirectOptions
 export type SignUpRedirectOptionss = RedirectOptions;

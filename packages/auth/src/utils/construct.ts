@@ -1,9 +1,13 @@
-import { camelToSnake } from '@tern-secure/shared/caseUtils'
+import { camelToSnake } from '@tern-secure/shared/caseUtils';
+import { globs } from '@tern-secure/shared/globs';
+import { logger } from '@tern-secure/shared/logger';
 
 import { joinPaths } from './path';
 import { getQueryParams } from './querystring';
 
 const DUMMY_URL_BASE = 'http://ternsecure-dummy';
+
+const BANNED_URI_PROTOCOLS = ['javascript:'] as const;
 
 export type constructUrlWithRedirectProps = {
   signInUrl: string;
@@ -50,18 +54,11 @@ export function buildURL<B extends boolean>(
   options?: BuildURLOptions<B>,
 ): B extends true ? string : URL;
 
-/**
- * Builds a URL from given parameters, handling search and hash parameters
- * @param params - The parameters to construct the URL
- * @param options - Options for building the URL
- * @returns The constructed URL as a string or URL object
- */
 export function buildURL(
   params: BuildURLParams,
   options: BuildURLOptions<boolean> = {},
 ): URL | string {
   const { base, hashPath, hashSearch, searchParams, hashSearchParams, ...rest } = params;
-  const { stringify, skipOrigin } = options;
 
   let baseFallback = '';
   if (typeof window !== 'undefined' && !!window.location) {
@@ -77,7 +74,7 @@ export function buildURL(
   if (searchParams instanceof URLSearchParams) {
     searchParams.forEach((value, key) => {
       if (value !== null && value !== undefined) {
-        url.searchParams.set(key, value); //camelToSnake(key), value
+        url.searchParams.set(camelToSnake(key), value);
       }
     });
   }
@@ -95,8 +92,6 @@ export function buildURL(
     for (const [key, val] of Object.entries(searchParamsFromHashSearchString)) {
       dummyUrlForHash.searchParams.append(key, val);
     }
-    const finalHashPath = hashPath || '';
-    const queryForHash = new URLSearchParams(hashSearch || '');
 
     if (hashSearchParams) {
       const paramsArr = Array.isArray(hashSearchParams) ? hashSearchParams : [hashSearchParams];
@@ -120,6 +115,7 @@ export function buildURL(
     }
   }
 
+  const { stringify, skipOrigin } = options;
   if (stringify) {
     return skipOrigin ? url.href.replace(url.origin, '') : url.href;
   }
@@ -247,3 +243,118 @@ const validateUrl = (url: string): string => {
 export function toURL(url: string | URL): URL {
   return new URL(url.toString(), window.location.origin);
 }
+
+/**
+ *
+ * stripOrigin(url: URL | string): string
+ *
+ * Strips the origin part of a URL and preserves path, search and hash is applicable
+ *
+ * References:
+ * https://developer.mozilla.org/en-US/docs/Web/API/URL
+ *
+ * @param {URL | string} url
+ * @returns {string} Returns the URL href without the origin
+ */
+export function stripOrigin(url: URL | string): string {
+  url = toURL(url);
+  return url.href.replace(url.origin, '');
+}
+
+/**
+ * trimTrailingSlash(path: string): string
+ *
+ * Strips the trailing slashes from a string
+ *
+ * @returns {string} Returns the string without trailing slashes
+ * @param path
+ */
+export const trimTrailingSlash = (path: string): string => {
+  return (path || '').replace(/\/+$/, '');
+};
+
+export function isValidUrl(val: unknown): val is string {
+  if (!val) {
+    return false;
+  }
+
+  try {
+    new URL(val as string);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export function relativeToAbsoluteUrl(url: string, origin: string | URL): URL {
+  try {
+    return new URL(url);
+  } catch {
+    return new URL(url, origin);
+  }
+}
+
+// Regular expression to detect disallowed patterns
+const disallowedPatterns = [
+  /\0/, // Null bytes
+  /^\/\//, // Protocol-relative
+  // eslint-disable-next-line no-control-regex
+  /[\x00-\x1F]/, // Control characters
+];
+
+/**
+ * Check for potentially problematic URLs that could have been crafted to intentionally bypass the origin check. Note that the URLs passed to this
+ * function are assumed to be from an "allowed origin", so we are not executing origin-specific checks here.
+ */
+export function isProblematicUrl(url: URL): boolean {
+  if (hasBannedProtocol(url)) {
+    return true;
+  }
+  // Check against disallowed patterns
+  for (const pattern of disallowedPatterns) {
+    if (pattern.test(url.pathname)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export function hasBannedProtocol(val: string | URL) {
+  if (!isValidUrl(val)) {
+    return false;
+  }
+  const protocol = new URL(val).protocol;
+  return BANNED_URI_PROTOCOLS.some(bp => bp === protocol);
+}
+
+export const isAllowedRedirect =
+  (allowedRedirectOrigins: Array<string | RegExp> | undefined, currentOrigin: string) =>
+  (_url: URL | string) => {
+    let url = _url;
+    if (typeof url === 'string') {
+      url = relativeToAbsoluteUrl(url, currentOrigin);
+    }
+
+    if (!allowedRedirectOrigins) {
+      return true;
+    }
+
+    const isSameOrigin = currentOrigin === url.origin;
+
+    const isAllowed =
+      !isProblematicUrl(url) &&
+      (isSameOrigin ||
+        allowedRedirectOrigins
+          .map(origin =>
+            typeof origin === 'string' ? globs.toRegexp(trimTrailingSlash(origin)) : origin,
+          )
+          .some(origin => origin.test(trimTrailingSlash(url.origin))));
+
+    if (!isAllowed) {
+      logger.warnOnce(
+        `Clerk: Redirect URL ${url} is not on one of the allowedRedirectOrigins, falling back to the default redirect URL.`,
+      );
+    }
+    return isAllowed;
+  };

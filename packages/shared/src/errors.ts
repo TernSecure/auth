@@ -51,6 +51,7 @@ export function handleFirebaseAuthError(error: unknown): AuthErrorResponse {
 
   // Map error codes to user-friendly messages
   const ERROR_MESSAGES: Record<string, { message: string; code: ErrorCode }> = {
+    'argument-error': { message: 'Method called with incorrect arguments', code: 'INCORRECT_ARGUMENT' },
     'invalid-email': { message: 'Invalid email format', code: 'INVALID_EMAIL' },
     'invalid-tenant-id': { message: 'Invalid tenant ID', code: 'INVALID_ARGUMENT' },
     'invalid-credential': { message: 'Invalid email or password', code: 'INVALID_CREDENTIALS' },

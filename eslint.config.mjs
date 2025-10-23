@@ -68,7 +68,7 @@ export default tseslint.config([
       'eslint.config.mjs',
       'packages/backend/src/runtime/**/*',
       'packages/shared/src/compiled/path-to-regexp/index.js',
-      '**/__tests__/**'
+      '**/__tests__/**',
     ],
   },
   eslint.configs.recommended,
@@ -115,7 +115,7 @@ export default tseslint.config([
       'react/self-closing-comp': 'warn',
       'react/prop-types': 'off',
       'react/react-in-jsx-scope': 'off',
-      
+
       'simple-import-sort/imports': 'error',
 
       'sort-imports': 'off',
@@ -168,7 +168,7 @@ export default tseslint.config([
       '@typescript-eslint/no-unused-vars': 'off',
       '@typescript-eslint/prefer-promise-reject-errors': 'warn',
       '@typescript-eslint/require-await': 'warn',
-      
+
       'import/no-unresolved': ['error', { ignore: ['^#', '^~'] }],
 
       'react/button-has-type': 'warn',
@@ -180,18 +180,23 @@ export default tseslint.config([
     },
   },
   {
+    name: 'repo/javascript',
     files: JAVASCRIPT_FILES,
     rules: {
-      'no-unused-vars': ['error', {
-        args: 'after-used',
-        argsIgnorePattern: '^_',
-        ignoreRestSiblings: true,
-        vars: 'all',
-        varsIgnorePattern: '^_',
-      }],
+      'no-unused-vars': [
+        'error',
+        {
+          args: 'after-used',
+          argsIgnorePattern: '^_',
+          ignoreRestSiblings: true,
+          vars: 'all',
+          varsIgnorePattern: '^_',
+        },
+      ],
     },
   },
   {
+    name: 'repo/typescript',
     files: TYPESCRIPT_FILES,
     extends: [pluginImport.flatConfigs.recommended, pluginImport.flatConfigs.typescript],
     rules: {
@@ -206,6 +211,18 @@ export default tseslint.config([
     rules: {
       ...pluginReactHooks.configs.recommended.rules,
       'react-hooks/rules-of-hooks': 'warn',
+    },
+  },
+  {
+    name: 'packages/nextjs',
+    files: ['packages/nextjs/src/**/*'],
+    rules: {
+      'turbo/no-undeclared-env-vars': [
+        'error',
+        {
+          allowList: ['_NEXT_ROUTER_BASEPATH'],
+        },
+      ],
     },
   },
   {

@@ -32,6 +32,7 @@ export const ERRORS = {
   WRONG_PASSWORD: "auth/wrong-password",
   EMAIL_ALREADY_IN_USE: "auth/email-already-in-use",
   REQUIRES_RECENT_LOGIN: "auth/requires-recent-login",
+  INCORRECT_ARGUMENT: "auth/argument-error",
   NO_SESSION_COOKIE: "No session cookie found.",
   INVALID_SESSION_COOKIE: "Invalid session cookie.",
   NO_ID_TOKEN: "No ID token found.",

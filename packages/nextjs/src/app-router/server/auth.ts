@@ -1,12 +1,11 @@
-import type { AuthObject } from '@tern-secure/backend';
-import { createTernSecureRequest } from '@tern-secure/backend';
+import type { AuthObject, RedirectFun } from '@tern-secure/backend';
+import { createRedirect, createTernSecureRequest } from '@tern-secure/backend';
 import { notFound, redirect } from 'next/navigation';
 
 import { SIGN_IN_URL, SIGN_UP_URL } from '../../server/constant';
 import { getAuthDataFromRequest } from '../../server/data/getAuthDataFromRequest';
 import { getAuthKeyFromRequest } from '../../server/headers-utils';
 import { type AuthProtect, createProtect } from '../../server/protect';
-import { createRedirect, type RedirectFun } from '../../server/redirect';
 import type { BaseUser, RequestLike } from '../../server/types';
 import { buildRequestLike } from './utils';
 

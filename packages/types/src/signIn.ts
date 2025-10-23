@@ -69,6 +69,18 @@ export function isSignInResponseTree(value: any): value is SignInResponse {
   );
 }
 
+/**
+ * social provider options that allow to specify custom parameters
+ */
+export interface SocialProviderOptions {
+  /** Authentication mode - popup or redirect */
+  mode?: 'popup' | 'redirect';
+  /** Custom parameters specific to the provider (e.g., prompt, access_type, locale) */
+  customParameters?: Record<string, string>;
+  /** OAuth scopes to request from the provider */
+  scopes?: string[];
+}
+
 
 export interface SignInResource {
   /**
@@ -86,7 +98,7 @@ export interface SignInResource {
    * @param options - Optional configuration for the social sign-in flow.
    * @returns A promise that resolves with the sign-in response or void if redirecting.
    */
-  withSocialProvider: (provider: string, options?: { mode?: 'popup' | 'redirect' }) => Promise<SignInResponse | void>;
+  withSocialProvider: (provider: string, options: SocialProviderOptions) => Promise<SignInResponse | void>;
   /**
    * Completes an MFA (Multi-Factor Authentication) step after a primary authentication attempt.
    * @param mfaToken - The MFA token or code submitted by the user.

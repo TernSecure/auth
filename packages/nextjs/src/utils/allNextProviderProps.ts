@@ -4,15 +4,17 @@ import type {
 
 import type { NextProviderProcessedProps, TernSecureNextProps } from "../types";
 
-// Helper type for the return value, as children are handled by the consuming component
-
 
 export const allNextProviderPropsWithEnv = (
   nextProps: Omit<TernSecureNextProps, 'children'>
-): NextProviderProcessedProps => {
+): any => {
   const {
     signInUrl,
     signUpUrl,
+    signInForceRedirectUrl,
+    signUpForceRedirectUrl,
+    signInFallbackRedirectUrl,
+    signUpFallbackRedirectUrl,
     //apiKey: propsApiKey,
     apiUrl: propsApiUrl,
     requiresVerification: propsRequiresVerification,
@@ -30,8 +32,12 @@ export const allNextProviderPropsWithEnv = (
     customDomain: process.env.NEXT_PUBLIC_TERN_CUSTOM_DOMAIN,
     proxyUrl: process.env.NEXT_PUBLIC_TERN_PROXY_URL,
     environment: process.env.NEXT_PUBLIC_TERN_ENVIRONMENT,
-    signInUrl: process.env.NEXT_PUBLIC_SIGN_IN_URL,
-    signUpUrl: process.env.NEXT_PUBLIC_SIGN_UP_URL,
+    signInUrl: process.env.NEXT_PUBLIC_SIGN_IN_URL || '',
+    signUpUrl: process.env.NEXT_PUBLIC_SIGN_UP_URL || '',
+    signInForceRedirectUrl: process.env.NEXT_PUBLIC_SIGN_IN_FORCE_REDIRECT_URL || '',
+    signUpForceRedirectUrl: process.env.NEXT_PUBLIC_SIGN_UP_FORCE_REDIRECT_URL || '',
+    signInFallbackRedirectUrl: process.env.NEXT_PUBLIC_SIGN_IN_FALLBACK_REDIRECT_URL || '',
+    signUpFallbackRedirectUrl: process.env.NEXT_PUBLIC_SIGN_UP_FALLBACK_REDIRECT_URL || '',
     persistence: process.env.NEXT_PUBLIC_TERN_PERSISTENCE as 'local' | 'session' | 'browserCookie' | 'none',
     useEmulator: process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR,
     projectIdAdmin: process.env.FIREBASE_PROJECT_ID,
@@ -56,6 +62,10 @@ export const allNextProviderPropsWithEnv = (
   const finalApiUrl = propsApiUrl ?? envConfig.apiUrl;
   const finalSignInUrl = signInUrl ?? envConfig.signInUrl;
   const finalSignUpUrl = signUpUrl ?? envConfig.signUpUrl;
+  const finalSignInForceRedirectUrl = signInForceRedirectUrl ?? envConfig.signInForceRedirectUrl;
+  const finalSignUpForceRedirectUrl = signUpForceRedirectUrl ?? envConfig.signUpForceRedirectUrl;
+  const finalSignInFallbackRedirectUrl = signInFallbackRedirectUrl ?? envConfig.signInFallbackRedirectUrl;
+  const finalSignUpFallbackRedirectUrl = signUpFallbackRedirectUrl ?? envConfig.signUpFallbackRedirectUrl;
   const finalPersistence = propsPersistence ?? envConfig.persistence;
 
   // Construct the result, ensuring it conforms to NextProviderProcessedProps
@@ -78,6 +88,10 @@ export const allNextProviderPropsWithEnv = (
     bypassApiKey: baseProps.bypassApiKey,
     signInUrl: finalSignInUrl,
     signUpUrl: finalSignUpUrl,
+    signInForceRedirectUrl: finalSignInForceRedirectUrl,
+    signUpForceRedirectUrl: finalSignUpForceRedirectUrl,
+    signInFallbackRedirectUrl: finalSignInFallbackRedirectUrl,
+    signUpFallbackRedirectUrl: finalSignUpFallbackRedirectUrl,
     mode: baseProps.mode,
     apiUrl: finalApiUrl,
     persistence: finalPersistence

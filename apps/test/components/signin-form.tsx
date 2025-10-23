@@ -8,13 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useSignIn, useSignInContext, useTernSecure } from '@tern-secure/nextjs';
-import type { SignInResponse, TernSecureUser } from '@tern-secure/nextjs';
+import type { SignInResponse, SocialProviderOptions } from '@tern-secure/nextjs';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { signIn, isLoaded } = useSignIn();
-  const { handleSignInSuccess, redirectAfterSignIn } = useSignInContext();
+  const ctx = useSignInContext();
+  const { afterSignInUrl, handleSignInSuccess } = ctx;
   const { createActiveSession } = useTernSecure();
   const [formError, setFormError] = useState<SignInResponse | null>(null);
 
@@ -22,10 +23,54 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     return null;
   }
 
-  const handleSuccess = (user: TernSecureUser | null) => {
-    if (user) {
-      handleSignInSuccess(user);
+  //const handleSuccess = (user: TernSecureUser) => {
+  //  if (user) {
+  //    handleSignInSuccess(user);
+  //  }
+  //};
+
+  /**
+   * Enhanced social provider sign-in with flexible custom parameters
+   * Now consumers can specify exactly what OAuth parameters they need
+   */
+  const signInWithSocialLogin = async (provider: string, customOptions: SocialProviderOptions) => {
+    const res = await signIn.withSocialProvider(provider, {
+      mode: customOptions.mode || 'popup',
+      customParameters: customOptions.customParameters,
+      scopes: customOptions.scopes,
+    });
+
+    if (res?.status === 'error') {
+      setFormError({
+        status: 'error',
+        message: res.message,
+        error: res.error,
+      });
     }
+
+    if (res?.status === 'success') {
+      createActiveSession({ session: res.user, redirectUrl: afterSignInUrl });
+    }
+  };
+
+  const signInWithGoogle = () => {
+    signInWithSocialLogin('google', {
+      mode: 'popup',
+      customParameters: {
+        access_type: 'offline',
+        login_hint: 'user@example.com',
+        prompt: 'select_account',
+      },
+    });
+  };
+
+  const signInWithApple = () => {
+    signInWithSocialLogin('apple', {
+      mode: 'popup',
+      customParameters: {
+        locale: 'en',
+      },
+    });
   };
 
   const signInPasswordField = async () => {
@@ -38,7 +83,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       });
     }
     if (res.status === 'success') {
-      createActiveSession({ session: res.user });
+      createActiveSession({ session: res.user, redirectUrl: afterSignInUrl });
     }
   };
 
@@ -72,6 +117,8 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                 <Button
                   variant='outline'
                   className='w-full'
+                  type='button'
+                  onClick={signInWithApple}
                 >
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
@@ -87,6 +134,8 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                 <Button
                   variant='outline'
                   className='w-full'
+                  type='button'
+                  onClick={signInWithGoogle}
                 >
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
