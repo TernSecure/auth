@@ -8,7 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useSignIn, useSignInContext, useTernSecure } from '@tern-secure/nextjs';
-import type { SignInResponse } from '@tern-secure/nextjs';
+import type { SignInResponse, SocialProviderOptions } from '@tern-secure/nextjs';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const [email, setEmail] = useState('');
@@ -29,8 +29,17 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
   //  }
   //};
 
-  const signInWithSocialProvider = async (provider: string) => {
-    const res = await signIn.withSocialProvider(provider, { mode: 'popup' });
+  /**
+   * Enhanced social provider sign-in with flexible custom parameters
+   * Now consumers can specify exactly what OAuth parameters they need
+   */
+  const signInWithSocialLogin = async (provider: string, customOptions: SocialProviderOptions) => {
+    const res = await signIn.withSocialProvider(provider, {
+      mode: customOptions.mode || 'popup',
+      customParameters: customOptions.customParameters,
+      scopes: customOptions.scopes,
+    });
+
     if (res?.status === 'error') {
       setFormError({
         status: 'error',
@@ -40,9 +49,28 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     }
 
     if (res?.status === 'success') {
-      //handleSuccess(res.user);
       createActiveSession({ session: res.user, redirectUrl: afterSignInUrl });
     }
+  };
+
+  const signInWithGoogle = () => {
+    signInWithSocialLogin('google', {
+      mode: 'popup',
+      customParameters: {
+        access_type: 'offline',
+        login_hint: 'user@example.com',
+        prompt: 'select_account',
+      },
+    });
+  };
+
+  const signInWithApple = () => {
+    signInWithSocialLogin('apple', {
+      mode: 'popup',
+      customParameters: {
+        locale: 'en',
+      },
+    });
   };
 
   const signInPasswordField = async () => {
@@ -90,7 +118,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                   variant='outline'
                   className='w-full'
                   type='button'
-                  onClick={() => signInWithSocialProvider('apple')}
+                  onClick={signInWithApple}
                 >
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
@@ -107,7 +135,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                   variant='outline'
                   className='w-full'
                   type='button'
-                  onClick={() => signInWithSocialProvider('google')}
+                  onClick={signInWithGoogle}
                 >
                   <svg
                     xmlns='http://www.w3.org/2000/svg'
