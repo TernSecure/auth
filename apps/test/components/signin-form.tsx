@@ -8,14 +8,14 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useSignIn, useSignInContext, useTernSecure } from '@tern-secure/nextjs';
-import type { SignInResponse, SocialProviderOptions } from '@tern-secure/nextjs';
+import type { SignInResponse, SocialProviderOptions, TernSecureUser} from '@tern-secure/nextjs';
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { signIn, isLoaded } = useSignIn();
   const ctx = useSignInContext();
-  const { afterSignInUrl, handleSignInSuccess } = ctx;
+  const { afterSignInUrl, onSignInSuccess } = ctx;
   const { createActiveSession } = useTernSecure();
   const [formError, setFormError] = useState<SignInResponse | null>(null);
 
@@ -23,11 +23,15 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
     return null;
   }
 
-  //const handleSuccess = (user: TernSecureUser) => {
-  //  if (user) {
-  //    handleSignInSuccess(user);
-  //  }
-  //};
+  const handleSignInSuccess = async (user: TernSecureUser) => {
+    onSignInSuccess(user, {
+      onPreRedirect: async () => {
+        // Custom logic before redirect
+        console.log('User signed in:', user.email);
+        return true; // Return true to proceed with redirect
+      },
+    });
+  };
 
   /**
    * Enhanced social provider sign-in with flexible custom parameters
@@ -40,7 +44,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       scopes: customOptions.scopes,
     });
 
-    if (res?.status === 'error') {
+    if (res.status === 'error') {
       setFormError({
         status: 'error',
         message: res.message,
@@ -48,8 +52,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       });
     }
 
-    if (res?.status === 'success') {
+    if (res.status === 'success') {
       createActiveSession({ session: res.user, redirectUrl: afterSignInUrl });
+      //handleSignInSuccess(res.user);
     }
   };
 

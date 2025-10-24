@@ -325,7 +325,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     if (options?.onAfterSignOut) {
       await options.onAfterSignOut();
     }
-    
+
     await this.navigate(redirectUrl);
 
     eventBus.emit(events.UserSignOut, null);
@@ -415,7 +415,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
   }
 
-  public async checkRedirectResult(): Promise<SignInResponse | null> {
+  private checkRedirectResult = async (): Promise<SignInResponse | null> => {
     try {
       const result = await getRedirectResult(this.auth);
       if (result) {
@@ -433,10 +433,10 @@ export class TernSecureAuth implements TernSecureAuthInterface {
         error: authError.code,
       };
     }
-  }
+  };
 
   public getRedirectResult = async (): Promise<any> => {
-    throw new Error('getRedirectResult not implemented');
+    return this.checkRedirectResult();
   };
 
   public addListener = (listener: ListenerCallback): UnsubscribeCallback => {
@@ -684,7 +684,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
     try {
       //(this.auth as unknown as any)._canInitEmulator = true;
-      connectAuthEmulator(this.auth, emulatorUrl, { disableWarnings: true });
+      connectAuthEmulator(this.auth, emulatorUrl, { disableWarnings: false });
       console.warn(`[TernSecure] Firebase Auth Emulator connected at ${emulatorUrl}`);
     } catch (error) {
       console.error('[TernSecure] Error connecting to Firebase Auth Emulator:', error);

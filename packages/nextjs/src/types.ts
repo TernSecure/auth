@@ -1,7 +1,6 @@
-import type { TernSecureProviderProps } from '@tern-secure/react'
+import type { TernSecureProviderProps } from '@tern-secure/react';
 
-import type { ERRORS } from './errors'
-
+import type { ERRORS } from './errors';
 
 /**
  * TernSecure User
@@ -9,12 +8,11 @@ import type { ERRORS } from './errors'
 //export type TernSecureUser = FirebaseUser
 
 export type TernSecureUserData = {
-  uid: string
-  email: string | null
-  emailVerified?: boolean
-  displayName?: string | null
-}
-
+  uid: string;
+  email: string | null;
+  emailVerified?: boolean;
+  displayName?: string | null;
+};
 
 /**
  * TernSecure Firebase configuration interface
@@ -35,13 +33,13 @@ export type TernSecureUserData = {
  */
 export interface TernSecureOptions {
   /** Environment setting for different configurations */
-  environment?: 'development' | 'production'
+  environment?: 'development' | 'production';
   /** Geographic region for data storage */
-  region?: string
+  region?: string;
   /** Custom error handler */
-  onError?: (error: Error) => void
+  onError?: (error: Error) => void;
   /** Debug mode flag */
-  debug?: boolean
+  debug?: boolean;
 }
 
 /**
@@ -49,19 +47,19 @@ export interface TernSecureOptions {
  */
 export interface FirebaseState {
   /** Whether Firebase has been initialized */
-  initialized: boolean
+  initialized: boolean;
   /** Any initialization errors */
-  error: Error | null
+  error: Error | null;
   /** Timestamp of last initialization attempt */
-  lastInitAttempt?: number
+  lastInitAttempt?: number;
 }
 
 /**
  * Configuration validation result
  */
 export interface ConfigValidationResult {
-  isValid: boolean
-  errors: string[]
+  isValid: boolean;
+  errors: string[];
   //config: TernSecureConfig
 }
 
@@ -69,124 +67,125 @@ export interface ConfigValidationResult {
  * Firebase Admin configuration interface
  */
 export interface TernSecureAdminConfig {
-  projectId: string
-  clientEmail: string
-  privateKey: string
+  projectId: string;
+  clientEmail: string;
+  privateKey: string;
 }
 
 /**
  * Firebase Admin configuration validation result
  */
 export interface AdminConfigValidationResult {
-  isValid: boolean
-  errors: string[]
-  config: TernSecureAdminConfig
+  isValid: boolean;
+  errors: string[];
+  config: TernSecureAdminConfig;
 }
-
 
 export interface SignInResponse {
   success: boolean;
   message?: string;
-  error?: keyof typeof ERRORS | undefined; 
+  error?: keyof typeof ERRORS | undefined;
   user?: any;
 }
 
 export interface AuthError extends Error {
-  code?: string
-  message: string
-  response?: SignInResponse
+  code?: string;
+  message: string;
+  response?: SignInResponse;
 }
 
 export function isSignInResponse(value: any): value is SignInResponse {
-  return typeof value === "object" && "success" in value && typeof value.success === "boolean"
+  return typeof value === 'object' && 'success' in value && typeof value.success === 'boolean';
 }
 
-
 export interface TernSecureState {
-  userId: string | null
-  isLoaded: boolean
-  error: Error | null
-  isValid: boolean
-  isVerified: boolean
-  isAuthenticated: boolean
-  token: any | null
-  email: string | null
-  status: "loading" | "authenticated" | "unauthenticated" | "unverified"
-  requiresVerification: boolean
+  userId: string | null;
+  isLoaded: boolean;
+  error: Error | null;
+  isValid: boolean;
+  isVerified: boolean;
+  isAuthenticated: boolean;
+  token: any | null;
+  email: string | null;
+  status: 'loading' | 'authenticated' | 'unauthenticated' | 'unverified';
+  requiresVerification: boolean;
 }
 
 export interface RedirectConfig {
   // URL to redirect to after successful authentication
-  redirectUrl?: string
+  redirectUrl?: string;
   // Whether this is a return visit (e.g. after sign out)
-  isReturn?: boolean
+  isReturn?: boolean;
   // Priority of the redirect (higher number = higher priority)
-  priority?: number
+  priority?: number;
 }
-
 
 export interface SignInProps extends RedirectConfig {
-  onError?: (error: Error) => void
-  onSuccess?: () => void
-  className?: string
+  onError?: (error: Error) => void;
+  onSuccess?: () => void;
+  className?: string;
   customStyles?: {
-    card?: string
-    input?: string
-    button?: string
-    label?: string
-    separator?: string
-    title?: string
-    description?: string
-    socialButton?: string
-  }
+    card?: string;
+    input?: string;
+    button?: string;
+    label?: string;
+    separator?: string;
+    title?: string;
+    description?: string;
+    socialButton?: string;
+  };
 }
-
 
 export type TernSecureNextProps = TernSecureProviderProps & {
-  apiKey?: string
-  requiresVerification?: boolean
-  loadingComponent?: React.ReactNode
-}
+  apiKey?: string;
+  requiresVerification?: boolean;
+  loadingComponent?: React.ReactNode;
+  /**
+   * If set to true, the NextJS middleware will be invoked
+   * every time the client-side auth state changes (sign-out, sign-in, etc.).
+   * That way, any auth-dependent logic can be placed inside the middleware.
+   * Example: Configuring the middleware to force a redirect to `/sign-in` when the user signs out
+   *
+   * @default true
+   */
+  __unstable_invokeMiddlewareOnAuthStateChange?: boolean;
+};
 
 export interface User {
-    uid: string
-    email: string | null
-    emailVerified?: boolean
-    authTime?: number
-    disabled?: boolean
+  uid: string;
+  email: string | null;
+  emailVerified?: boolean;
+  authTime?: number;
+  disabled?: boolean;
 }
 
 export interface BaseUser {
-  uid: string
-  email: string | null
-  emailVerified?: boolean
-  tenantId: string | null
-  authTime?: number
+  uid: string;
+  email: string | null;
+  emailVerified?: boolean;
+  tenantId: string | null;
+  authTime?: number;
 }
-  
 
+export interface UserInfo {
+  uid: string;
+  email: string | null;
+  emailVerified?: boolean;
+  authTime?: number;
+  disabled?: boolean;
+}
 
-  export interface UserInfo {
-    uid: string
-    email: string | null
-    emailVerified?: boolean
-    authTime?: number
-    disabled?: boolean
-  }
-  
-  export interface SessionUser {
-    uid: string
-    email: string | null
-    emailVerified: boolean
-    disabled?: boolean
-  }
-  
-  export interface SessionResult {
-    isAuthenticated: boolean
-    user: UserInfo | null
-    error?: string
-  }
+export interface SessionUser {
+  uid: string;
+  email: string | null;
+  emailVerified: boolean;
+  disabled?: boolean;
+}
 
-  export type NextProviderProcessedProps = Omit<TernSecureProviderProps, 'children'>;
+export interface SessionResult {
+  isAuthenticated: boolean;
+  user: UserInfo | null;
+  error?: string;
+}
 
-
+export type NextProviderProcessedProps = Omit<TernSecureProviderProps, 'children'>;

@@ -8,7 +8,6 @@ import { allNextProviderPropsWithEnv } from '../../utils/allNextProviderProps';
 import { useAwaitablePush } from './useAwaitablePush';
 import { useAwaitableReplace } from './useAwaitableReplace';
 
-
 const NextClientProvider = (props: TernSecureNextProps) => {
   const { children } = props;
 
@@ -29,9 +28,7 @@ const NextClientProvider = (props: TernSecureNextProps) => {
   });
   return (
     <TernNextOptionsProvider options={providerProps}>
-      <TernSecureReactProvider {...providerProps}>
-        {children}
-      </TernSecureReactProvider>
+      <TernSecureReactProvider {...providerProps}>{children}</TernSecureReactProvider>
     </TernNextOptionsProvider>
   );
 };

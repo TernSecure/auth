@@ -182,6 +182,10 @@ export class RedirectUrls {
 
   #toAbsoluteUrls(obj: RedirectOptions) {
     const origin = typeof window !== 'undefined' ? window.location.origin : '';
+    // If no origin (server-side), return URLs as-is without conversion
+    // They will be properly converted on the client-side
+    if (!origin) return obj;
+
     return applyFunctionToObj(obj, (url: string) => relativeToAbsoluteUrl(url, origin));
   }
 
