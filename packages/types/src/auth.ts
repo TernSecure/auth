@@ -366,7 +366,9 @@ export type SignInProps = {
    *
    */
   onSuccess?: (user: TernSecureUser | null) => void;
-} & SignUpForceRedirectUrl;
+} & SignUpForceRedirectUrl &
+  SignUpFallbackRedirectUrl &
+  AfterSignOutUrl;
 
 /**
  * Props for SignUp component focusing on UI concerns
@@ -388,7 +390,9 @@ export type SignUpProps = {
   /** Callbacks */
   onSubmit?: (values: SignUpFormValues) => Promise<void>;
   onSuccess?: (user: TernSecureUser | null) => void;
-} & SignInFallbackRedirectUrl & SignInForceRedirectUrl;
+} & SignInFallbackRedirectUrl &
+  SignInForceRedirectUrl &
+  AfterSignOutUrl;
 
 export type SignInRedirectOptions = RedirectOptions;
 export type SignUpRedirectOptions = RedirectOptions;
