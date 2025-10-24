@@ -35,7 +35,7 @@ export type SignInParams = {
   csrfToken: string | undefined;
 };
 
-type FirebaseAuthResult = UserCredential | void;
+type FirebaseAuthResult = UserCredential;
 
 type AuthMethodFunction = (
   auth: Auth,
@@ -54,11 +54,10 @@ export type SupportedProvider =
   | 'facebook'
   | string; // Allow custom providers like 'custom.provider.com'
 
-
 export class SignIn extends TernSecureBase implements SignInResource {
   pathRoot = '/sessions/createsession';
 
-  status?: SignInStatus | undefined;
+  status: SignInStatus | null = null;
   private auth: Auth;
   private csrfToken: string | undefined;
   private _currentUser: TernSecureUser | null = null;
@@ -122,7 +121,7 @@ export class SignIn extends TernSecureBase implements SignInResource {
   withSocialProvider = async (
     provider: SupportedProvider,
     options: SocialProviderOptions = {},
-  ): Promise<SignInResponse | void> => {
+  ): Promise<SignInResponse> => {
     try {
       const { mode = 'popup' } = options;
       if (mode === 'redirect') {
@@ -132,8 +131,7 @@ export class SignIn extends TernSecureBase implements SignInResource {
           return redirectResult;
         }
 
-        await this._signInWithRedirect(provider, options);
-        return;
+        return await this._signInWithRedirect(provider, options);
       } else {
         return await this._signInWithPopUp(provider, options);
       }
@@ -295,21 +293,14 @@ export class SignIn extends TernSecureBase implements SignInResource {
 
       this.configureProvider(config.provider, options);
 
-      const credential = await authMethod(this.auth, config.provider);
-
-      if (credential) {
-        return {
-          status: 'success',
-          message: 'Authentication successful',
-          user: credential.user,
-          providerId: credential.providerId,
-          operationType: credential.operationType,
-        };
-      }
+      const { user, providerId, operationType } = await authMethod(this.auth, config.provider);
 
       return {
         status: 'success',
-        message: 'Redirect initiated',
+        message: 'Authentication successful',
+        user,
+        providerId,
+        operationType,
       };
     } catch (error) {
       const authError = handleFirebaseAuthError(error);

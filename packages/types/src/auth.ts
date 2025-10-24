@@ -115,6 +115,8 @@ export type CreateActiveSessionParams = {
 
 export type CreateActiveSession = (params: CreateActiveSessionParams) => Promise<void>;
 
+export type CustomNavigation = (to: string, options?: NavigateOptions) => Promise<unknown> | void;
+
 /**
  * Navigation options used to replace or push history changes.
  * Both `routerPush` & `routerReplace` OR none options should be passed.
@@ -291,6 +293,9 @@ export interface TernSecureAuth {
   /** Create an active session */
   createActiveSession: CreateActiveSession;
 
+  /** Function used to navigate to certain steps and URLs */
+  navigate: CustomNavigation;
+
   /**
    * @param {string} to
    */
@@ -351,11 +356,23 @@ export type TernVerificationResult =
 export type SignInProps = {
   /** Routing Path */
   path?: string;
-  /** URL to navigate to after successfully sign-in */
+  /** URL to navigate to after successfully sign-in
+   * Use this prop to override the redirect URL when needed.
+   * @default undefined
+   */
   forceRedirectUrl?: string | null;
+  /**
+   * Full URL or path to navigate to after successful sign in.
+   * This value is used when no other redirect props, environment variables or search params are present.
+   * @default undefined
+   */
+  fallbackRedirectUrl?: string | null;
   /** Initial form values */
   initialValue?: SignInInitialValue;
-  /** Callbacks */
+  /**
+   * @deprecated this prop will be removed in future releases. Use UI configuration options instead. use onSignInSuccess
+   *
+   */
   onSuccess?: (user: TernSecureUser | null) => void;
 } & SignUpForceRedirectUrl;
 

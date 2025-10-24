@@ -86,7 +86,7 @@ export interface SignInResource {
   /**
    * The current status of the sign-in process.
    */
-  status?: SignInStatus;
+  status: SignInStatus | null;
   /**
    * Signs in a user with their email and password.
    * @param params - The sign-in form values.
@@ -96,9 +96,9 @@ export interface SignInResource {
   /**
    * @param provider - The identifier of the social provider (e.g., 'google', 'microsoft', 'github').
    * @param options - Optional configuration for the social sign-in flow.
-   * @returns A promise that resolves with the sign-in response or void if redirecting.
+   * @returns A promise that resolves with the sign-in response.
    */
-  withSocialProvider: (provider: string, options: SocialProviderOptions) => Promise<SignInResponse | void>;
+  withSocialProvider: (provider: string, options: SocialProviderOptions) => Promise<SignInResponse>;
   /**
    * Completes an MFA (Multi-Factor Authentication) step after a primary authentication attempt.
    * @param mfaToken - The MFA token or code submitted by the user.

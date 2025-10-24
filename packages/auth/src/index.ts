@@ -23,6 +23,7 @@ export type {
     SignInResponse,
     SignInForceRedirectUrl,
     SignUpForceRedirectUrl,
+    SignInFallbackRedirectUrl,
     ResendEmailVerification,
     TernSecureUser,
     TernSecureState

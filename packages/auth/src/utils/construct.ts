@@ -331,6 +331,10 @@ export function hasBannedProtocol(val: string | URL) {
 export const isAllowedRedirect =
   (allowedRedirectOrigins: Array<string | RegExp> | undefined, currentOrigin: string) =>
   (_url: URL | string) => {
+    // On server-side (no origin), allow all redirects
+    // They will be validated on client-side
+    if (!currentOrigin) return true;
+
     let url = _url;
     if (typeof url === 'string') {
       url = relativeToAbsoluteUrl(url, currentOrigin);

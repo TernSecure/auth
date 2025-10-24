@@ -293,6 +293,12 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     return '';
   };
 
+  navigate = (to: string) => {
+    if (this.ternauth && this.isReady) {
+      this.ternauth.navigate(to);
+    }
+  };
+
   redirectToSignIn = async (options?: SignInRedirectOptions) => {
     if (this.ternauth?.redirectToSignIn) {
       this.ternauth.redirectToSignIn(options);
