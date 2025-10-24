@@ -12,6 +12,7 @@ import type {
   SignUpForceRedirectUrl,
 } from './redirect';
 import type { AuthErrorResponse, SignInInitialValue, SignInResource } from './signIn';
+import type { SignUpFormValues, SignUpInitialValue } from './signUp';
 
 export interface InitialState {
   userId: string | null;
@@ -311,15 +312,6 @@ export interface TernSecureAuth {
   redirectAfterSignUp: () => void;
 }
 
-export type SignUpFormValues = {
-  email: string;
-  password: string;
-  confirmPassword?: string;
-  displayName?: string;
-};
-
-export type SignUpInitialValue = Partial<SignUpFormValues>;
-
 export interface TernSecureAuthFactory {
   create(options?: TernSecureAuthOptions): TernSecureAuth;
 }
@@ -380,14 +372,23 @@ export type SignInProps = {
  * Props for SignUp component focusing on UI concerns
  */
 export type SignUpProps = {
-  /** URL to navigate to after successfully sign-up */
+  /** URL to navigate to after successfully sign-up
+   * Use this prop to override the redirect URL when needed.
+   * @default undefined
+   */
   forceRedirectUrl?: string | null;
+  /**
+   * Full URL or path to navigate to after successful sign up.
+   * This value is used when no other redirect props, environment variables or search params are present.
+   * @default undefined
+   */
+  fallbackRedirectUrl?: string | null;
   /** Initial form values */
   initialValue?: SignUpInitialValue;
   /** Callbacks */
   onSubmit?: (values: SignUpFormValues) => Promise<void>;
   onSuccess?: (user: TernSecureUser | null) => void;
-} & SignInForceRedirectUrl;
+} & SignInFallbackRedirectUrl & SignInForceRedirectUrl;
 
 export type SignInRedirectOptions = RedirectOptions;
 export type SignUpRedirectOptions = RedirectOptions;

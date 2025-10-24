@@ -24,6 +24,7 @@ export type {
     SignInForceRedirectUrl,
     SignUpForceRedirectUrl,
     SignInFallbackRedirectUrl,
+    SignUpFallbackRedirectUrl,
     ResendEmailVerification,
     TernSecureUser,
     TernSecureState
