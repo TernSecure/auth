@@ -19,10 +19,6 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
   const { createActiveSession } = useTernSecure();
   const [formError, setFormError] = useState<SignInResponse | null>(null);
 
-  if (!isLoaded) {
-    return null;
-  }
-
   const handleSignInSuccess = async (user: TernSecureUser) => {
     onSignInSuccess(user, {
       onPreRedirect: async () => {
@@ -38,13 +34,13 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
    * Now consumers can specify exactly what OAuth parameters they need
    */
   const signInWithSocialLogin = async (provider: string, customOptions: SocialProviderOptions) => {
-    const res = await signIn.withSocialProvider(provider, {
+    const res = await signIn?.withSocialProvider(provider, {
       mode: customOptions.mode || 'popup',
       customParameters: customOptions.customParameters,
       scopes: customOptions.scopes,
     });
 
-    if (res.status === 'error') {
+    if (res?.status === 'error') {
       setFormError({
         status: 'error',
         message: res.message,
@@ -52,7 +48,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       });
     }
 
-    if (res.status === 'success') {
+    if (res?.status === 'success') {
       createActiveSession({ session: res.user, redirectUrl: afterSignInUrl });
       //handleSignInSuccess(res.user);
     }
@@ -79,15 +75,15 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
   };
 
   const signInPasswordField = async () => {
-    const res = await signIn.withEmailAndPassword({ email, password });
-    if (res.status === 'error') {
+    const res = await signIn?.withEmailAndPassword({ email, password });
+    if (res?.status === 'error') {
       setFormError({
         status: 'error',
         message: res.message,
         error: res.error,
       });
     }
-    if (res.status === 'success') {
+    if (res?.status === 'success') {
       createActiveSession({ session: res.user, redirectUrl: afterSignInUrl });
     }
   };
@@ -200,7 +196,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
               <div className='text-center text-sm'>
                 Don&apos;t have an account?{' '}
                 <a
-                  href='#'
+                  href='./sign-up'
                   className='underline underline-offset-4'
                 >
                   Sign up

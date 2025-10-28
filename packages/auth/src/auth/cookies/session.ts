@@ -1,8 +1,8 @@
 import { cookieHandler, getCookieName, getCookiePrefix } from '@tern-secure/shared/cookie';
 
 const SESSION_COOKIE_NAME = '__session';
-const ID_TOKEN_COOKIE_NAME = 'FIREBASE_[DEFAULT]';
-const REFRESH_TOKEN_COOKIE_NAME = 'FIREBASEID_[DEFAULT]';
+const ID_TOKEN_COOKIE_NAME = 'TernSecure_[DEFAULT]';
+const REFRESH_TOKEN_COOKIE_NAME = 'TernSecureID_[DEFAULT]';
 const CUSTOM_COOKIE_NAME = '__custom';
 
 export type SessionCookieHandler = {

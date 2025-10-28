@@ -126,15 +126,14 @@ export type UserCredential = {
  * Extends Firebase's base configuration options
  */
 export interface TernSecureConfig {
-  apiKey: string;
-  authDomain: string;
-  projectId: string;
-  storageBucket: string;
-  messagingSenderId: string;
-  appId: string;
+  apiKey?: string;
+  authDomain?: string;
+  databaseURL?: string;
+  projectId?: string;
+  storageBucket?: string;
+  messagingSenderId?: string;
+  appId?: string;
   measurementId?: string;
-  appName?: string;
-  tenantId?: string;
 }
 
 /**

@@ -5,7 +5,7 @@ import type {
   RequestState,
   TernSecureRequest,
 } from '@tern-secure/backend';
-import { constants, createRedirect, createTernSecureRequest } from '@tern-secure/backend';
+import { constants, createRedirect, createTernSecureRequest} from '@tern-secure/backend';
 import { notFound as nextjsNotFound } from 'next/navigation';
 import type { NextMiddleware, NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';

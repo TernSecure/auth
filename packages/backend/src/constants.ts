@@ -19,8 +19,8 @@ const Attributes = {
 const Cookies = {
   Session: '__session',
   CsrfToken: '__session_terncf',
-  IdToken: 'FIREBASE_[DEFAULT]',
-  Refresh: 'FIREBASEID_[DEFAULT]',
+  IdToken: 'TernSecure_[DEFAULT]',
+  Refresh: 'TernSecureID_[DEFAULT]',
   Custom: '__custom',
   Handshake: '__ternsecure_handshake',
   DevBrowser: '__ternsecure_db_jwt',
