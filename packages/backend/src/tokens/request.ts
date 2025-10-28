@@ -2,18 +2,12 @@ import type { DecodedIdToken } from '@tern-secure/types';
 
 import { getAuth } from '../auth';
 import { constants } from '../constants';
-import type { ApiClient } from '../fireRestApi';
 import type { TokenCarrier } from '../utils/errors';
 import {
   RefreshTokenErrorReason,
   TokenVerificationError,
   TokenVerificationErrorReason,
 } from '../utils/errors';
-import {
-  type buildTimeOptions,
-  mergePreDefinedOptions,
-  type RuntimeOptions,
-} from '../utils/options';
 import type { RequestState, SignedInState, SignedOutState } from './authstate';
 import { AuthErrorReason, signedIn, signedOut } from './authstate';
 import { createRequestProcessor } from './c-authenticateRequestProcessor';
@@ -165,26 +159,4 @@ export async function authenticateRequest(
   }
 
   return authenticateRequestWithTokenInCookie();
-}
-
-/**
- * @internal
- */
-export type CreateAuthenticateRequestOptions = {
-  options: buildTimeOptions;
-  apiClient: ApiClient;
-};
-
-export function createAuthenticateRequest(params: CreateAuthenticateRequestOptions) {
-  const buildTimeOptions = mergePreDefinedOptions(params.options);
-  const apiClient = params.apiClient;
-
-  const handleAuthenticateRequest = (request: Request, options: RuntimeOptions = {}) => {
-    const { apiUrl } = buildTimeOptions;
-    return authenticateRequest(request, { ...options, apiUrl, apiClient });
-  };
-
-  return {
-    authenticateRequest: handleAuthenticateRequest,
-  };
 }

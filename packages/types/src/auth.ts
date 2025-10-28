@@ -146,6 +146,8 @@ export type TernSecureAuthOptions = TernSecureOptionsNavigation &
   SignUpForceRedirectUrl &
   SignUpFallbackRedirectUrl &
   AfterSignOutUrl & {
+    tenantId?: string;
+    appName?: string;
     apiUrl?: string;
     sdkMetadata?: TernAuthSDK;
     signInUrl?: string;

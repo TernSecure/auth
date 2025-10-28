@@ -7,6 +7,7 @@ import {
   createSessionCookie,
   SetNextServerSession,
   SetNextServerToken,
+  VerifyNextTernIdToken
 } from '@tern-secure/backend/admin';
 
 import { NextCookieStore } from '../../utils/NextCookieAdapter';
@@ -42,4 +43,8 @@ export async function setNextServerToken(token: string) {
 
 export async function createNextSessionCookie(idToken: string) {
   return CreateNextSessionCookie(idToken);
+}
+
+export async function verifyNextTernIdToken(idToken: string) {
+  return VerifyNextTernIdToken(idToken);
 }

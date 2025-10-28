@@ -1,8 +1,8 @@
 import type { ApiClient,CreateFireApiOptions} from "../fireRestApi";
 import { createFireApi } from "../fireRestApi";
 import type { RequestState } from "../tokens/authstate";
-import type { CreateAuthenticateRequestOptions } from "../tokens/request";
-import { createAuthenticateRequest } from "../tokens/request";
+import type { CreateAuthenticateRequestOptions } from "../tokens/factory";
+import { createAuthenticateRequest } from "../tokens/factory";
 import type {
   TernSecureRequest,
 } from "../tokens/ternSecureRequest";

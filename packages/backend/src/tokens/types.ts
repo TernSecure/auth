@@ -35,6 +35,7 @@ export type AuthenticateFireRequestOptions = {
 
 
 export type AuthenticateRequestOptions = {
+  tenantId?: string;
   signInUrl?: string;
   signUpUrl?: string;
   checkRevoked?: CheckRevokedOptions;

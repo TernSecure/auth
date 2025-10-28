@@ -231,7 +231,10 @@ export class TernSecureAuth implements TernSecureAuthInterface {
         throw new Error('apiUrl is required to initialize TernSecureAuth');
       }
 
-      this.initializeFirebaseApp(this.#options.ternSecureConfig);
+      this.initializeFirebaseApp(this.#options.ternSecureConfig, {
+        appName: this.#options.appName,
+        tenantId: this.#options.tenantId,
+      });
 
       const isBrowserCookiePersistence = this.#options.persistence === 'browserCookie';
 
@@ -264,8 +267,11 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
   };
 
-  private initializeFirebaseApp(config: TernSecureConfig) {
-    const appName = config.appName || '[DEFAULT]';
+  private initializeFirebaseApp(
+    config: TernSecureConfig,
+    options?: { appName?: string; tenantId?: string },
+  ): void {
+    const appName = options?.appName || '[DEFAULT]';
     this.firebaseClientApp = getApps().length === 0 ? initializeApp(config, appName) : getApps()[0];
 
     const persistence = this.#setPersistence();
@@ -276,8 +282,8 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
     this.auth = auth;
 
-    if (config.tenantId) {
-      this.auth.tenantId = config.tenantId;
+    if (options?.tenantId) {
+      this.auth.tenantId = options.tenantId;
     }
 
     this.#configureEmulator();

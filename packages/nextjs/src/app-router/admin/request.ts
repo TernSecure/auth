@@ -25,6 +25,7 @@ export async function refreshCookieWithIdToken(
   const backendClient = await ternSecureBackendClient();
 
   const authOptions: AuthenticateRequestOptions = {
+    tenantId: config?.tenantId || undefined,
     firebaseConfig: {
       apiKey: FIREBASE_API_KEY,
       authDomain: FIREBASE_AUTH_DOMAIN,
@@ -32,7 +33,6 @@ export async function refreshCookieWithIdToken(
       storageBucket: FIREBASE_STORAGE_BUCKET,
       messagingSenderId: FIREBASE_MESSAGING_SENDER_ID,
       appId: FIREBASE_APP_ID,
-      tenantId: config?.tenantId || undefined,
     },
     apiClient: backendClient,
   };
