@@ -1,17 +1,4 @@
 /**
- * TernSecure User
- */
-export interface IdTokenResult_DEPRECATED {
-  authTime: string;
-  expirationTime: string;
-  issuedAtTime: string;
-  signInProvider: string | null;
-  signInSecondFactor: string | null;
-  token: string;
-  claims: Record<string, any>;
-}
-
-/**
  * parsed can be replaced with
  */
 //claims: { [key: string]: any } | null

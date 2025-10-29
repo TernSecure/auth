@@ -14,6 +14,9 @@ import type {
 import type { AuthErrorResponse, SignInInitialValue, SignInResource } from './signIn';
 import type { SignUpFormValues, SignUpInitialValue } from './signUp';
 
+/**
+ * @deprecated will be removed in future releases.
+*/
 export interface InitialState {
   userId: string | null;
   token: any | null;
@@ -21,6 +24,9 @@ export interface InitialState {
   user?: TernSecureUser | null;
 }
 
+/**
+ * @deprecated will be removed in future releases.
+*/
 export interface TernSecureState {
   userId: string | null;
   isLoaded: boolean;
@@ -34,6 +40,13 @@ export interface TernSecureState {
   user?: TernSecureUser | null;
 }
 
+export type TernSecureInitialState = {
+  user?: TernSecureUser | null;
+  sessionClaims?: DecodedIdToken | null;
+  userId?: string | null;
+  token?: string | null;
+};
+
 export type TernSecureStateExtended = {
   sessionClaims: DecodedIdToken | null;
   userId: string | null;
@@ -43,6 +56,10 @@ export type TernSecureStateExtended = {
 
 export type AuthProviderStatus = 'idle' | 'pending' | 'error' | 'success';
 
+
+/**
+ * @deprecated will be removed in future releases.
+*/
 export const DEFAULT_TERN_SECURE_STATE: TernSecureState = {
   userId: null,
   isLoaded: false,
@@ -56,6 +73,9 @@ export const DEFAULT_TERN_SECURE_STATE: TernSecureState = {
   user: null,
 };
 
+/**
+ * @deprecated will be removed in future releases.
+*/
 export interface TernSecureAuthProvider {
   /** Current auth state */
   internalAuthState: TernSecureState;
@@ -124,21 +144,21 @@ export type CustomNavigation = (to: string, options?: NavigateOptions) => Promis
  */
 type TernSecureOptionsNavigation =
   | {
-      /**
-       * A function which takes the destination path as an argument and performs a "push" navigation.
-       */
-      routerPush?: never;
-      /**
-       * A function which takes the destination path as an argument and performs a "replace" navigation.
-       */
-      routerReplace?: never;
-      routerDebug?: boolean;
-    }
+    /**
+     * A function which takes the destination path as an argument and performs a "push" navigation.
+     */
+    routerPush?: never;
+    /**
+     * A function which takes the destination path as an argument and performs a "replace" navigation.
+     */
+    routerReplace?: never;
+    routerDebug?: boolean;
+  }
   | {
-      routerPush: RouterFn;
-      routerReplace: RouterFn;
-      routerDebug?: boolean;
-    };
+    routerPush: RouterFn;
+    routerReplace: RouterFn;
+    routerDebug?: boolean;
+  };
 
 export type TernSecureAuthOptions = TernSecureOptionsNavigation &
   SignInForceRedirectUrl &
@@ -172,6 +192,9 @@ export type TernSecureAuthOptions = TernSecureOptionsNavigation &
     };
   };
 
+/**
+ * @deprecated will be removed in future releases.
+*/
 export type TernAuthListenerEventPayload = {
   authStateChanged: TernSecureState;
   userChanged: TernSecureUser;
@@ -179,12 +202,15 @@ export type TernAuthListenerEventPayload = {
   tokenRefreshed: string | null;
 };
 
+/**
+ * @deprecated will be removed in future releases.
+*/
+export type TernAuthListenerEvent = keyof TernAuthListenerEventPayload;
+
 export interface NavigateOptions {
   replace?: boolean;
   metadata?: RouterMetadata;
 }
-
-export type TernAuthListenerEvent = keyof TernAuthListenerEventPayload;
 
 export type ListenerCallback = (emission: TernSecureResources) => void;
 export type UnsubscribeCallback = () => void;
@@ -335,14 +361,14 @@ export type CheckAuthorizationFromSessionClaims = (
 
 export type TernVerificationResult =
   | (DecodedIdToken & {
-      valid: true;
-      token?: string;
-      error?: never;
-    })
+    valid: true;
+    token?: string;
+    error?: never;
+  })
   | {
-      valid: false;
-      error: AuthErrorResponse;
-    };
+    valid: false;
+    error: AuthErrorResponse;
+  };
 
 /**
  * Props for SignIn component focusing on UI concerns
