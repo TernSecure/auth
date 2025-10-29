@@ -16,7 +16,6 @@ export interface CookieOptions {
 }
 
 
-
 export interface CookieResource {
   idToken?: string;
   sessionToken?: string;

@@ -55,6 +55,9 @@ export type SignOutOptionsTree = {
   onAfterSignOut?: () => Promise<void> | void;
 };
 
+/**
+ * @deprecated will be removed in future releases.
+ */
 export type TernSecureInstanceTreeOptions = {
   sdkMetadata?: TernSecureSDK;
   initialSession?: TernSecureSessionTree | null;
