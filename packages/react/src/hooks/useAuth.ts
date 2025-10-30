@@ -15,6 +15,11 @@ import type { IsoTernSecureAuth } from '../lib/isoTernSecureAuth';
 import { useAssertWrappedByTernSecureAuthProvider } from './useAssertWrappedTernSecureProvider';
 
 
+/**
+ * @inline
+ */
+type UseAuthOptions = Record<string, any> | undefined | null;
+
 const handleSignOut = (instance: IsoTernSecureAuth) => {
   return async (options?: SignOutOptions) => {
     try {
@@ -34,14 +39,17 @@ const handleSignOut = (instance: IsoTernSecureAuth) => {
   };
 };
 
-export const useAuth = (): UseAuthReturn => {
+export const useAuth = (initialAuthStateOrOptions: UseAuthOptions = {}): UseAuthReturn => {
   useAssertWrappedByTernSecureAuthProvider('useAuth');
+
+  const { ...rest } = initialAuthStateOrOptions ?? {};
+  const initialAuthState = rest as any;
 
   const ctx = useAuthProviderCtx();
   let authCtx = ctx;
 
   if (authCtx.user === undefined) {
-    authCtx = { ...authCtx, user: null };
+    authCtx = initialAuthState != null ? initialAuthState : {};
   }
 
   const instance = useIsoTernSecureAuthCtx();
@@ -83,25 +91,6 @@ type AuthStateOptions = {
 const resolvedAuthState = ({
   authObject: { userId, user, sessionClaims, signOut },
 }: AuthStateOptions): UseAuthReturn | undefined => {
-  if (sessionClaims) {
-    const isLoaded = true;
-    const isValid = !!sessionClaims.sub;
-    const isVerified = sessionClaims.email_verified || false;
-    const isAuthenticated = isValid && isVerified;
-    const status = deriveAuthStatus(isLoaded, isAuthenticated, isVerified);
-
-    return {
-      isLoaded,
-      isVerified,
-      isAuthenticated,
-      isValid,
-      user: user || null,
-      userId: sessionClaims.sub || userId || null,
-      sessionClaims,
-      status,
-      signOut,
-    } as const;
-  }
   if (!user) {
     return {
       isLoaded: false,
@@ -116,7 +105,7 @@ const resolvedAuthState = ({
     } as const;
   }
 
-  if (user && userId) {
+  if (user) {
     const isLoaded = true;
     const isValid = true;
     const isVerified = user.emailVerified || false;

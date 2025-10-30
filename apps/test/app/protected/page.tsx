@@ -1,19 +1,13 @@
-import { auth, type BaseUser} from "@tern-secure/nextjs/server";
-import { ProtectedPageClient } from "./protectedClient";
+import { auth } from '@tern-secure/nextjs/server';
+import { ProtectedPageClient } from './protectedClient';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
 
 export default async function ProtectedPage() {
-  const { sessionClaims, userId, redirectToSignIn } = await auth();
+  const { user, require } = await auth();
+  if (!require({ role: 'admin' })) return <div>Access Denied</div>;
 
-  if (!userId) return redirectToSignIn();
+  if (!user) return null;
 
-  const user: BaseUser = {
-    uid: sessionClaims.uid,
-    email: sessionClaims.email || null,
-    emailVerified: sessionClaims.emailVerified || null,
-    tenantId: sessionClaims.tenantId || null,
-  };
-
-  return <ProtectedPageClient user={user} />
+  return <ProtectedPageClient user={user} />;
 }
