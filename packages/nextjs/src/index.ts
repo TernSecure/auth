@@ -1,4 +1,5 @@
 export { TernSecureProvider } from './app-router/server/TernSecureProvider';
+export { TernSecureProviderNode } from './app-router/server/TernSecureProviderNode';
 export {
   useAuth,
   useIdToken,

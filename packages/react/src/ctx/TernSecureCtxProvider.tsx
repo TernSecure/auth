@@ -1,7 +1,7 @@
 'use client';
 
 import { deriveAuthState } from '@tern-secure/shared/derivedAuthState';
-import type  { TernSecureResources, TernSecureStateExtended } from '@tern-secure/types';
+import type  { TernSecureInitialState, TernSecureResources } from '@tern-secure/types';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { IsoTernSecureAuth } from '../lib/isoTernSecureAuth';
@@ -12,7 +12,7 @@ import { IsoTernSecureAuthCtx } from './IsomorphicTernSecureCtx';
 type TernSecureCtxProviderProps = {
   children: React.ReactNode;
   instanceOptions: IsoTernSecureAuthOptions;
-  initialState: TernSecureStateExtended | undefined;
+  initialState: TernSecureInitialState | undefined;
 };
 
 export type TernSecureCtxProviderState = TernSecureResources;
@@ -31,7 +31,7 @@ export function TernSecureCtxProvider(props: TernSecureCtxProviderProps) {
     return instance.addListener(e => setAuthState({ ...e }));
   }, []);
 
-  const derivedState = deriveAuthState(instance.isReady, authState, initialState);
+  const derivedState = deriveAuthState(authState, initialState);
   const { sessionClaims, user, userId } = derivedState;
 
   const authCtx = useMemo(() => {

@@ -1,8 +1,8 @@
 import type {
   DecodedIdToken,
   SignedInSession,
+  TernSecureInitialState,
   TernSecureResources,
-  TernSecureStateExtended,
   TernSecureUser,
 } from '@tern-secure/types';
 
@@ -19,9 +19,8 @@ type DerivedAuthState = {
 };
 
 export const deriveAuthState = (
-  ternSecureIsReady: boolean,
   authState: TernSecureResources,
-  initialState: TernSecureStateExtended | undefined,
+  initialState: TernSecureInitialState | undefined,
 ): DerivedAuthState => {
   if (!authState.user && initialState) {
     return fromSsrInitialState(initialState);
@@ -29,7 +28,7 @@ export const deriveAuthState = (
   return fromClientSideState(authState);
 };
 
-const fromSsrInitialState = (initialState: TernSecureStateExtended) => {
+const fromSsrInitialState = (initialState: TernSecureInitialState) => {
   const userId = initialState.userId;
   const sessionClaims = initialState.sessionClaims;
   const token = initialState.token;

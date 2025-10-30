@@ -3,12 +3,15 @@ import { createRedirect, createTernSecureRequest } from '@tern-secure/backend';
 import { notFound, redirect } from 'next/navigation';
 
 import { SIGN_IN_URL, SIGN_UP_URL } from '../../server/constant';
-import { getAuthDataFromRequest } from '../../server/data/getAuthDataFromRequest';
+import { type Aobj, getAuthDataFromRequestNode } from '../../server/data/getAuthDataFromRequest';
 import { getAuthKeyFromRequest } from '../../server/headers-utils';
 import { type AuthProtect, createProtect } from '../../server/protect';
 import type { BaseUser, RequestLike } from '../../server/types';
 import { buildRequestLike } from './utils';
 
+/**
+ * @deprecated will be removed in future versions.
+*/
 export interface AuthResult {
   user: BaseUser | null;
   error: Error | null;
@@ -17,7 +20,7 @@ export interface AuthResult {
 /**
  * `Auth` object of the currently active user and the `redirectToSignIn()` method.
  */
-type Auth = AuthObject & {
+type Auth = AuthObject & Aobj & {
   redirectToSignIn: RedirectFun<ReturnType<typeof redirect>>;
   redirectToSignUp: RedirectFun<ReturnType<typeof redirect>>;
 };
@@ -30,7 +33,7 @@ export interface AuthFn {
 
 const createAuthObject = () => {
   return async (req: RequestLike) => {
-    return getAuthDataFromRequest(req);
+    return getAuthDataFromRequestNode(req);
   };
 };
 

@@ -30,7 +30,7 @@ export default async function RootLayout({
         <TernSecureProvider
           requiresVerification={false}
           isTernSecureDev={true}
-          persistence='local'
+          persistence='browserCookie'
           //afterSignOutUrl='/sign-in'  //better use it on client-side
         >
           <Header />

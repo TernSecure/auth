@@ -1,8 +1,8 @@
-import type { TernSecureInitialState } from '@tern-secure/types';
+import type { DecodedIdToken, TernSecureUser } from '@tern-secure/types';
 import type { ReactNode } from 'react';
 import React from 'react';
 
-import { PromiseAuthProvider } from '../../boundary/PromiseAuthProvider';
+import { PromiseAuthProviderNode } from '../../boundary/PromiseAuthProviderNode';
 import { getTernSecureAuthDataNode } from '../../server/data/getAuthDataFromRequest';
 import { isNext13 } from '../../server/sdk-versions';
 import type { TernSecureNextProps } from '../../types';
@@ -10,13 +10,19 @@ import { allNextProviderPropsWithEnv } from '../../utils/allNextProviderProps';
 import { ClientTernSecureProvider } from '../client/TernSecureProvider';
 import { buildRequestLike } from './utils';
 
+type TernSecureInitialState = {
+  user?: TernSecureUser | null;
+  token?: string | null;
+  sessionClaims?: DecodedIdToken | null;
+};
+
 const getTernSecureState = React.cache(async function getTernSecureState() {
   const request = await buildRequestLike();
   const data = getTernSecureAuthDataNode(request);
   return data;
 });
 
-export async function TernSecureProvider(props: TernSecureNextProps) {
+export async function TernSecureProviderNode(props: TernSecureNextProps) {
   const { children, ...rest } = props;
   const { persistence } = rest;
 
@@ -38,7 +44,7 @@ export async function TernSecureProvider(props: TernSecureNextProps) {
 
   if (browserCookiePersistence) {
     output = (
-      <PromiseAuthProvider
+      <PromiseAuthProviderNode
         authPromise={generateStatePromise() as unknown as Promise<TernSecureInitialState>}
       >
         <ClientTernSecureProvider
@@ -47,7 +53,7 @@ export async function TernSecureProvider(props: TernSecureNextProps) {
         >
           {children}
         </ClientTernSecureProvider>
-      </PromiseAuthProvider>
+      </PromiseAuthProviderNode>
     );
   } else {
     output = (
