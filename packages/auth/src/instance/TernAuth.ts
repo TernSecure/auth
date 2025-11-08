@@ -25,7 +25,6 @@ import type {
   TernSecureConfig,
   TernSecureResources,
   TernSecureUser,
-  TernSecureUserData,
   UnsubscribeCallback,
 } from '@tern-secure/types';
 import type { FirebaseApp } from 'firebase/app';
@@ -45,13 +44,11 @@ import {
 } from 'firebase/auth';
 import { getInstallations } from 'firebase/installations';
 
-import { type ClientAuthRequest, createClientAuthRequest } from '../auth/request';
 import { AuthCookieManager, Session, SignIn, SignUp, TernSecureBase } from '../resources/internal';
 import { ALLOWED_PROTOCOLS, buildURL, stripOrigin, windowNavigate } from '../utils/';
 import { RedirectUrls } from '../utils/redirectUrls';
 import { type ApiClient, createCoreApiClient } from './c_coreApiClient';
 import { eventBus, events } from './events';
-import { createClientFromJwt } from './jwtClient';
 
 export function inBrowser(): boolean {
   return typeof window !== 'undefined';
@@ -88,7 +85,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   #listeners: Array<(emission: TernSecureResources) => void> = [];
   #options: TernSecureAuthOptions = {};
   #authCookieManager?: AuthCookieManager;
-  #clientAuthRequest?: ClientAuthRequest;
   #publicEventBus = createTernAuthEventBus();
 
   signIn!: SignInResource | null | undefined;
@@ -156,17 +152,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   }
 
   public getApiClient = (): ApiClient => this.#apiClient;
-
-  /**
-   * Get user data for the provided ID token via backend API
-   */
-  public async getUserData(): Promise<TernSecureUserData | null> {
-    if (!this.#clientAuthRequest) {
-      throw new Error('Client auth request not initialized');
-    }
-
-    return this.#clientAuthRequest.getUserData();
-  }
 
   public setLoading(isLoading: boolean): void {
     this.isLoading = isLoading;
@@ -245,8 +230,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       this.#authCookieManager = new AuthCookieManager();
       this.csrfToken = this.#authCookieManager.getCSRFToken();
 
-      this.#clientAuthRequest = createClientAuthRequest();
-
       this.signIn = new SignIn(this.auth, this.csrfToken);
       this.signUp = new SignUp(this.auth);
 
@@ -290,35 +273,6 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
     getInstallations(this.firebaseClientApp);
   }
-
-  /**
-   * use when cookie are not httpOnly
-   */
-  initClient = () => {
-    const idTokenInCookie = this.#authCookieManager?.getIdTokenCookie();
-    const jwtClient = createClientFromJwt(idTokenInCookie || null);
-    this.user = jwtClient as TernSecureUser | null;
-    this.#emit();
-  };
-
-  /**
-   * @deprecated will be removed in future releases.
-   */
-  initClientAuthRequest = () => {
-    this.#clientAuthRequest
-      ?.getIdTokenFromCookie()
-      .then(idTokenInCookie => {
-        const { token } = idTokenInCookie;
-        const jwtClient = createClientFromJwt(token || null);
-        this.user = jwtClient as TernSecureUser | null;
-        this.#emit();
-      })
-      .catch(error => {
-        console.error('[ternauth] Error during client auth request initialization:', error);
-        this.user = null;
-        this.#emit();
-      });
-  };
 
   public signOut: SignOut = async (options?: SignOutOptions) => {
     const redirectUrl = options?.redirectUrl || this.#constructAfterSignOutUrl();
@@ -655,6 +609,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
   #setCreatedActiveSession = (session: TernSecureUser | null) => {
     this.user = session;
+    this._currentUser = session;
   };
 
   #setPersistence = () => {

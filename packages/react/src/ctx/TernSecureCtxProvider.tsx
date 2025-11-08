@@ -1,7 +1,7 @@
 'use client';
 
 import { deriveAuthState } from '@tern-secure/shared/derivedAuthState';
-import type  { TernSecureInitialState, TernSecureResources } from '@tern-secure/types';
+import type { TernSecureInitialState, TernSecureResources } from '@tern-secure/types';
 import React, { useEffect, useMemo, useState } from 'react';
 
 import { IsoTernSecureAuth } from '../lib/isoTernSecureAuth';

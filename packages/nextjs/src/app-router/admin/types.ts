@@ -20,7 +20,16 @@ export const DEFAULT_CORS_OPTIONS: CorsOptions = {
   maxAge: 86400, // 24 hours
 };
 
-export const DEFAULT_COOKIE_OPTIONS: CookieOptions = {
+export const DEFAULT_SESSION_COOKIE_OPTIONS: CookieOptions = {
+  httpOnly: true,
+  path: '/',
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: 'strict',
+  maxAge: 12 * 60 * 60 * 24, // twelve days
+  priority: 'high',
+};
+
+export const DEFAULT_ID_REFRESH_TOKEN_COOKIE_OPTIONS: CookieOptions = {
   httpOnly: true,
   path: '/',
   secure: process.env.NODE_ENV === 'production',
@@ -133,7 +142,7 @@ export const DEFAULT_HANDLER_OPTIONS: Required<TernSecureHandlerOptions> & {
   endpoints: Required<NonNullable<TernSecureHandlerOptions['endpoints']>>;
 } = {
   cors: DEFAULT_CORS_OPTIONS,
-  cookies: DEFAULT_COOKIE_OPTIONS,
+  cookies: DEFAULT_SESSION_COOKIE_OPTIONS,
   rateLimit: {
     windowMs: 15 * 60 * 1000, // 15 minutes
     maxRequests: 100,
@@ -202,14 +211,11 @@ export class CookieUtils {
   }
 
   static getSessionConfig(cookieOptions: CookieOptions): TokenCookieConfig {
-    const sessionConfig = cookieOptions.session || {};
-    const defaultSession = DEFAULT_COOKIE_OPTIONS.session || {};
-
     return {
-      path: sessionConfig.path ?? cookieOptions.path ?? '/',
-      httpOnly: sessionConfig.httpOnly ?? cookieOptions.httpOnly ?? true,
-      sameSite: sessionConfig.sameSite ?? cookieOptions.sameSite ?? 'lax',
-      maxAge: sessionConfig.maxAge ?? defaultSession.maxAge ?? 3600 * 24 * 7,
+      path: cookieOptions.path ?? '/',
+      httpOnly: cookieOptions.httpOnly ?? true,
+      sameSite: cookieOptions.sameSite ?? 'lax',
+      maxAge: cookieOptions.maxAge ?? 3600 * 24 * 7,
     };
   }
 

@@ -190,13 +190,22 @@ export async function ClearNextSessionCookie(
       sameSite: deleteOptions?.sameSite,
     };
 
+    const idRefreshCustomTokenDeleteOptions = {
+      path: '/',
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict' as const,
+    };
+
     cookieStore.delete({ name: SESSION_CONSTANTS.COOKIE_NAME, ...finalDeleteOptions });
-    cookieStore.delete({ name: idTokenCookieName, ...finalDeleteOptions });
+    cookieStore.delete({ name: constants.Cookies.TernAut });
+    
+    cookieStore.delete({ name: idTokenCookieName, ...idRefreshCustomTokenDeleteOptions });
     cookieStore.delete({
       name: getCookieName(constants.Cookies.Refresh, cookiePrefix),
-      ...finalDeleteOptions,
+      ...idRefreshCustomTokenDeleteOptions,
     });
-    cookieStore.delete({ name: constants.Cookies.Custom, ...finalDeleteOptions });
+    cookieStore.delete({ name: constants.Cookies.Custom, ...idRefreshCustomTokenDeleteOptions });
 
     const shouldRevokeTokens =
       deleteOptions?.revokeRefreshTokensOnSignOut ??

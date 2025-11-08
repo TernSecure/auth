@@ -1,7 +1,13 @@
-import { ternSecureMiddleware, createRouteMatcher } from '@tern-secure/nextjs/server';
+import { ternSecureProxy, createRouteMatcher } from '@tern-secure/nextjs/server';
 
-const publicPaths = createRouteMatcher(['/sign-in', '/sign-up', '/unauthorized', '/api/auth/(.*)', "/__/auth/(.*)",
-  "/__/firebase/(.*)"]);
+const publicPaths = createRouteMatcher([
+  '/sign-in',
+  '/sign-up',
+  '/unauthorized',
+  '/api/auth/(.*)',
+  "/__/auth/(.*)",
+  "/__/firebase/(.*)"
+]);
 
 export const config = {
   matcher: [
@@ -10,7 +16,7 @@ export const config = {
   ],
 };
 
-export default ternSecureMiddleware(
+export default ternSecureProxy(
   async (auth, request) => {
     //const url = new URL('/unauthorized', request.url);
     if (!publicPaths(request)) {
@@ -18,5 +24,5 @@ export default ternSecureMiddleware(
         return require({ role: 'admin' });
       });
     }
-  },
+  }, { session: { maxAge: '1 hour' } },
 );

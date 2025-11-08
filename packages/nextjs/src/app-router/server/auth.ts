@@ -3,7 +3,7 @@ import { createRedirect, createTernSecureRequest } from '@tern-secure/backend';
 import { notFound, redirect } from 'next/navigation';
 
 import { SIGN_IN_URL, SIGN_UP_URL } from '../../server/constant';
-import { type Aobj, getAuthDataFromRequestNode } from '../../server/data/getAuthDataFromRequest';
+import { type Aobj, getAuthDataFromRequest } from '../../server/data/getAuthDataFromRequest';
 import { getAuthKeyFromRequest } from '../../server/headers-utils';
 import { type AuthProtect, createProtect } from '../../server/protect';
 import type { BaseUser, RequestLike } from '../../server/types';
@@ -33,7 +33,7 @@ export interface AuthFn {
 
 const createAuthObject = () => {
   return async (req: RequestLike) => {
-    return getAuthDataFromRequestNode(req);
+    return getAuthDataFromRequest(req);
   };
 };
 

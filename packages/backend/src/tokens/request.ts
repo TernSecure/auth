@@ -1,7 +1,9 @@
+import { ms, type StringValue } from '@tern-secure/shared/ms';
 import type { DecodedIdToken } from '@tern-secure/types';
 
 import { getAuth } from '../auth';
 import { constants } from '../constants';
+import { ternDecodeJwt } from '../jwt/verifyJwt';
 import type { TokenCarrier } from '../utils/errors';
 import {
   RefreshTokenErrorReason,
@@ -10,14 +12,20 @@ import {
 } from '../utils/errors';
 import type { RequestState, SignedInState, SignedOutState } from './authstate';
 import { AuthErrorReason, signedIn, signedOut } from './authstate';
+import type { RequestProcessorContext } from './c-authenticateRequestProcessor';
 import { createRequestProcessor } from './c-authenticateRequestProcessor';
 import { getCookieNameEnvironment, getCookiePrefix } from './cookie';
 import { createTernSecureRequest } from './ternSecureRequest';
 import type { AuthenticateRequestOptions } from './types';
 import { verifyToken } from './verify';
 
+
 function hasAuthorizationHeader(request: Request): boolean {
   return request.headers.has('Authorization');
+}
+
+function convertToSeconds(value: StringValue) {
+  return ms(value) / 1000;
 }
 
 function isRequestForRefresh(
@@ -40,6 +48,24 @@ export async function authenticateRequest(
   const { refreshTokenInCookie } = context;
 
   const { refreshExpiredIdToken } = getAuth(options);
+
+  function checkSessionTimeout(authTimeValue: number): SignedOutState | null {
+    const defaultMaxAgeSeconds = convertToSeconds('5 days');
+    const REAUTH_PERIOD_SECONDS = context.session?.maxAge
+      ? convertToSeconds(context.session.maxAge)
+      : defaultMaxAgeSeconds;
+
+    const currentTime = Math.floor(Date.now() / 1000);
+    const authAge = currentTime - authTimeValue;
+
+    console.log('Current time:', currentTime, 'Auth age:', authAge, 'Reauth period (s):', REAUTH_PERIOD_SECONDS);
+
+    if (authTimeValue > 0 && authAge > REAUTH_PERIOD_SECONDS) {
+      return signedOut(context, AuthErrorReason.AuthTimeout, 'Authentication expired');
+    }
+
+    return null;
+  }
 
   async function refreshToken() {
     if (!refreshTokenInCookie) {
@@ -68,10 +94,10 @@ export async function authenticateRequest(
     const headers = new Headers();
     const { idToken } = refreshedData;
 
-    const maxAge = 3600;
+    const maxAge = 365 * 24 * 60 * 60;
     const cookiePrefix = getCookiePrefix();
     const idTokenCookieName = getCookieNameEnvironment(constants.Cookies.IdToken, cookiePrefix);
-    const baseCookieAttributes = 'HttpOnly; Secure; SameSite=Strict; Path=/';
+    const baseCookieAttributes = 'HttpOnly; Secure; SameSite=Strict; Max-Age=' + `${maxAge}; Path=/`;
 
     const idTokenCookie = `${idTokenCookieName}=${idToken}; ${baseCookieAttributes};`;
     headers.append('Set-Cookie', idTokenCookie);
@@ -86,7 +112,113 @@ export async function authenticateRequest(
     return { data: { decoded, token: idToken, headers }, error: null };
   }
 
+  async function handleLocalHandshakeWithErrorCheck(
+    context: RequestProcessorContext,
+    reason: string,
+    message: string,
+    skipSessionCheck: boolean = false,
+  ): Promise<SignedInState | SignedOutState> {
+    const hasRefreshTokenInCookie = !!context.refreshTokenInCookie;
+    if (!hasRefreshTokenInCookie) {
+      return signedOut(context, reason, 'Refresh token missing in cookie');
+    }
+
+    if (reason === AuthErrorReason.TernAutWithoutSessionToken) {
+      if (!skipSessionCheck) {
+        const sessionTimeoutResult = checkSessionTimeout(context.ternAuth);
+        if (sessionTimeoutResult) {
+          return sessionTimeoutResult;
+        }
+      }
+
+      const { data, error } = await handleRefresh();
+
+      if (data) {
+        return signedIn(context, data.decoded, data.headers, data.token);
+      }
+
+      return signedOut(context, reason, 'Failed to refresh idToken');
+    }
+
+
+    if (reason === AuthErrorReason.SessionTokenWithoutTernAUT ||
+        reason === AuthErrorReason.SessionTokenIATBeforeTernAUT) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const { data, errors } = ternDecodeJwt(context.idTokenInCookie!);
+
+      if (errors) {
+        throw errors[0];
+      }
+
+      const authTime = data.payload.auth_time;
+
+      if (!authTime || typeof authTime !== 'number') {
+        return signedOut(context, reason, 'Token missing auth_time');
+      }
+
+      if (!skipSessionCheck) {
+        const sessionTimeoutResult = checkSessionTimeout(authTime);
+        if (sessionTimeoutResult) {
+          return sessionTimeoutResult;
+        }
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const { data: verifiedToken, errors: verifyErrors } = await verifyToken(context.idTokenInCookie!, options);
+
+      if (verifyErrors) {
+        throw verifyErrors[0];
+      }
+
+      const headers = new Headers();
+      const oneYearInSeconds = 365 * 24 * 60 * 60;
+      const ternAutCookie = `${constants.Cookies.TernAut}=${authTime}; Max-Age=${oneYearInSeconds}; Secure; SameSite=Strict; Path=/`;
+      headers.append('Set-Cookie', ternAutCookie);
+
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return signedIn(context, verifiedToken, headers, context.idTokenInCookie!);
+    }
+
+    return signedOut(context, reason, message);
+  }
+
   async function authenticateRequestWithTokenInCookie() {
+    const hasTernAuth = context.ternAuth
+    const hasIdTokenInCookie = !!context.idTokenInCookie;
+
+    if (!hasTernAuth && !hasIdTokenInCookie) {
+      return signedOut(context, AuthErrorReason.SessionTokenAndAuthMissing);
+    }
+
+    if (!hasTernAuth && hasIdTokenInCookie) {
+      return await handleLocalHandshakeWithErrorCheck(context, AuthErrorReason.SessionTokenWithoutTernAUT, '');
+    }
+
+    if (hasTernAuth && !hasIdTokenInCookie) {
+      return await handleLocalHandshakeWithErrorCheck(context, AuthErrorReason.TernAutWithoutSessionToken, '');
+    }
+
+    const sessionTimeoutResult = checkSessionTimeout(context.ternAuth);
+    if (sessionTimeoutResult) {
+      return sessionTimeoutResult;
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    const { data: decodedResult, errors: decodeErrors } = ternDecodeJwt(context.idTokenInCookie!);
+
+    if (decodeErrors) {
+      return handleError(decodeErrors[0], 'cookie');
+    }
+
+    const tokenIat = decodedResult.payload.iat;
+    if (!tokenIat) {
+      return signedOut(context, AuthErrorReason.SessionTokenMissing, '');
+    }
+
+    if (tokenIat < context.ternAuth) {
+      return await handleLocalHandshakeWithErrorCheck(context, AuthErrorReason.SessionTokenIATBeforeTernAUT, '', true);
+    }
+
     try {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const { data, errors } = await verifyToken(context.idTokenInCookie!, options);
@@ -97,10 +229,13 @@ export async function authenticateRequest(
 
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const signedInRequestState = signedIn(context, data, undefined, context.idTokenInCookie!);
+
       return signedInRequestState;
     } catch (err) {
       return handleError(err, 'cookie');
     }
+
+    return signedOut(context, AuthErrorReason.UnexpectedError);
   }
 
   async function authenticateRequestWithTokenInHeader() {

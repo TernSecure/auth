@@ -47,7 +47,7 @@
     "lucide-react": "^0.468.0",
     "tailwind-merge": "^2.5.5",
     "tailwindcss-animate": "^1.0.7",
-    "tslib": "2.4.1"
+    "tslib": "catalog:repo"
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.1.6",

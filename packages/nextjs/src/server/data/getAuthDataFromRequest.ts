@@ -9,7 +9,15 @@ import { getAuth } from "firebase/auth";
 
 import { getAuthKeyFromRequest } from '../../server/headers-utils';
 import type { RequestLike } from '../../server/types';
-import { FIREBASE_API_KEY, FIREBASE_APP_ID, FIREBASE_AUTH_DOMAIN, FIREBASE_MEASUREMENT_ID, FIREBASE_MESSAGING_SENDER_ID, FIREBASE_PROJECT_ID, FIREBASE_STORAGE_BUCKET } from "../constant";
+import {
+  FIREBASE_API_KEY,
+  FIREBASE_APP_ID,
+  FIREBASE_AUTH_DOMAIN,
+  FIREBASE_MEASUREMENT_ID,
+  FIREBASE_MESSAGING_SENDER_ID,
+  FIREBASE_PROJECT_ID,
+  FIREBASE_STORAGE_BUCKET
+} from "../constant";
 
 
 /**
@@ -20,19 +28,19 @@ import { FIREBASE_API_KEY, FIREBASE_APP_ID, FIREBASE_AUTH_DOMAIN, FIREBASE_MEASU
  * throws an error if a non-serializable value is found.
  * @internal
  */
-export const authObjectToSerializable = <T extends Record<string, unknown>>(obj: T): T => {
+export const authObjectToSerializableJwt = <T extends Record<string, unknown>>(obj: T): T => {
   // remove any non-serializable props from the returned object
 
   const { require, ...rest } = obj as unknown as AuthObject;
   return rest as unknown as T;
 };
 
-export function getTernSecureAuthData(req: RequestLike, initialState = {}) {
-  const authObject = getAuthDataFromRequest(req);
+export function getTernSecureAuthDataJwt(req: RequestLike, initialState = {}) {
+  const authObject = getAuthDataFromRequestJwt(req);
   return authObjectToSerializable({ ...initialState, ...authObject });
 }
 
-export function getAuthDataFromRequest(req: RequestLike): AuthObject {
+export function getAuthDataFromRequestJwt(req: RequestLike): AuthObject {
   const authStatus = getAuthKeyFromRequest(req, 'AuthStatus');
   const authToken = getAuthKeyFromRequest(req, 'AuthToken');
   const authSignature = getAuthKeyFromRequest(req, 'AuthSignature');
@@ -67,7 +75,7 @@ export type Aobj = {
  * throws an error if a non-serializable value is found.
  * @internal
  */
-export const authObjectToSerializableNode = <T extends Record<string, unknown>>(
+export const authObjectToSerializable = <T extends Record<string, unknown>>(
   obj: T
 ): T => {
   // remove any non-serializable props from the returned object
@@ -76,15 +84,15 @@ export const authObjectToSerializableNode = <T extends Record<string, unknown>>(
   return rest as unknown as T;
 };
 
-export async function getTernSecureAuthDataNode(
+export async function getTernSecureAuthData(
   req: RequestLike,
   initialState = {}
 ) {
-  const authObject = await getAuthDataFromRequestNode(req);
-  return authObjectToSerializableNode({ ...initialState, ...authObject });
+  const authObject = await getAuthDataFromRequest(req);
+  return authObjectToSerializable({ ...initialState, ...authObject });
 }
 
-export async function getAuthDataFromRequestNode(req: RequestLike): Promise<AuthObject & Aobj> {
+export async function getAuthDataFromRequest(req: RequestLike): Promise<AuthObject & Aobj> {
   const authStatus = getAuthKeyFromRequest(req, "AuthStatus");
   const authToken = getAuthKeyFromRequest(req, "AuthToken");
 

@@ -128,8 +128,8 @@ export async function createSessionCookie(
     }
 
     // Create and set session cookie only if session config is provided
-    if (options?.cookies?.session) {
-      const sessionOptions = options.cookies.session;
+    if (options?.cookies) {
+      const sessionOptions = options.cookies;
       const sessionCookieName = getCookieName(constants.Cookies.Session);
       const expiresIn = sessionOptions.maxAge
         ? sessionOptions.maxAge * 1000
@@ -219,7 +219,7 @@ export async function clearSessionCookie(
 
     // Delete all cookie types
     // Session cookie (only if it was configured)
-    if (options?.cookies?.session) {
+    if (options?.cookies) {
       deletionPromises.push(cookieStore.delete(sessionCookieName));
     }
 
@@ -232,6 +232,10 @@ export async function clearSessionCookie(
 
     const customTokenCookieName = getCookieName(constants.Cookies.Custom, cookiePrefix);
     deletionPromises.push(cookieStore.delete(customTokenCookieName));
+
+    // Delete auth_time cookie
+    const authTimeCookieName = constants.Cookies.TernAut;
+    deletionPromises.push(cookieStore.delete(authTimeCookieName));
 
     // Also delete legacy cookie names for backward compatibility
     deletionPromises.push(cookieStore.delete(constants.Cookies.Session));

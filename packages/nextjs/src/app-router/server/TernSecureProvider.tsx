@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import React from 'react';
 
 import { PromiseAuthProvider } from '../../boundary/PromiseAuthProvider';
-import { getTernSecureAuthDataNode } from '../../server/data/getAuthDataFromRequest';
+import { getTernSecureAuthData } from '../../server/data/getAuthDataFromRequest';
 import { isNext13 } from '../../server/sdk-versions';
 import type { TernSecureNextProps } from '../../types';
 import { allNextProviderPropsWithEnv } from '../../utils/allNextProviderProps';
@@ -12,7 +12,7 @@ import { buildRequestLike } from './utils';
 
 const getTernSecureState = React.cache(async function getTernSecureState() {
   const request = await buildRequestLike();
-  const data = getTernSecureAuthDataNode(request);
+  const data = getTernSecureAuthData(request);
   return data;
 });
 

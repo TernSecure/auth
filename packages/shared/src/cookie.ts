@@ -73,4 +73,3 @@ export const getCookiePrefix = (): string => {
 export const getCookieName = (baseName: string, prefix?: string): string => {
   return prefix ? `${prefix}${baseName}` : baseName;
 };
-

@@ -1,3 +1,5 @@
+import type { StringValue } from '@tern-secure/shared/ms';
+
 import type { CheckRevokedOptions } from '../adapters';
 import type { ApiClient } from '../fireRestApi';
 import type { TernSecureConfig, TernSecureUserData, VerifyTokenVOptions } from './verify';
@@ -43,6 +45,7 @@ export type AuthenticateRequestOptions = {
   apiKey?: string;
   apiUrl?: string;
   apiVersion?: string;
+  session?: { maxAge?: StringValue };
   firebaseConfig?: TernSecureConfig
 } & VerifyTokenVOptions;
 

@@ -8,6 +8,7 @@ export interface IdAndRefreshTokens {
 }
 
 export interface CustomTokens {
+  auth_time: number;
   idToken: string;
   refreshToken: string;
   customToken: string;
@@ -143,6 +144,14 @@ export function getAuth(options: AuthenticateRequestOptions) {
       throw errors[0];
     }
 
+    //todo:
+    /**
+     * For sensitive applications, the auth_time should be checked before issuing the session cookie, minimizing the window of attack in case an ID token is stolen:
+    */
+    //if (new Date().getTime() / 1000 - data.auth_time < 5 * 60) {
+    //proceed
+    //}
+
     const customToken = await createCustomToken(data.uid, {
       emailVerified: data.email_verified,
       source_sign_in_provider: data.firebase.sign_in_provider,
@@ -152,9 +161,15 @@ export function getAuth(options: AuthenticateRequestOptions) {
       referer: opts.referer,
     });
 
+    const decodedCustomIdToken = await verifyToken(idAndRefreshTokens.idToken, options);
+    if (decodedCustomIdToken.errors) {
+      throw decodedCustomIdToken.errors[0];
+    }
+
     return {
       ...idAndRefreshTokens,
       customToken,
+      auth_time: decodedCustomIdToken.data.auth_time,
     };
   }
 

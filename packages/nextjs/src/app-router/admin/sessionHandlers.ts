@@ -1,3 +1,4 @@
+import { constants } from '@tern-secure/backend';
 import { clearSessionCookie } from '@tern-secure/backend/admin';
 import { ternDecodeJwtUnguarded } from '@tern-secure/backend/jwt';
 import type { CookieSubEndpoint } from '@tern-secure/types';
@@ -71,7 +72,7 @@ async function sessionEndpointHandler(
     const { idToken, csrfToken, error } = await validateSessionRequest();
     if (error) return error;
 
-    const csrfCookieValue = await cookieStore.get('_session_terncf');
+    const csrfCookieValue = await cookieStore.get(constants.Cookies.CsrfToken);
     validateCsrfToken(csrfToken || '', csrfCookieValue.value);
 
     const handleCreateSession = async (

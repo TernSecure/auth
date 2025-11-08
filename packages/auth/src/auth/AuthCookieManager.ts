@@ -1,10 +1,9 @@
 import type { CookieAttributes } from '@tern-secure/shared/cookie';
 import { cookieHandler } from '@tern-secure/shared/cookie';
 
-import type { SessionCookieHandler } from './cookies/session';
-import { createIdTokenCookie, createSessionCookie } from './cookies/session';
+import { createTernAUT } from './cookies/authTime_cookie';
 
-const CSRF_COOKIE_NAME = '_session_terncf';
+const CSRF_COOKIE_NAME = '__terncf';
 
 type CSRFToken = {
   token: string | null;
@@ -19,17 +18,15 @@ const CSRF_COOKIE_OPTIONS: CookieOptions = {
 };
 
 /**
- * AuthCookieManger class for managing authentication state and cookies
+ * AuthCookieManager class for managing authentication state and cookies
  */
 export class AuthCookieManager {
   private readonly csrfCookieHandler = cookieHandler(CSRF_COOKIE_NAME);
-  private sessionCookie: SessionCookieHandler;
-  private idTokenCookie: SessionCookieHandler;
+  private readonly ternAutCookie = createTernAUT();
 
   constructor() {
     this.ensureCSRFToken();
-    this.sessionCookie = createSessionCookie();
-    this.idTokenCookie = createIdTokenCookie();
+    this.ensureAuthTimeCookie();
   }
 
   private generateCSRFToken(): string {
@@ -48,6 +45,30 @@ export class AuthCookieManager {
   }
 
   /**
+   * Ensures the tern_aut cookie exists with value 0 if not already set.
+   * This is critical for SSR with browserCookie persistence so middleware
+   * doesn't throw errors when the cookie is missing.
+   */
+  private ensureAuthTimeCookie(): void {
+    this.ternAutCookie.initialize();
+  }
+
+  /**
+   * Get auth_time value from cookie
+   */
+  getAuthTime(): number {
+    return this.ternAutCookie.get();
+  }
+
+  /**
+   * Set auth_time value in cookie
+   * Only accepts non-zero values from server
+   */
+  setAuthTime(authTime: number): void {
+    this.ternAutCookie.set(authTime);
+  }
+
+  /**
    * Set CSRFcookie
    */
 
@@ -62,6 +83,7 @@ export class AuthCookieManager {
     }
   }
 
+
   /**
    * Get CSRF token from cookies
    */
@@ -74,13 +96,6 @@ export class AuthCookieManager {
     }
   }
 
-  public getSessionCookie() {
-    return this.sessionCookie.get();
-  }
-
-  public getIdTokenCookie() {
-    return this.idTokenCookie.get();
-  }
 
   /**
    * Clear all authentication cookies
