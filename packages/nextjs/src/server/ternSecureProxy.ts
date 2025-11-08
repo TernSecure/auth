@@ -5,14 +5,14 @@ import type {
   RequestState,
   TernSecureRequest,
 } from '@tern-secure/backend';
-import { constants, createRedirect, createTernSecureRequest} from '@tern-secure/backend';
+import { AuthStatus, constants, createRedirect, createTernSecureRequest} from '@tern-secure/backend';
 import { notFound as nextjsNotFound } from 'next/navigation';
 import type { NextMiddleware, NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { isRedirect, setHeader } from '../utils/response';
 import { serverRedirectWithAuth } from '../utils/serverRedirectAuth';
-import { SIGN_IN_URL, SIGN_UP_URL } from './constant';
+import {FIREBASE_API_KEY, SIGN_IN_URL, SIGN_UP_URL } from './constant';
 import {
   isNextjsNotFoundError,
   isNextjsRedirectError,
@@ -80,7 +80,7 @@ interface TernSecureMiddleware {
   (request: NextMiddlewareRequestParam, event: NextMiddlewareEvtParam): NextMiddlewareReturn;
 }
 
-export const ternSecureMiddleware = ((
+export const ternSecureProxy= ((
   ...args: unknown[]
 ): NextMiddleware | NextMiddlewareReturn => {
   const [request, event] = parseRequestAndEvent(args);
@@ -92,10 +92,12 @@ export const ternSecureMiddleware = ((
 
       const signInUrl = resolvedParams.signInUrl || SIGN_IN_URL;
       const signUpUrl = resolvedParams.signUpUrl || SIGN_UP_URL;
+      const apiKey = resolvedParams.apiKey || FIREBASE_API_KEY;
 
       const options = {
         signInUrl,
         signUpUrl,
+        apiKey,
         ...resolvedParams,
       };
 
@@ -107,6 +109,16 @@ export const ternSecureMiddleware = ((
         ternSecureRequest,
         options,
       );
+
+      const locationHeader = requestStateClient.headers.get(constants.Headers.Location);
+      if (locationHeader) {
+        return new Response(null, {
+          status: 307,
+          headers: requestStateClient.headers,
+        });
+      } else if (requestStateClient.status === AuthStatus.Handshake) {
+        throw new Error('TernSecure: handshake status without redirect is not supported.');
+      }
 
       const authObjectClient = requestStateClient.auth();
 

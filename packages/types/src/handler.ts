@@ -34,7 +34,6 @@ export interface TokenCookieConfig {
 export interface CookieOpts extends CookieOptions {
   domain?: string;
   namePrefix?: string;
-  session?: SessionCookieConfig;
 }
 
 export interface RateLimitOptions {

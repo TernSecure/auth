@@ -2,7 +2,7 @@ import type { AuthEndpoint, SessionSubEndpoint } from '@tern-secure/types';
 
 import { constants } from '../constants';
 import type { TernSecureRequest } from './ternSecureRequest';
-import type { AuthenticateRequestOptions } from './types'; 
+import type { AuthenticateRequestOptions } from './types';
 
 
 /**
@@ -26,6 +26,10 @@ interface RequestProcessorContext extends AuthenticateRequestOptions {
   csrfTokenInCookie: string | undefined;
   sessionTokenInCookie?: string | undefined;
   customTokenInCookie?: string | undefined;
+  ternAuth: number;
+
+  handshakeNonce: string | undefined;
+  handshakeToken: string | undefined;
 
   method: string;
   pathSegments: string[];
@@ -46,6 +50,7 @@ class RequestProcessorContext implements RequestProcessorContext {
   ) {
     this.initHeaderValues();
     this.initCookieValues();
+    this.initHandshakeValues();
     this.initUrlValues();
     Object.assign(this, options);
     this.ternUrl = this.ternSecureRequest.ternUrl;
@@ -81,6 +86,12 @@ class RequestProcessorContext implements RequestProcessorContext {
     this.refreshTokenInCookie = this.getCookie(`${defaultPrefix}${constants.Cookies.Refresh}`);
     this.csrfTokenInCookie = this.getCookie(constants.Cookies.CsrfToken);
     this.customTokenInCookie = this.getCookie(constants.Cookies.Custom);
+    this.ternAuth = Number.parseInt(this.getCookie(constants.Cookies.TernAut) || '0', 10);
+  }
+
+  private initHandshakeValues() {
+    this.handshakeToken = this.getQueryParam(constants.QueryParameters.Handshake) || this.getCookie(constants.Cookies.Handshake);
+    this.handshakeNonce = this.getQueryParam(constants.QueryParameters.HandshakeNonce) || this.getCookie(constants.Cookies.HandshakeNonce);
   }
 
   private initUrlValues() {
@@ -88,6 +99,10 @@ class RequestProcessorContext implements RequestProcessorContext {
     this.pathSegments = this.ternSecureRequest.ternUrl.pathname.split('/').filter(Boolean);
     this.endpoint = this.pathSegments[2] as AuthEndpoint;
     this.subEndpoint = this.pathSegments[3] as SessionSubEndpoint;
+  }
+
+  private getQueryParam(name: string) {
+    return this.ternSecureRequest.ternUrl.searchParams.get(name);
   }
 
   private getHeader(name: string) {

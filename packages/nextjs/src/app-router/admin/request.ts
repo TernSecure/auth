@@ -13,7 +13,7 @@ import {
   FIREBASE_PROJECT_ID,
   FIREBASE_STORAGE_BUCKET,
 } from './constants';
-import { getCookieOptions } from './cookieOptionsHelper';
+import { getIdTokenCookieOptions } from './cookieOptionsHelper';
 import type { TernSecureHandlerOptions } from './types';
 
 export async function refreshCookieWithIdToken(
@@ -37,7 +37,7 @@ export async function refreshCookieWithIdToken(
     apiClient: backendClient,
   };
 
-  const COOKIE_OPTIONS = getCookieOptions(config);
+  const COOKIE_OPTIONS = getIdTokenCookieOptions();
 
   const { createCustomIdAndRefreshToken } = getAuth(authOptions);
 
@@ -55,6 +55,12 @@ export async function refreshCookieWithIdToken(
       getCookieName(constants.Cookies.Refresh, cookiePrefix),
       customTokens.refreshToken,
       COOKIE_OPTIONS,
+    ),
+
+    cookieStore.set(
+      constants.Cookies.TernAut,
+      customTokens.auth_time.toString(),
+      { secure: true, maxAge: 365 * 24 * 60 * 60 }
     ),
   ];
 

@@ -65,9 +65,7 @@
   },
   "devDependencies": {
     "prettier": "^3.3.3",
-    "rimraf": "^6.0.1",
-    "tsup": "^8.3.5",
-    "typescript": "^5.7.2"
+    "rimraf": "^6.0.1"
   },
   "dependencies": {
     "@tern-secure/backend": "workspace:*",
@@ -77,10 +75,10 @@
     "@upstash/redis": "^1.35.2",
     "jose": "^5.9.6",
     "server-only": "^0.0.1",
-    "tslib": "2.4.1"
+    "tslib": "catalog:repo"
   },
   "peerDependencies": {
-    "firebase": "^12.0.0",
+    "firebase": "catalog:peer-firebase",
     "next": "^13.0.0 || ^14.0.0 || ^15.0.0",
     "react": "catalog:peer-react",
     "react-dom": "catalog:peer-react"

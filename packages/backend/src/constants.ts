@@ -18,14 +18,29 @@ const Attributes = {
 
 const Cookies = {
   Session: '__session',
-  CsrfToken: '__session_terncf',
+  CsrfToken: '__terncf',
   IdToken: 'TernSecure_[DEFAULT]',
   Refresh: 'TernSecureID_[DEFAULT]',
   Custom: '__custom',
+  TernAut: 'tern_aut',
   Handshake: '__ternsecure_handshake',
   DevBrowser: '__ternsecure_db_jwt',
   RedirectCount: '__ternsecure_redirect_count',
   HandshakeNonce: '__ternsecure_handshake_nonce',
+} as const;
+
+
+const QueryParameters = {
+  TernSynced: '__tern_synced',
+  SuffixedCookies: 'suffixed_cookies',
+  TernRedirectUrl: '__tern_redirect_url',
+  // use the reference to Cookies to indicate that it's the same value
+  DevBrowser: Cookies.DevBrowser,
+  Handshake: Cookies.Handshake,
+  HandshakeHelp: '__tern_help',
+  LegacyDevBrowser: '__dev_session',
+  HandshakeReason: '__tern_hs_reason',
+  HandshakeNonce: Cookies.HandshakeNonce,
 } as const;
 
 const Headers = {
@@ -70,6 +85,7 @@ export const constants = {
   Cookies,
   Headers,
   ContentTypes,
+  QueryParameters,
 } as const;
 
 export type Constants = typeof constants;

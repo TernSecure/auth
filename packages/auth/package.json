@@ -34,14 +34,14 @@
     "@tern-secure/shared": "workspace:*",
     "@tern-secure/types": "workspace:*",
     "server-only": "^0.0.1",
-    "tslib": "2.4.1"
+    "tslib": "catalog:repo"
   },
   "devDependencies": {
-    "firebase": "^12.0.0",
+    "firebase": "catalog:firebase",
     "jose": "^5.10.0"
   },
   "peerDependencies": {
-    "firebase": "^11.0.0"
+    "firebase": "catalog:peer-firebase"
   },
   "engines": {
     "node": ">=20"

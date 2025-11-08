@@ -78,22 +78,24 @@
     "build:add": "tsc -p tsconfig.add.json",
     "dev": "tsup --watch",
     "lint": "eslint src",
-    "check-types": "pnpm exec tsc --noEmit"
+    "check-types": "pnpm exec tsc --noEmit",
+    "test": "vitest run --environment node"
   },
   "dependencies": {
     "@tern-secure/shared": "workspace:*",
     "@tern-secure/types": "workspace:*",
+    "@upstash/redis": "^1.35.2",
     "cookie": "1.0.2",
     "jose": "^5.10.0",
-    "tslib": "2.4.1",
-    "@upstash/redis": "^1.35.2"
+    "tslib": "catalog:repo"
   },
   "devDependencies": {
     "@types/js-cookie": "^3.0.6",
-    "next": "15.3.2"
+    "next": "15.3.2",
+    "vitest-environment-miniflare": "2.14.4"
   },
   "peerDependencies": {
-    "firebase-admin": "^12.7.0"
+    "firebase-admin": "catalog:peer-firebase"
   },
   "engines": {
     "node": ">=20"

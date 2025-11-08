@@ -10,18 +10,22 @@ import type { TernSecureRequest } from './ternSecureRequest';
 export const AuthStatus = {
   SignedIn: 'signed-in',
   SignedOut: 'signed-out',
+  Handshake: 'handshake',
 } as const;
 
 export type AuthStatus = (typeof AuthStatus)[keyof typeof AuthStatus];
 
 export const AuthErrorReason = {
-  SessionTokenAndUATMissing: 'session-token-and-uat-missing',
+  AuthTimeout: 'auth-timeout',
+  SessionTokenAndAuthMissing: 'session-token-and-aut-missing',
   SessionTokenMissing: 'session-token-missing',
   SessionTokenExpired: 'session-token-expired',
-  SessionTokenIATBeforeClientUAT: 'session-token-iat-before-client-uat',
+  SessionTokenIATBeforeTernAUT: 'session-token-iat-before-tern-aut',
   SessionTokenNBF: 'session-token-nbf',
   SessionTokenIatInTheFuture: 'session-token-iat-in-the-future',
-  ActiveOrganizationMismatch: 'active-organization-mismatch',
+  SessionTokenWithoutTernAUT: 'session-token-but-no-tern-uat',
+  TernAutWithoutSessionToken: 'tern-aut-but-no-session-token',
+  SyncRequired: 'sync-required',
   UnexpectedError: 'unexpected-error',
 } as const;
 
@@ -47,6 +51,7 @@ export type SignedOutAuthObject = {
 
 export type SignedInState = {
   status: typeof AuthStatus.SignedIn;
+  message: null;
   reason: null;
   signInUrl: string;
   signUpUrl: string;
@@ -58,6 +63,7 @@ export type SignedInState = {
 
 export type SignedOutState = {
   status: typeof AuthStatus.SignedOut;
+  message: string;
   reason: string;
   isSignedIn: false;
   signInUrl: string;
@@ -67,7 +73,13 @@ export type SignedOutState = {
   headers: Headers;
 };
 
-export type RequestState = SignedInState | SignedOutState;
+export type HandshakeState = Omit<SignedOutState, 'status' | 'auth'> & {
+  status: typeof AuthStatus.Handshake;
+  headers: Headers;
+  auth: () => null;
+};
+
+export type RequestState = SignedInState | SignedOutState | HandshakeState;
 
 export interface BackendInstance {
   ternSecureRequest: TernSecureRequest;
@@ -144,6 +156,7 @@ export function signedIn(
   const authObject = signedInAuthObject(token, sessionClaims);
   return {
     status: AuthStatus.SignedIn,
+    message: null,
     reason: null,
     signInUrl: authCtx.signInUrl || '',
     signUpUrl: authCtx.signUpUrl || '',
@@ -173,8 +186,36 @@ export function signedOut(
   });
 }
 
+export function handshake(
+  authCtx: RequestProcessorContext,
+  reason: AuthReason,
+  message = '',
+  headers: Headers,
+): HandshakeState {
+  return {
+    status: AuthStatus.Handshake,
+    reason,
+    message,
+    signInUrl: authCtx.signInUrl || '',
+    signUpUrl: authCtx.signUpUrl || '',
+    isSignedIn: false,
+    headers,
+    auth: () => null,
+    token: null,
+  };
+}
+
 const decorateHeaders = <T extends RequestState>(requestState: T): T => {
   const headers = new Headers(requestState.headers || {});
+
+  if (requestState.message) {
+    try {
+      headers.set(constants.Headers.AuthMessage, requestState.message);
+    } catch {
+      // Ignore errors
+    }
+  }
+
   if (requestState.reason) {
     try {
       headers.set(constants.Headers.AuthReason, requestState.reason);
@@ -190,6 +231,8 @@ const decorateHeaders = <T extends RequestState>(requestState: T): T => {
       // Ignore errors
     }
   }
+
   requestState.headers = headers;
+
   return requestState;
 };
