@@ -35,6 +35,8 @@ function PasswordResetInternal() {
       onSubmitAsync: async ({ value }) => {
         try {
           await signIn?.sendPasswordResetEmail(value.email);
+
+          void navigate('../reset-password-success');
         } catch (error) {
           cardState.setError({
             status: 'error',
@@ -54,7 +56,7 @@ function PasswordResetInternal() {
 
   return (
     <div className='relative flex justify-center p-6 md:p-10'>
-      <Card className={cn('w-full max-w-md mt-8')}>
+      <Card className={cn('mt-8 w-full max-w-md')}>
         <CardHeader className='space-y-1'>
           <CardTitle>Reset Password</CardTitle>
           <CardDescription>

@@ -23,10 +23,7 @@ export type SignUpFormValues = {
   password: string;
 };
 
-export type SignUpInitialValue = {
-  email: string;
-  password: string;
-};
+export type SignUpInitialValue = Partial<SignUpFormValues>;
 
 //export type SignUpCreateParams = {};
 

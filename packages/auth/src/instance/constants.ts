@@ -10,4 +10,4 @@ export const PRESERVED_QUERYSTRING_PARAMS = [
 
 
 export const SIGN_IN_INITIAL_VALUE_KEYS = ['email_address', 'phone_number', 'username'];
-export const SIGN_UP_INITIAL_VALUE_KEYS = ['email_address', 'phone_number', 'username', 'first_name', 'last_name'];
+export const SIGN_UP_INITIAL_VALUE_KEYS = ['email_address', 'password'];

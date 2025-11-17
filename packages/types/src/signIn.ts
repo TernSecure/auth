@@ -1,5 +1,5 @@
 import type { UserCredential } from "./all";
-import type { ErrorCode} from "./errors";
+import type { ErrorCode } from "./errors";
 
 export type SignInStatus =
   | 'idle'
@@ -48,9 +48,9 @@ export interface SignInPendingResponse extends BaseSignInResponse {
   status: 'redirecting' | 'pending_social' | 'pending_email_password';
 }
 
-export type SignInResponse = 
-  | SignInSuccessResponse 
-  | SignInErrorResponse 
+export type SignInResponse =
+  | SignInSuccessResponse
+  | SignInErrorResponse
   | SignInPendingResponse;
 
 
@@ -60,6 +60,7 @@ export type SignInInitialValue = Partial<SignInFormValues>;
 export interface ResendEmailVerification {
   isVerified?: boolean;
 }
+
 
 export function isSignInResponseTree(value: any): value is SignInResponse {
   return (
@@ -109,9 +110,9 @@ export interface SignInResource {
   /**
    * Sends a password reset email to the given email address.
    * @param email - The user's email address.
-   * @returns A promise that resolves when the email is sent.
+   * @returns A promise that resolves with the response containing the email address.
    */
-  sendPasswordResetEmail: (email: string) => Promise<void>;
+  sendPasswordResetEmail: (email: string) => Promise<{ response: { email: string } } | null>;
   /**
    * Resends the email verification link to the user's email address.
    * @returns A promise that resolves with the sign-in response.
@@ -121,5 +122,5 @@ export interface SignInResource {
    * Checks the result of a redirect-based sign-in flow, typically used in OAuth or SSO scenarios.
    * @returns A promise that resolves with the sign-in response or null if no result is available.
    */
-  checkRedirectResult: () => Promise<SignInResponse| null>;
+  checkRedirectResult: () => Promise<SignInResponse | null>;
 }

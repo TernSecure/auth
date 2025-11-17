@@ -20,7 +20,7 @@ import {
   useCardState,
 } from '../../elements';
 import { useRouter } from '../../router';
-import { SignInPassword } from './signin-password';
+import { SignInPassword } from './SignInPassword';
 
 interface SignInStartProps {
   socialButtonsConfig?: SignInUIConfig['socialButtons'];

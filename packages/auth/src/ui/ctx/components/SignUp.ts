@@ -1,12 +1,14 @@
 import { useTernSecure } from '@tern-secure/shared/react';
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useMemo } from 'react';
 
+import { SIGN_UP_INITIAL_VALUE_KEYS} from '../../../instance/constants';
 import { buildURL } from '../../../utils';
 import { RedirectUrls } from '../../../utils/redirectUrls';
 import type { ParsedQueryString } from '../../router';
 import { useRouter } from '../../router';
 import type { SignUpCtx } from '../../types';
 import { useTernSecureOptions } from '../TernSecureOptions';
+import { getInitialValuesFromQueryParams } from '../utils';
 
 
 export type SignUpContextType = Omit<SignUpCtx, 'fallbackRedirectUrl' | 'forceRedirectUrl'> & {
@@ -28,12 +30,17 @@ export const useSignUpContext = (): SignUpContextType => {
   const options = useTernSecureOptions();
   const ternSecure = useTernSecure();
 
+  const initialValuesFromQueryParams = useMemo(
+    () => getInitialValuesFromQueryParams(queryString, SIGN_UP_INITIAL_VALUE_KEYS),
+    [],
+  );
+
 
   if (!context || context.componentName !== 'SignUp') {
     throw new Error('useSignUpContext called outside of the mounted SignUp component.');
   }
 
-  const { componentName, ...ctx } = context;
+  const { componentName, mode, ...ctx } = context;
 
   const redirectUrls = new RedirectUrls(
     options,
@@ -43,6 +50,7 @@ export const useSignUpContext = (): SignUpContextType => {
       signUpForceRedirectUrl: ctx.signUpForceRedirectUrl || ctx.forceRedirectUrl,
     },
     queryParams,
+    mode
   );
 
   delete ctx.fallbackRedirectUrl;
@@ -74,6 +82,7 @@ export const useSignUpContext = (): SignUpContextType => {
     afterSignInUrl,
     navigateAfterSignUp,
     queryParams,
+    initialValues: { ...ctx.initialValues, ...initialValuesFromQueryParams },
     authQueryString,
   };
 };

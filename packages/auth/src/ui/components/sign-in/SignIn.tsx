@@ -2,14 +2,13 @@ import { useTernSecure } from '@tern-secure/shared/react';
 import type { SignInModalProps, SignInProps } from '@tern-secure/types';
 import React from 'react';
 
-import { SignInContext, SignUpContext } from '../../ctx';
-import { Route, Switch, useRouter } from '../../router';
-import { PasswordResetSuccess } from './password-reset-success';
-import { PasswordReset } from './ResetPassword';
-import { SignInStart } from './sign-in-start';
-import { useSignInContext } from '../../ctx';
 import { normalizeRoutingOptions } from '../../../utils/normalizeRoutingOptions';
+import { SignInContext, SignUpContext, useSignInContext } from '../../ctx';
+import { Route, Switch  } from '../../router';
 import type { SignUpCtx } from '../../types';
+import { PasswordReset } from './ResetPassword';
+import { PasswordResetSuccess } from './ResetPasswordSuccess';
+import { SignInStart } from './SignInStart';
 
 function RedirectToSignIn() {
   const ternSecure = useTernSecure();
@@ -25,7 +24,7 @@ function SignInRoutes(): React.JSX.Element {
       <Route path='reset-password'>
         <PasswordReset />
       </Route>
-      <Route path='password-reset-success'>
+      <Route path='reset-password-success'>
         <PasswordResetSuccess />
       </Route>
       <Route index>
@@ -39,8 +38,6 @@ function SignInRoutes(): React.JSX.Element {
 }
 
 function SignInRoot() {
-  const { navigate, indexPath } = useRouter();
-
   const signInContext = useSignInContext();
   const normalizedSignUpContext = {
     componentName: 'SignUp',
@@ -58,7 +55,7 @@ function SignInRoot() {
 
 SignInRoutes.displayName = 'SignIn';
 
-export const SignIn: React.ComponentType<SignInProps> = SignInRoutes;
+export const SignIn: React.ComponentType<SignInProps> = SignInRoot;
 
 export const SignInModal = (props: SignInModalProps): React.JSX.Element => {
   return (
@@ -68,9 +65,13 @@ export const SignInModal = (props: SignInModalProps): React.JSX.Element => {
           componentName: 'SignIn',
           ...props,
           routing: 'virtual',
+          mode: 'modal',
         }}
       >
-        <SignInRoutes />
+        <SignIn
+          {...props}
+          routing='virtual'
+        />
       </SignInContext.Provider>
     </Route>
   );

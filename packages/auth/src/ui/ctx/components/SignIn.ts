@@ -20,6 +20,7 @@ export type SignInContextType = Omit<SignInCtx, 'fallbackRedirectUrl' | 'forceRe
   queryParams: ParsedQueryString;
   signInUrl: string;
   signUpUrl: string;
+  authQueryString: string | null;
   afterSignUpUrl: string;
   afterSignInUrl: string;
   checkRedirectResult: () => Promise<void>;
@@ -41,7 +42,7 @@ export const useSignInContext = (): SignInContextType => {
     );
   }
 
-  const { componentName, ...ctx } = context;
+  const { componentName, mode, ...ctx } = context;
   const initialValuesFromQueryParams = useMemo(
     () => getInitialValuesFromQueryParams(queryString, SIGN_IN_INITIAL_VALUE_KEYS),
     [],
@@ -66,10 +67,11 @@ export const useSignInContext = (): SignInContextType => {
     ternSecureOptions,
     {
       ...ctx,
-      signInForceRedirectUrl: ctx.signInForceRedirectUrl || ctx.forceRedirectUrl,
       signInFallbackRedirectUrl: ctx.signInFallbackRedirectUrl || ctx.fallbackRedirectUrl,
+      signInForceRedirectUrl: ctx.signInForceRedirectUrl || ctx.forceRedirectUrl,
     },
     queryParams,
+    mode
   );
 
   delete ctx.fallbackRedirectUrl;
@@ -80,10 +82,11 @@ export const useSignInContext = (): SignInContextType => {
 
   const redirectAfterSignIn = () => navigate(afterSignInUrl);
 
+  const preservedParams = redirectUrls.getPreservedSearchParams();
   let signInUrl = (ctx.routing === 'path' && ctx.path) || ternSecureOptions.signInUrl;
   let signUpUrl = (ctx.routing === 'path' && ctx.path) || ternSecureOptions.signUpUrl;
 
-  const preservedParams = redirectUrls.getPreservedSearchParams();
+  const authQueryString = redirectUrls.toSearchParams().toString();
 
   signInUrl = buildURL(
     {
@@ -204,7 +207,8 @@ export const useSignInContext = (): SignInContextType => {
     signInUrl,
     signUpUrl,
     queryParams,
-    initialValue: { ...ctx.initialValue, ...initialValuesFromQueryParams },
+    initialValues: { ...ctx.initialValues, ...initialValuesFromQueryParams },
+    authQueryString,
     checkRedirectResult,
     onSignInSuccess,
     handleSignInError,

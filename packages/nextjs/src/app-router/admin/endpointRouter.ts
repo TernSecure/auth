@@ -1,6 +1,6 @@
 import type { RequestProcessorContext } from './c-authenticateRequestProcessor';
 import { createApiErrorResponse } from './responses';
-import { cookieEndpointHandler, sessionEndpointHandler } from './sessionHandlers';
+import { cookieEndpointHandler, sessionEndpointHandler, signInEndpointHandler } from './sessionHandlers';
 import type { AuthEndpoint, TernSecureHandlerOptions } from './types';
 
 export interface EndpointHandler {
@@ -51,10 +51,8 @@ class SignInsHandler implements EndpointHandler {
     return endpoint === 'sign_ins';
   }
 
-  handle(_context: RequestProcessorContext, _config: TernSecureHandlerOptions): Promise<Response> {
-    return Promise.resolve(
-      createApiErrorResponse('ENDPOINT_NOT_IMPLEMENTED', 'Sign-ins endpoint not implemented', 501),
-    );
+  async handle(context: RequestProcessorContext, config: TernSecureHandlerOptions): Promise<Response> {
+    return await signInEndpointHandler(context, config);
   }
 }
 
@@ -63,6 +61,7 @@ export class EndpointRouter {
     new SessionsHandler(),
     new UsersHandler(),
     new CookieHandler(),
+    new SignInsHandler(),
   ];
 
   static async route(

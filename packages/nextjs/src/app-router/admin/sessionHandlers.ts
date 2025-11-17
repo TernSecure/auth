@@ -3,11 +3,18 @@ import { clearSessionCookie } from '@tern-secure/backend/admin';
 import { ternDecodeJwtUnguarded } from '@tern-secure/backend/jwt';
 import type { CookieSubEndpoint } from '@tern-secure/types';
 
+import { ternSecureBackendClient } from '../../server/ternsecureClient';
 import { NextCookieStore } from '../../utils/NextCookieAdapter';
 import { type RequestProcessorContext } from './c-authenticateRequestProcessor';
+import { FIREBASE_API_KEY } from './constants';
 import { createValidators } from './fnValidators';
 import { refreshCookieWithIdToken } from './request';
-import { createApiErrorResponse, createApiSuccessResponse, HttpResponseHelper, SessionResponseHelper } from './responses';
+import {
+  createApiErrorResponse,
+  createApiSuccessResponse,
+  HttpResponseHelper,
+  SessionResponseHelper,
+} from './responses';
 import type { SessionSubEndpoint, SignInSubEndpoint, TernSecureHandlerOptions } from './types';
 
 async function sessionEndpointHandler(
@@ -232,7 +239,7 @@ async function signInEndpointHandler(
   context: RequestProcessorContext,
   config: TernSecureHandlerOptions
 ): Promise<Response> {
-  const { subEndpoint, method, referrer } = context;
+  const { subEndpoint, method } = context;
 
   const validators = createValidators(context);
 
@@ -250,8 +257,65 @@ async function signInEndpointHandler(
 
   validateSubEndpoint(subEndpoint, subEndpointConfig);
 
-  const PostHandler = async (subEndpoint: SignInSubEndpoint): Promise<Response> => {}
+  if (subEndpointConfig?.security) {
+    await validateSecurity(subEndpointConfig.security);
+  }
+
+  const PostHandler = async (subEndpoint: SignInSubEndpoint): Promise<Response> => {
+    const passwordResetEmail = async (): Promise<Response> => {
+      try {
+        const body = await context.request.json();
+        const { email } = body;
+
+        if (!email || typeof email !== 'string') {
+          return createApiErrorResponse('EMAIL_REQUIRED', 'Email is required', 400);
+        }
+
+        const backendClient = await ternSecureBackendClient();
+
+        const response = await backendClient.signIn.resetPasswordEmail(FIREBASE_API_KEY, {
+          email,
+          requestType: 'PASSWORD_RESET',
+        });
+
+        if (!response) {
+          return createApiErrorResponse(
+            'PASSWORD_RESET_FAILED',
+            'Failed to send password reset email',
+            500,
+          );
+        }
+
+        return createApiSuccessResponse({
+          email,
+        });
+      } catch (error) {
+        return createApiErrorResponse(
+          'PASSWORD_RESET_ERROR',
+          error instanceof Error
+            ? error.message
+            : 'An error occurred while sending password reset email',
+          500,
+        );
+      }
+    };
+
+    switch (subEndpoint) {
+      case 'resetPasswordEmail':
+        return passwordResetEmail();
+      default:
+        return HttpResponseHelper.createSubEndpointNotSupportedResponse();
+    }
+  };
+
+  switch (method) {
+    case 'POST':
+      return PostHandler(subEndpoint as SignInSubEndpoint);
+
+    default:
+      return HttpResponseHelper.createMethodNotAllowedResponse();
+  }
 
 }
 
-export { sessionEndpointHandler, cookieEndpointHandler };
+export { cookieEndpointHandler, sessionEndpointHandler, signInEndpointHandler };

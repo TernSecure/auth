@@ -148,8 +148,13 @@ export class SignIn extends TernSecureBase implements SignInResource {
     throw new Error('Method not implemented.');
   };
 
-  sendPasswordResetEmail = async (email: string): Promise<void> => {
-    console.log(`Sending password reset email to ${email}`);
+  sendPasswordResetEmail = async (email: string) => {
+    return this._post({
+      path: '/sign_ins/resetPasswordEmail',
+      body: {
+        email,
+      },
+    })
   };
 
   resendEmailVerification = async (): Promise<ResendEmailVerification> => {

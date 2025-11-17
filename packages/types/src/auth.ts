@@ -439,7 +439,7 @@ export type SignInProps = RoutingOptions & {
    */
   signUpUrl?: string;
   /** Initial form values */
-  initialValue?: SignInInitialValue;
+  initialValues?: SignInInitialValue;
 } & SignUpForceRedirectUrl &
   SignUpFallbackRedirectUrl &
   AfterSignOutUrl;
@@ -465,7 +465,7 @@ export type SignUpProps = RoutingOptions & {
    */
   signInUrl?: string;
   /** Initial form values */
-  initialValue?: SignUpInitialValue;
+  initialValues?: SignUpInitialValue;
 } & SignInFallbackRedirectUrl &
   SignInForceRedirectUrl &
   AfterSignOutUrl;

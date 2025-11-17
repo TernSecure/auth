@@ -1,3 +1,4 @@
+import type { ResetPasswordEmail } from '../resources/EmailAddress';
 import { AbstractAPI } from './AbstractApi';
 
 type ResetPasswordEmailParams = {
@@ -8,22 +9,27 @@ type ResetPasswordEmailParams = {
 export class SignInApi extends AbstractAPI {
     public async resetPasswordEmail(
         apiKey: string,
-        params: ResetPasswordEmailParams,
-    ) {
+        params: ResetPasswordEmailParams
+    ): Promise<ResetPasswordEmail> {
         try {
             this.requireApiKey(apiKey);
             const { ...restParams } = params;
 
-            return this.request({
+            const response = await this.request<ResetPasswordEmail>({
                 endpoint: 'sendOobCode',
                 method: 'POST',
+                apiKey,
                 bodyParams: restParams,
             });
 
+            if (response.errors) {
+                const errorMessage = response.errors[0]?.message || 'Failed to send reset password email';
+                throw new Error(errorMessage);
+            }
+            return response.data;
         } catch (error) {
-            const contextualMessage = `Failed to create custom token: ${error instanceof Error ? error.message : 'Unknown error'}`;
+            const contextualMessage = `Failed to send reset password email: ${error instanceof Error ? error.message : 'Unknown error'}`;
             throw new Error(contextualMessage);
         }
-
     }
 }

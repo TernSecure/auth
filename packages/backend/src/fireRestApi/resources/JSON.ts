@@ -57,6 +57,11 @@ export interface IdAndRefreshTokenJSON {
   refreshToken: string;
 }
 
+export interface EmailAddressJson {
+  object: typeof ObjectType.EmailAddress;
+  email: string;
+}
+
 export interface UserJson {
   object: typeof ObjectType.User;
   localId: string;

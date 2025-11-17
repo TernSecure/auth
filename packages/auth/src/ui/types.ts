@@ -14,17 +14,22 @@ export type {
   UserButtonProps
 }
 
+type ComponentMode = 'modal' | 'mounted';
+
 export type SignInCtx = SignInProps & {
   componentName: 'SignIn';
+  mode?: ComponentMode;
 } & SignInFallbackRedirectUrl & SignInForceRedirectUrl
 
 export type SignUpCtx = SignUpProps & {
   componentName: 'SignUp';
+  mode?: ComponentMode;
 } & SignUpFallbackRedirectUrl &
   SignUpForceRedirectUrl;
 
   export type UserButtonCtx = UserButtonProps & {
     componentName: 'UserButton';
+    mode?: ComponentMode;
   };
 
 

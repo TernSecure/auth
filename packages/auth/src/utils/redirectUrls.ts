@@ -4,6 +4,8 @@ import type { RedirectOptions, TernSecureAuthOptions } from '@tern-secure/types'
 
 import { isAllowedRedirect, relativeToAbsoluteUrl } from './construct';
 
+type ComponentMode = 'modal' | 'mounted';
+
 /**
  * RedirectUrls class handles all redirect URL construction logic
  * for sign-in, sign-up, and post-authentication flows.
@@ -28,12 +30,14 @@ export class RedirectUrls {
   private readonly fromOptions: RedirectOptions;
   private readonly fromProps: RedirectOptions;
   private readonly fromSearchParams: RedirectOptions & { redirectUrl?: string | null };
+  private readonly mode?: ComponentMode;
 
-  constructor(options: TernSecureAuthOptions, props: RedirectOptions = {}, searchParams: any = {}) {
+  constructor(options: TernSecureAuthOptions, props: RedirectOptions = {}, searchParams: any = {}, mode?: ComponentMode) {
     this.options = options;
     this.fromOptions = this.#parse(options || {});
     this.fromProps = this.#parse(props || {});
     this.fromSearchParams = this.#parseSearchParams(searchParams || {});
+    this.mode = mode;
   }
 
   getAfterSignInUrl() {
@@ -112,7 +116,6 @@ export class RedirectUrls {
   #getRedirectUrl(prefix: 'signIn' | 'signUp') {
     const forceKey = `${prefix}ForceRedirectUrl` as const;
     const fallbackKey = `${prefix}FallbackRedirectUrl` as const;
-
     let newKeyInUse: string | undefined;
 
     let result;
@@ -138,12 +141,10 @@ export class RedirectUrls {
       newKeyInUse = fallbackKey;
     }
 
-    if (!result) {
-      if (typeof window === 'undefined') {
-        return '/';
-      }
+    if (!result && this.mode === 'modal') {
       return window.location.href;
     }
+
     return result || '/';
   }
 
@@ -181,16 +182,10 @@ export class RedirectUrls {
   }
 
   #toAbsoluteUrls(obj: RedirectOptions) {
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    // If no origin (server-side), return URLs as-is without conversion
-    // They will be properly converted on the client-side
-    if (!origin) return obj;
-
-    return applyFunctionToObj(obj, (url: string) => relativeToAbsoluteUrl(url, origin));
+    return applyFunctionToObj(obj, (url: string) => relativeToAbsoluteUrl(url, window.location.origin));
   }
 
   #filterRedirects = (obj: RedirectOptions) => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    return filterProps(obj, isAllowedRedirect(this.options?.allowedRedirectOrigins, origin));
+    return filterProps(obj, isAllowedRedirect(this.options?.allowedRedirectOrigins, window.location.origin));
   };
 }

@@ -15,6 +15,8 @@ export function TernAuthUIComponentProvider({
   switch (componentName) {
     case 'SignIn':
       return <SignInContext.Provider value={{ componentName, ...props }}>{children}</SignInContext.Provider>
+    case 'SignUp':
+      return <SignUpContext.Provider value={{ componentName, ...props }}>{children}</SignUpContext.Provider>
     case 'UserButton':
       return <UserButtonContext.Provider value={{ componentName, ...props }}>{children}</UserButtonContext.Provider>
       

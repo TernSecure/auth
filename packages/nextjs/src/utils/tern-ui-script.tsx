@@ -7,7 +7,7 @@ import type { TernSecureNextProps } from '../types'
 const isDevelopment = process.env.NODE_ENV === 'development';
 const localPort = process.env.TERN_UI_PORT || '4000';
 
-type TernUIScriptProps = Pick<TernSecureNextProps, 'domain' | 'proxyUrl'> & {
+type TernUIScriptProps = Pick<TernSecureNextProps, 'authDomain' | 'proxyUrl'> & {
     nonce?: string;
     router: 'app' | 'pages';
 }
@@ -18,14 +18,14 @@ const devDomain = isDevelopment
 
 
 export function TernUIScript({
-    domain,
+    authDomain,
     proxyUrl,
     nonce,
     router = 'app'
 }: TernUIScriptProps) {
     const { ternUIVersion} = useTernNextOptions();
-    console.log('[TernSecure] TernUIScript: Props - domain:', domain, 'proxyUrl:', proxyUrl, 'ternUIVersion:', ternUIVersion);
-    const effectiveDomain = isDevelopment ? devDomain : domain
+    console.log('[TernSecure] TernUIScript: Props - domain:', authDomain, 'proxyUrl:', proxyUrl, 'ternUIVersion:', ternUIVersion);
+    const effectiveDomain = isDevelopment ? devDomain : authDomain;
     console.log('[TernSecure] TernUIScript: Using effective domain:', effectiveDomain);
 
     if (!effectiveDomain) {

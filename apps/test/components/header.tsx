@@ -32,7 +32,7 @@ export function Header() {
     <header className='border-b'>
       <div className='container mx-auto flex items-center justify-between px-4 py-4'>
         <div className='flex items-center gap-2'>
-          <h1 className='text-xl font-semibold'>TernSecure</h1>
+          <h1 className='text-xl font-semibold'>TernSecure Authentication Test</h1>
         </div>
 
         <nav className='flex items-center gap-4'>
