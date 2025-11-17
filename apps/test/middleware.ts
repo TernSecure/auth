@@ -1,7 +1,7 @@
 import { ternSecureProxy, createRouteMatcher } from '@tern-secure/nextjs/server';
 
 const publicPaths = createRouteMatcher([
-  '/sign-in',
+  '/sign-in(.*)', 
   '/sign-up',
   '/unauthorized',
   '/api/auth/(.*)',

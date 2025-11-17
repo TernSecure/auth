@@ -1,7 +1,7 @@
 import { GalleryVerticalEnd } from 'lucide-react';
 
 import { SignupForm } from '@/components/signup-form';
-import { SignUpProvider } from '@tern-secure/nextjs';
+//import { SignUpProvider } from '@tern-secure/nextjs';
 
 export default function SignupPage() {
   return (
@@ -16,9 +16,8 @@ export default function SignupPage() {
           </div>
           Acme Inc.
         </a>
-        <SignUpProvider>
           <SignupForm />
-        </SignUpProvider>
+
       </div>
     </div>
   );

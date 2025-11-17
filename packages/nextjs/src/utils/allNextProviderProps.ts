@@ -22,12 +22,14 @@ export const allNextProviderPropsWithEnv = (
     enableServiceWorker: propsEnableServiceWorker,
     loadingComponent: propsLoadingComponent,
     persistence: propsPersistence,
+    ternUIVersion: propsTernUIVersion,
     ...baseProps 
   } = nextProps;
 
   const envConfig = {
     apiKey: process.env.NEXT_PUBLIC_TERN_API_KEY,
     apiUrl: process.env.TERNSECURE_API_URL || '',
+    ternUIVersion: process.env.NEXT_PUBLIC_TERN_UI_VERSION || '',
     projectId: process.env.NEXT_PUBLIC_TERN_PROJECT_ID,
     customDomain: process.env.NEXT_PUBLIC_TERN_CUSTOM_DOMAIN,
     proxyUrl: process.env.NEXT_PUBLIC_TERN_PROXY_URL,
@@ -68,6 +70,7 @@ export const allNextProviderPropsWithEnv = (
   const finalSignInFallbackRedirectUrl = signInFallbackRedirectUrl ?? envConfig.signInFallbackRedirectUrl;
   const finalSignUpFallbackRedirectUrl = signUpFallbackRedirectUrl ?? envConfig.signUpFallbackRedirectUrl;
   const finalPersistence = propsPersistence ?? envConfig.persistence;
+  const finalTernUIVersion = propsTernUIVersion ?? envConfig.ternUIVersion;
 
   // Construct the result, ensuring it conforms to NextProviderProcessedProps
   // (Omit<TernSecureProviderProps, 'children'>)
@@ -95,7 +98,8 @@ export const allNextProviderPropsWithEnv = (
     signUpFallbackRedirectUrl: finalSignUpFallbackRedirectUrl,
     mode: baseProps.mode,
     apiUrl: finalApiUrl,
-    persistence: finalPersistence
+    persistence: finalPersistence,
+    ternUIVersion: finalTernUIVersion
   };
 
   // Clean up undefined keys that might have resulted from spreading if not present in baseProps

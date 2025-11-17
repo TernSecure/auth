@@ -6,12 +6,13 @@ export {
   useSignIn,
   useSignUp,
   signIn,
-  useSignInContext,
-  useSignUpContext,
-  useTernSecure,
-  SignInProvider,
-  SignUpProvider,
 } from './boundary/components';
+
+export {
+  SignIn,
+  SignUp,
+  UserButton,
+} from './components/uiComponents'
 
 export type {
   TernSecureUser,

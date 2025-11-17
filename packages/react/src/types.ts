@@ -1,18 +1,17 @@
 import type {
+  DomainOrProxyUrl,
   TernSecureAuth,
   TernSecureAuthOptions,
-  TernSecureConfig,
-  TernSecureInstanceTree,
-  TernSecureInstanceTreeOptions,
-  TernSecureStateExtended,
+  TernSecureInitialState,
 } from "@tern-secure/types";
 
 declare global {
   interface Window {
-    apiKey?: string;
-    customDomain?: TernSecureInstanceTree["customDomain"];
-    proxyUrl?: TernSecureInstanceTree["proxyUrl"];
-    projectId?: TernSecureInstanceTree["projectId"];
+    _TernSecure_apiKey?: string;
+    _TernSecure_apiUrl?: TernSecureAuth["apiUrl"];
+    _TernSecure_proxyUrl?: TernSecureAuth["proxyUrl"];
+    _TernSecure_authDomain?: TernSecureAuth["authDomain"];
+
   }
 }
 
@@ -101,26 +100,16 @@ export type initialState = {
 };
 
 export interface BrowserConstructor {
-  new (customDomain?: string): Browser;
+  new(apiUrl?: string, option?: DomainOrProxyUrl): Browser;
 }
 
 export interface HeadlessUIBrowserConstructor {
-  new (customDomain?: string): HeadlessUIBrowser;
+  new(apiUrl?: string, option?: DomainOrProxyUrl): HeadlessUIBrowser;
 }
-/**
- * TernSecureProviderProps
- * @param interface
- */
 
-export type TernSecureProviderPropsOld = IsomorphicTernSecureOptions & {
-  children: React.ReactNode;
-  initialState?: TernSecureStateExtended;
-  loadingComponent?: React.ReactNode;
-  bypassApiKey?: boolean;
-};
 
-export interface HeadlessUIBrowser extends TernSecureInstanceTree {
-  load: (options?: TernSecureInstanceTreeOptions) => Promise<void>;
+export interface HeadlessUIBrowser extends TernSecureAuth {
+  load: (options?: TernSecureAuthOptions) => Promise<void>;
   setTernAuth: (provider: any) => void;
 }
 
@@ -137,23 +126,25 @@ export type TernSecureProps =
   | null
   | undefined;
 
-export type IsomorphicTernSecureOptions = TernSecureInstanceTreeOptions & {
+export type IsoTernSecureAuthOptions = TernSecureAuthOptions & {
+  TernSecureAuth?: TernSecureAuthProps;
   TernSecure?: TernSecureProps;
   ternUIVersion?: string;
   apiKey?: string;
-  customDomain?: string;
+  apiUrl?: string;
+  authDomain?: string;
+  frontEndDomain?: string;
   proxyUrl?: string;
-  projectId?: string;
-  ternSecureConfig?: TernSecureConfig;
+  nonce?: string;
 };
 
-export type IsoTernSecureAuthOptions = TernSecureAuthOptions & {
-  TernSecureAuth?: TernSecureAuthProps;
-};
-
+/**
+ * TernSecureProviderProps
+ * @param interface
+ */
 export type TernSecureProviderProps = IsoTernSecureAuthOptions & {
   children: React.ReactNode;
-  initialState?: TernSecureStateExtended;
+  initialState?: TernSecureInitialState;
   loadingComponent?: React.ReactNode;
   bypassApiKey?: boolean;
 };

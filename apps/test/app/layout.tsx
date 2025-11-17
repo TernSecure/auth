@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { TernSecureProvider } from '@tern-secure/nextjs';
-import { Header} from '@/components/header';
+import { Header } from '@/components/header';
 import './globals.css';
 
 const geistSans = Geist({
@@ -31,6 +31,7 @@ export default async function RootLayout({
           requiresVerification={false}
           isTernSecureDev={true}
           persistence='browserCookie'
+          frontEndDomain='http://localhost:4001'
           //afterSignOutUrl='/sign-in'  //better use it on client-side
         >
           <Header />

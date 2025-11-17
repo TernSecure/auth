@@ -17,16 +17,19 @@ export default function Home() {
   const { user, userId, isLoaded, isAuthenticated, isValid } = auth;
 
   // on server userObject is undefined, if we dont check !user, there will hydration error
-  if (!user) return <div>Loading...</div>;
+  //if (!user) return <div>Loading...</div>;
   //if (!userId) return <div>Loading...</div>;
 
   //if (!isLoaded) return <div>Loading...</div>;
 
-  //if (!isAuthenticated) return <div>User is not valid. Please sign in.</div>;
-
+  //if (!isAuthenticated) return <div>Loading...</div>;
 
   const redirectToMoPage = () => {
     router.push('/mo');
+  };
+
+  const redirectToVerify = () => {
+    router.push('/sign-in/verify');
   };
 
   const redirectToDashboard = () => {
@@ -36,8 +39,6 @@ export default function Home() {
   const redirectToProtected = () => {
     router.push('/protected');
   };
-
-
 
   return (
     <div>

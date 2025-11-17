@@ -5,6 +5,7 @@ import { TernSecureProvider as TernSecureReactProvider } from '@tern-secure/reac
 import { TernNextOptionsProvider, useTernNextOptions } from '../../boundary/NextOptionsCtx';
 import type { TernSecureNextProps } from '../../types';
 import { allNextProviderPropsWithEnv } from '../../utils/allNextProviderProps';
+import { TernUIScript } from '../../utils/tern-ui-script';
 import { useAwaitablePush } from './useAwaitablePush';
 import { useAwaitableReplace } from './useAwaitableReplace';
 
@@ -28,7 +29,10 @@ const NextClientProvider = (props: TernSecureNextProps) => {
   });
   return (
     <TernNextOptionsProvider options={providerProps}>
-      <TernSecureReactProvider {...providerProps}>{children}</TernSecureReactProvider>
+      <TernSecureReactProvider {...providerProps}>
+        {children}
+        <TernUIScript router="app" />
+      </TernSecureReactProvider>
     </TernNextOptionsProvider>
   );
 };

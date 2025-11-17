@@ -12,7 +12,7 @@ import type {
   SignUpForceRedirectUrl,
 } from './redirect';
 import type { AuthErrorResponse, SignInInitialValue, SignInResource } from './signIn';
-import type { SignUpFormValues, SignUpInitialValue } from './signUp';
+import type { SignUpInitialValue } from './signUp';
 
 /**
  * @deprecated will be removed in future releases.
@@ -259,7 +259,10 @@ export interface TernSecureAuth {
   apiUrl: string;
 
   /** TernSecure domain for API string */
-  domain: string;
+  authDomain: string;
+
+  /** TernSecure Frontend domain for TernSecure UI */
+  frontEndDomain?: string;
 
   /** TernSecure Proxy url */
   proxyUrl?: string;
@@ -307,6 +310,38 @@ export interface TernSecureAuth {
   /** Sign out the current user */
   signOut: SignOut;
 
+  /** Mounts a sign-in component
+   * @param targetNode HTMLDivElement where the component will be mounted
+   * @param signInProps Configuration options for the sign-in component
+   */
+  showSignIn: (targetNode: HTMLDivElement, config?: SignInProps) => void;
+
+  /** Unmount sign-in component
+   * @param targetNode HTMLDivElement where the component is mounted
+  */
+  hideSignIn: (targetNode: HTMLDivElement) => void;
+
+  /** Mounts a sign-up component
+   * @param targetNode HTMLDivElement where the component will be mounted
+   * @param signUpProps Configuration options for the sign-up component
+  */
+  showSignUp: (targetNode: HTMLDivElement, config?: SignUpProps) => void;
+
+  /** Unmount sign-up component
+   * @param targetNode HTMLDivElement where the component is mounted
+  */
+  hideSignUp: (targetNode: HTMLDivElement) => void;
+
+  /** Mounts a user button component
+   * @param targetNode HTMLDivElement where the component will be mounted
+  */
+  showUserButton: (targetNode: HTMLDivElement) => void;
+
+  /** Unmount user button component
+   * @param targetNode HTMLDivElement where the component is mounted
+  */
+  hideUserButton: (targetNode: HTMLDivElement) => void;
+
   /** Subscribe to a single event */
   on: onEventListener;
 
@@ -329,6 +364,8 @@ export interface TernSecureAuth {
    * @param {string} to
    */
   constructUrlWithAuthRedirect(to: string): string;
+
+  constructAfterSignOutUrl(): string;
 
   /** Navigate to SignIn page */
   redirectToSignIn(options?: SignInRedirectOptions): Promise<unknown>;
@@ -370,12 +407,16 @@ export type TernVerificationResult =
     error: AuthErrorResponse;
   };
 
+export type RoutingOptions =
+  | { path: string | undefined; routing?: Extract<RoutingStrategy, 'path'> }
+  | { path?: never; routing?: Extract<RoutingStrategy, 'hash' | 'virtual'> };
+
+export type WithoutRouting<T> = Omit<T, 'path' | 'routing'>;
+
 /**
  * Props for SignIn component focusing on UI concerns
  */
-export type SignInProps = {
-  /** Routing Path */
-  path?: string;
+export type SignInProps = RoutingOptions & {
   /** URL to navigate to after successfully sign-in
    * Use this prop to override the redirect URL when needed.
    * @default undefined
@@ -387,13 +428,18 @@ export type SignInProps = {
    * @default undefined
    */
   fallbackRedirectUrl?: string | null;
+  /**
+   * Full URL or path to for the sign in process.
+   * Used to fill the "Sign in" link in the SignUp component.
+   */
+  signInUrl?: string;
+  /**
+   * Full URL or path to for the sign up process.
+   * Used to fill the "Sign up" link in the SignUp component.
+   */
+  signUpUrl?: string;
   /** Initial form values */
   initialValue?: SignInInitialValue;
-  /**
-   * @deprecated this prop will be removed in future releases. Use UI configuration options instead. use onSignInSuccess
-   *
-   */
-  onSuccess?: (user: TernSecureUser | null) => void;
 } & SignUpForceRedirectUrl &
   SignUpFallbackRedirectUrl &
   AfterSignOutUrl;
@@ -401,7 +447,7 @@ export type SignInProps = {
 /**
  * Props for SignUp component focusing on UI concerns
  */
-export type SignUpProps = {
+export type SignUpProps = RoutingOptions & {
   /** URL to navigate to after successfully sign-up
    * Use this prop to override the redirect URL when needed.
    * @default undefined
@@ -413,19 +459,64 @@ export type SignUpProps = {
    * @default undefined
    */
   fallbackRedirectUrl?: string | null;
+  /**
+   * Full URL or path to for the sign in process.
+   * Used to fill the "Sign in" link in the SignUp component.
+   */
+  signInUrl?: string;
   /** Initial form values */
   initialValue?: SignUpInitialValue;
-  /** Callbacks */
-  onSubmit?: (values: SignUpFormValues) => Promise<void>;
-  onSuccess?: (user: TernSecureUser | null) => void;
 } & SignInFallbackRedirectUrl &
   SignInForceRedirectUrl &
   AfterSignOutUrl;
+
+
+
+export type UserButtonProps = {
+  /**
+   * Controls if the username is displayed next to the trigger button
+   */
+  showName?: boolean;
+  /**
+   * Controls the default state of the UserButton
+   */
+  defaultOpen?: boolean;
+
+  /**
+   * Full URL or path to navigate to on "Add another account" action.
+   * Multi-session mode only.
+   */
+  signInUrl?: string;
+};
+
+export type SignInModalProps = WithoutRouting<SignInProps>;
 
 export type SignInRedirectOptions = RedirectOptions;
 export type SignUpRedirectOptions = RedirectOptions;
 
 export type RoutingStrategy = 'path' | 'hash' | 'virtual';
+
+
+export type __internal_ComponentNavigationContext = {
+  /**
+   * The `navigate` reference within the component router context
+   */
+  navigate: (
+    to: string,
+    options?: {
+      searchParams?: URLSearchParams;
+    },
+  ) => Promise<unknown>;
+  /**
+   * This path represents the root route for a specific component type and is used
+   * for internal routing and navigation.
+   *
+   * @example
+   * indexPath: '/sign-in'  // When <SignIn path='/sign-in' />
+   * indexPath: '/sign-up'  // When <SignUp path='/sign-up' />
+   */
+  indexPath: string;
+};
 
 /**
  * Internal is a navigation type that affects the component

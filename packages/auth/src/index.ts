@@ -1,33 +1,11 @@
-export { TernSecureAuth } from './instance/TernAuth';
-export type { TernAuth } from './instance/TernAuth';
-export { TernServerAuth } from './instance/TernAuthServer';
-export type { TernServerAuthOptions, AuthenticatedApp } from './instance/TernAuthServer';
+import 'regenerator-runtime/runtime';
 
-export { CoreApiClient, coreApiClient } from './instance/coreApiClient';
-export type { 
-    ApiResponse, 
-    ApiResponseJSON, 
-    RequestOptions,
-    BeforeRequestHook,
-    AfterResponseHook
-} from './instance/coreApiClient';
+import { TernSecureAuth } from './instance/ternsecure';
+import { mountComponentRenderer } from './ui/Renderer';
 
-export { SignIn, TernSecureBase, buildURL } from './resources/internal';
+TernSecureAuth.mountComponentRenderer = mountComponentRenderer;
+export { TernSecureAuth };
 
-export type {
-    AuthErrorTree,
-    TernSecureConfig,
-    SignInFormValues,
-    SignInProps,
-    SignUpProps,
-    SignInResponse,
-    SignInForceRedirectUrl,
-    SignUpForceRedirectUrl,
-    SignInFallbackRedirectUrl,
-    SignUpFallbackRedirectUrl,
-    ResendEmailVerification,
-    TernSecureUser,
-    TernSecureState
-} from '@tern-secure/types';
-
-export { RedirectUrls } from './utils/redirectUrls';
+if (module.hot) {
+  module.hot.accept();
+}

@@ -46,6 +46,18 @@ class CookieHandler implements EndpointHandler {
   }
 }
 
+class SignInsHandler implements EndpointHandler {
+  canHandle(endpoint: AuthEndpoint): boolean {
+    return endpoint === 'sign_ins';
+  }
+
+  handle(_context: RequestProcessorContext, _config: TernSecureHandlerOptions): Promise<Response> {
+    return Promise.resolve(
+      createApiErrorResponse('ENDPOINT_NOT_IMPLEMENTED', 'Sign-ins endpoint not implemented', 501),
+    );
+  }
+}
+
 export class EndpointRouter {
   private static readonly handlers: EndpointHandler[] = [
     new SessionsHandler(),

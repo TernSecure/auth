@@ -11,11 +11,13 @@ import type {
   RedirectOptions,
   SessionResource,
   SignedInSession,
+  SignInProps,
   SignInRedirectOptions,
   SignInResource,
   SignInResponse,
   SignOut,
   SignOutOptions,
+  SignUpProps,
   SignUpRedirectOptions,
   SignUpResource,
   TernAuthSDK,
@@ -45,6 +47,7 @@ import {
 import { getInstallations } from 'firebase/installations';
 
 import { AuthCookieManager, Session, SignIn, SignUp, TernSecureBase } from '../resources/internal';
+import type { MountComponentRenderer } from '../ui/Renderer'
 import { ALLOWED_PROTOCOLS, buildURL, stripOrigin, windowNavigate } from '../utils/';
 import { RedirectUrls } from '../utils/redirectUrls';
 import { type ApiClient, createCoreApiClient } from './c_coreApiClient';
@@ -56,16 +59,29 @@ export function inBrowser(): boolean {
 
 export { TernAuth };
 
+declare global {
+  interface Window {
+    TernSecure?: TernSecureAuth;
+    apiKey?: string;
+    apiUrl?: string;
+    authDomain: TernSecureAuthInterface['authDomain'];
+    frontEndDomain?: TernSecureAuthInterface['frontEndDomain'];
+    proxyUrl?: TernSecureAuthInterface['proxyUrl'];
+  }
+}
+
 /**
  * Firebase implementation of the TernSecureAuth interface
  */
 export class TernSecureAuth implements TernSecureAuthInterface {
-  public static version: string = PACKAGE_VERSION;
+  public static version: string = __TERN_UI_PACKAGE_VERSION__;
   public static sdkMetadata: TernAuthSDK = {
-    name: PACKAGE_NAME,
-    version: PACKAGE_VERSION,
+    name: __TERN_UI_PACKAGE_NAME__,
+    version: __TERN_UI_PACKAGE_VERSION__,
     environment: process.env.NODE_ENV || 'production',
   };
+  public static mountComponentRenderer?: MountComponentRenderer;
+  #componentControls?: ReturnType<MountComponentRenderer> | null;
   private static instance: TernSecureAuth | null = null;
   private _currentUser: TernSecureUser | null = null;
   private signedInSession: SignedInSession | null = null;
@@ -77,7 +93,10 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   public error: Error | null = null;
   public user: TernSecureUser | null | undefined = null;
   public __internal_country?: string | null;
-  #domain: DomainOrProxyUrl['domain'];
+  public customDomain?: string | undefined;
+  public isVisible = false;
+  public currentView: 'signIn' | 'signUp' | null = null;
+  #authDomain: DomainOrProxyUrl['domain'];
   #apiClient: ApiClient;
   #apiUrl: string;
   #instanceType?: InstanceType;
@@ -115,14 +134,164 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return this.#options.requiresVerification ?? true;
   }
 
+  public load = async (options?: TernSecureAuthOptions): Promise<void> => {
+    if (this.isReady) {
+      return;
+    }
+
+    this.#options = this.#initOptions(options);
+
+    if (this.#options.sdkMetadata) {
+      TernSecureAuth.sdkMetadata = this.#options.sdkMetadata;
+    }
+
+    try {
+      await Promise.resolve(this.#initTernAuth());
+
+      const initComponentRenderer = () => {
+        if (TernSecureAuth.mountComponentRenderer && !this.#componentControls) {
+          this.#componentControls = TernSecureAuth.mountComponentRenderer(
+            this,
+            this.#options,
+          );
+        }
+      }
+
+      initComponentRenderer();
+
+      this.#setStatus('ready');
+      this.#publicEventBus.emit(ternEvents.Status, 'ready');
+    } catch (error) {
+      this.error = error as Error;
+      console.error('[TernSecureAuth] Load failed:', error);
+      this.#setStatus('error');
+      this.#publicEventBus.emit(ternEvents.Status, 'error');
+      throw error;
+    }
+  };
+
+
+  #initTernAuth = (): void => {
+    if (!this.#options.ternSecureConfig) {
+      throw new Error('TernSecureConfig is required to initialize TernSecureAuth');
+    }
+
+    if (!this.#options.apiUrl) {
+      throw new Error('apiUrl is required to initialize TernSecureAuth');
+    }
+
+    this.initializeFirebaseApp(this.#options.ternSecureConfig, {
+      appName: this.#options.appName,
+      tenantId: this.#options.tenantId,
+    });
+
+    const isBrowserCookiePersistence = this.#options.persistence === 'browserCookie';
+
+    if (!isBrowserCookiePersistence) {
+      this.authStateUnsubscribe = this.initAuthStateListener();
+    }
+
+    this.#authCookieManager = new AuthCookieManager();
+    this.csrfToken = this.#authCookieManager.getCSRFToken();
+
+    this.signIn = new SignIn(this.auth, this.csrfToken);
+    this.signUp = new SignUp(this.auth);
+
+    eventBus.on(events.SessionChanged, () => {
+      this.#setCreatedActiveSession(this.user || null);
+      this.#emit();
+    });
+  };
+
+
+  assertComponentControlsReady(controls: unknown): asserts controls is ReturnType<MountComponentRenderer> {
+    if (!TernSecureAuth.mountComponentRenderer) {
+      throw new Error('TernSecure instance was loaded without UI components');
+    }
+    if (!controls) {
+      throw new Error('TernSecure UI components are not ready yet.');
+    }
+  }
+
+
+  public showSignIn(node: HTMLDivElement, config?: SignInProps): void {
+    this.assertComponentControlsReady(this.#componentControls);
+    this.#componentControls.ensureMounted().then(controls =>
+      controls.mountComponent({
+        name: 'SignIn',
+        node,
+        props: config,
+        appearanceKey: 'default',
+      }),
+    );
+    this.currentView = 'signIn';
+    this.isVisible = true;
+  }
+
+  public hideSignIn(node: HTMLDivElement): void {
+    this.assertComponentControlsReady(this.#componentControls);
+    this.#componentControls.ensureMounted().then(controls =>
+      controls.unmountComponent({
+        node,
+      }),
+    );
+  }
+
+  public showSignUp(node: HTMLDivElement, config?: SignUpProps): void {
+    this.assertComponentControlsReady(this.#componentControls);
+    this.#componentControls.ensureMounted().then(controls =>
+      controls.mountComponent({
+        name: 'SignUp',
+        node,
+        props: config,
+        appearanceKey: 'default',
+      }),
+    );
+    this.currentView = 'signUp';
+    this.isVisible = true;
+  }
+
+  public hideSignUp(node: HTMLDivElement): void {
+    if (!node) {
+      throw new Error('hideSignUp requires a valid HTMLDivElement as the first parameter');
+    }
+    this.assertComponentControlsReady(this.#componentControls);
+    this.#componentControls.ensureMounted().then(controls =>
+      controls.unmountComponent({
+        node,
+      }),
+    );
+  }
+
+  public showUserButton(node: HTMLDivElement): void {
+    this.assertComponentControlsReady(this.#componentControls);
+    this.#componentControls.ensureMounted().then(controls =>
+      controls.mountComponent({
+        name: 'UserButton',
+        node,
+        props: {},
+        appearanceKey: 'default',
+      }),
+    );
+  }
+
+  public hideUserButton(node: HTMLDivElement): void {
+    this.assertComponentControlsReady(this.#componentControls);
+    this.#componentControls.ensureMounted().then(controls =>
+      controls.unmountComponent({
+        node,
+      }),
+    );
+  }
+
   get apiUrl(): string {
     return this.#apiUrl;
   }
 
-  get domain(): string {
+  get authDomain(): string {
     if (inBrowser()) {
       const strippedDomainString = stripScheme(
-        handleValueOrFn(this.#domain, new URL(window.location.href)),
+        handleValueOrFn(this.#authDomain, new URL(window.location.href)),
       );
       if (this.#instanceType === 'production') {
         return strippedDomainString;
@@ -136,14 +305,14 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return this.#instanceType;
   }
 
-  public constructor(options?: TernSecureAuthOptions) {
-    this.#domain = options?.ternSecureConfig?.authDomain;
-    this.#apiUrl = options?.apiUrl || '';
+  public constructor(apiUrl: string, options?: DomainOrProxyUrl) {
+    this.#authDomain = options?.domain;
+    this.#apiUrl = apiUrl || '';
     this.#instanceType = (process.env.NODE_ENV as InstanceType) || 'production';
 
     this.#apiClient = createCoreApiClient({
-      domain: this.#domain,
-      apiUrl: options?.apiUrl,
+      authDomain: this.authDomain,
+      apiUrl: this.#apiUrl,
       instanceType: this.instanceType as InstanceType,
     });
 
@@ -171,9 +340,9 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return Object.freeze({ ...this.#options });
   }
 
-  static getOrCreateInstance(options?: TernSecureAuthOptions): TernSecureAuth {
+  static getOrCreateInstance(apiUrl: string, options?: DomainOrProxyUrl): TernSecureAuth {
     if (!this.instance) {
-      this.instance = new TernSecureAuth(options);
+      this.instance = new TernSecureAuth(apiUrl, options);
     }
     return this.instance;
   }
@@ -188,9 +357,9 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
   }
 
-  public static initialize(options: TernSecureAuthOptions): TernSecureAuth {
-    const instance = this.getOrCreateInstance(options);
-    instance.#initialize(options);
+  public static initialize(options?: TernSecureAuthOptions): TernSecureAuth {
+    const instance = this.getOrCreateInstance(options?.apiUrl || '');
+    //instance.#initialize(options);
     return instance;
   }
 
@@ -198,8 +367,8 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     void this.#initialize(options || {});
   };
 
-  public static create(options: TernSecureAuthOptions): TernSecureAuth {
-    const instance = this.getOrCreateInstance();
+  public static create(options?: TernSecureAuthOptions): TernSecureAuth {
+    const instance = this.getOrCreateInstance(options?.apiUrl || '');
     void instance.initialize(options);
     return instance;
   }
@@ -275,7 +444,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   }
 
   public signOut: SignOut = async (options?: SignOutOptions) => {
-    const redirectUrl = options?.redirectUrl || this.#constructAfterSignOutUrl();
+    const redirectUrl = options?.redirectUrl || this.constructAfterSignOutUrl();
     if (options?.onBeforeSignOut) {
       await options.onBeforeSignOut();
     }
@@ -422,6 +591,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     this.#publicEventBus.off(...args);
   };
 
+
   public createActiveSession: CreateActiveSession = async ({
     session,
     redirectUrl,
@@ -519,7 +689,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     return this.constructUrlWithAuthRedirect(new RedirectUrls(this.#options).getAfterSignInUrl());
   };
 
-  #constructAfterSignOutUrl = (): string => {
+  public constructAfterSignOutUrl = (): string => {
     if (!this.#options.afterSignOutUrl) {
       return '/';
     }
@@ -581,7 +751,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
   };
 
-  #initOptions = (options: TernSecureAuthOptions): TernSecureAuthOptions => {
+  #initOptions = (options?: TernSecureAuthOptions): TernSecureAuthOptions => {
     return {
       ...options,
     };

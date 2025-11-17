@@ -7,7 +7,7 @@ import {
 import {
   useAssertWrappedByTernSecureProvider,
   useTernSecureInstanceContext,
-} from '../ternSecureProvider';
+} from '../ternsecureProvider';
 
 /**
  * @deprecated this was a previous version with cdn. now since in this package we dont use cdn, create a new hook that uuses TernSecureAuth and rename this to useTernSecure_Deprecated

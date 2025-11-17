@@ -8,7 +8,7 @@ import { type RequestProcessorContext } from './c-authenticateRequestProcessor';
 import { createValidators } from './fnValidators';
 import { refreshCookieWithIdToken } from './request';
 import { createApiErrorResponse, createApiSuccessResponse, HttpResponseHelper, SessionResponseHelper } from './responses';
-import type { SessionSubEndpoint, TernSecureHandlerOptions } from './types';
+import type { SessionSubEndpoint, SignInSubEndpoint, TernSecureHandlerOptions } from './types';
 
 async function sessionEndpointHandler(
   context: RequestProcessorContext,
@@ -226,6 +226,32 @@ async function cookieEndpointHandler(
     default:
       return HttpResponseHelper.createMethodNotAllowedResponse();
   }
+}
+
+async function signInEndpointHandler(
+  context: RequestProcessorContext,
+  config: TernSecureHandlerOptions
+): Promise<Response> {
+  const { subEndpoint, method, referrer } = context;
+
+  const validators = createValidators(context);
+
+  const {
+    validateSubEndpoint,
+    validateSecurity,
+  } = validators;
+
+  if (!subEndpoint) {
+    return createApiErrorResponse('SUB_ENDPOINT_REQUIRED', 'Sign_ins sub-endpoint required', 400);
+  }
+
+  const signInsConfig = config.endpoints?.signIns;
+  const subEndpointConfig = signInsConfig?.subEndpoints?.[subEndpoint as SignInSubEndpoint];
+
+  validateSubEndpoint(subEndpoint, subEndpointConfig);
+
+  const PostHandler = async (subEndpoint: SignInSubEndpoint): Promise<Response> => {}
+
 }
 
 export { sessionEndpointHandler, cookieEndpointHandler };

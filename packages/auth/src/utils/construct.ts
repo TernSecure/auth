@@ -185,6 +185,7 @@ export const storePreviousPath = (path: string): void => {
   }
 };
 
+
 /**
  * Gets the stored previous path
  */
@@ -328,6 +329,38 @@ export function hasBannedProtocol(val: string | URL) {
   return BANNED_URI_PROTOCOLS.some(bp => bp === protocol);
 }
 
+export const hasUrlInFragment = (_url: URL | string) => {
+  return new URL(_url, DUMMY_URL_BASE).hash.startsWith('#/');
+};
+
+
+export const mergeFragmentIntoUrl = (_url: string | URL): URL => {
+  const url = new URL(_url);
+
+  if (!hasUrlInFragment(url)) {
+    return url;
+  }
+
+  const fragmentUrl = new URL(url.hash.replace('#/', '/'), url.href);
+  const mergedPathname = [url.pathname, fragmentUrl.pathname]
+    .map(s => s.split('/'))
+    .flat()
+    .filter(Boolean)
+    .join('/');
+
+  const mergedUrl = new URL(mergedPathname, url.origin);
+
+  url.searchParams.forEach((val, key) => {
+    mergedUrl.searchParams.set(key, val);
+  });
+
+  fragmentUrl.searchParams.forEach((val, key) => {
+    mergedUrl.searchParams.set(key, val);
+  });
+
+  return mergedUrl;
+};
+
 export const isAllowedRedirect =
   (allowedRedirectOrigins: Array<string | RegExp> | undefined, currentOrigin: string) =>
   (_url: URL | string) => {
@@ -357,7 +390,7 @@ export const isAllowedRedirect =
 
     if (!isAllowed) {
       logger.warnOnce(
-        `Clerk: Redirect URL ${url} is not on one of the allowedRedirectOrigins, falling back to the default redirect URL.`,
+        `TernSecure: Redirect URL ${url} is not on one of the allowedRedirectOrigins, falling back to the default redirect URL.`,
       );
     }
     return isAllowed;
