@@ -22,9 +22,9 @@ interface BuildURLParams extends Partial<URL> {
   hashPath?: string;
   hashSearch?: string;
   hashSearchParams?:
-    | URLSearchParams
-    | Record<string, string>
-    | Array<URLSearchParams | Record<string, string>>;
+  | URLSearchParams
+  | Record<string, string>
+  | Array<URLSearchParams | Record<string, string>>;
 }
 
 interface BuildURLOptions<T> {
@@ -88,7 +88,6 @@ export function buildURL(
     dummyUrlForHash.pathname = joinPaths(dummyUrlForHash.pathname, hashPath || '');
 
     const searchParamsFromHashSearchString = getQueryParams(hashSearch || '');
-
     for (const [key, val] of Object.entries(searchParamsFromHashSearchString)) {
       dummyUrlForHash.searchParams.append(key, val);
     }
@@ -361,33 +360,35 @@ export const mergeFragmentIntoUrl = (_url: string | URL): URL => {
   return mergedUrl;
 };
 
+export const pathFromFullPath = (fullPath: string) => {
+  return fullPath.replace(/TERN-ROUTER\/(.*?)\//, '');
+};
+
 export const isAllowedRedirect =
   (allowedRedirectOrigins: Array<string | RegExp> | undefined, currentOrigin: string) =>
-  (_url: URL | string) => {
-    let url = _url;
-    if (typeof url === 'string') {
-      url = relativeToAbsoluteUrl(url, currentOrigin);
-    }
+    (_url: URL | string) => {
+      let url = _url;
+      if (typeof url === 'string') {
+        url = relativeToAbsoluteUrl(url, currentOrigin);
+      }
 
-    if (!allowedRedirectOrigins) {
-      return true;
-    }
+      if (!allowedRedirectOrigins) {
+        return true;
+      }
 
-    const isSameOrigin = currentOrigin === url.origin;
+      const isSameOrigin = currentOrigin === url.origin;
 
-    const isAllowed =
-      !isProblematicUrl(url) &&
-      (isSameOrigin ||
-        allowedRedirectOrigins
-          .map(origin =>
-            typeof origin === 'string' ? globs.toRegexp(trimTrailingSlash(origin)) : origin,
-          )
-          .some(origin => origin.test(trimTrailingSlash(url.origin))));
+      const isAllowed =
+        !isProblematicUrl(url) &&
+        (isSameOrigin ||
+          allowedRedirectOrigins
+            .map(origin => (typeof origin === 'string' ? globs.toRegexp(trimTrailingSlash(origin)) : origin))
+            .some(origin => origin.test(trimTrailingSlash(url.origin))));
 
-    if (!isAllowed) {
-      logger.warnOnce(
-        `TernSecure: Redirect URL ${url} is not on one of the allowedRedirectOrigins, falling back to the default redirect URL.`,
-      );
-    }
-    return isAllowed;
-  };
+      if (!isAllowed) {
+        logger.warnOnce(
+          `TernSecure: Redirect URL ${url} is not on one of the allowedRedirectOrigins, falling back to the default redirect URL.`,
+        );
+      }
+      return isAllowed;
+    };

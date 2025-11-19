@@ -214,14 +214,14 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   }
 
 
-  public showSignIn(node: HTMLDivElement, config?: SignInProps): void {
+  public showSignIn(node: HTMLDivElement, props?: SignInProps): void {
     this.assertComponentControlsReady(this.#componentControls);
-    this.#componentControls.ensureMounted().then(controls =>
+    void this.#componentControls.ensureMounted({ preloadHint: 'SignIn' }).then(controls =>
       controls.mountComponent({
         name: 'SignIn',
-        node,
-        props: config,
         appearanceKey: 'default',
+        node,
+        props,
       }),
     );
     this.currentView = 'signIn';
@@ -230,21 +230,21 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
   public hideSignIn(node: HTMLDivElement): void {
     this.assertComponentControlsReady(this.#componentControls);
-    this.#componentControls.ensureMounted().then(controls =>
+    void this.#componentControls.ensureMounted().then(controls =>
       controls.unmountComponent({
         node,
       }),
     );
   }
 
-  public showSignUp(node: HTMLDivElement, config?: SignUpProps): void {
+  public showSignUp(node: HTMLDivElement, props?: SignUpProps): void {
     this.assertComponentControlsReady(this.#componentControls);
-    this.#componentControls.ensureMounted().then(controls =>
+    void this.#componentControls.ensureMounted({ preloadHint: 'SignUp' }).then(controls =>
       controls.mountComponent({
         name: 'SignUp',
-        node,
-        props: config,
         appearanceKey: 'default',
+        node,
+        props,
       }),
     );
     this.currentView = 'signUp';
@@ -252,11 +252,8 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   }
 
   public hideSignUp(node: HTMLDivElement): void {
-    if (!node) {
-      throw new Error('hideSignUp requires a valid HTMLDivElement as the first parameter');
-    }
     this.assertComponentControlsReady(this.#componentControls);
-    this.#componentControls.ensureMounted().then(controls =>
+    void this.#componentControls.ensureMounted().then(controls =>
       controls.unmountComponent({
         node,
       }),
@@ -265,19 +262,20 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
   public showUserButton(node: HTMLDivElement): void {
     this.assertComponentControlsReady(this.#componentControls);
-    this.#componentControls.ensureMounted().then(controls =>
+    void this.#componentControls.ensureMounted({ preloadHint: 'UserButton' }).then(controls =>
       controls.mountComponent({
         name: 'UserButton',
+        appearanceKey: 'default',
         node,
         props: {},
-        appearanceKey: 'default',
+
       }),
     );
   }
 
   public hideUserButton(node: HTMLDivElement): void {
     this.assertComponentControlsReady(this.#componentControls);
-    this.#componentControls.ensureMounted().then(controls =>
+    void this.#componentControls.ensureMounted().then(controls =>
       controls.unmountComponent({
         node,
       }),
@@ -705,7 +703,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
   public redirectToSignUp = async (options?: SignUpRedirectOptions): Promise<unknown> => {
     if (inBrowser()) {
-      return this.navigate(this.constructSignUpUrl());
+      return this.navigate(this.constructSignUpUrl(options));
     }
     return;
   };

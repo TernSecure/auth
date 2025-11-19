@@ -30,6 +30,7 @@ export {
 export {
     loadTernUIScript,
     ternUIgetScriptUrl,
-    constructScriptAttributes
+    constructScriptAttributes,
+    constructTernUIScriptAttributes
 } from '@tern-secure/shared/loadTernUIScript'
 

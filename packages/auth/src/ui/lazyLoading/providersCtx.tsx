@@ -6,16 +6,17 @@ import { TernSecureComponents } from './components';
 const TernSecureContextWrapper = lazy(() =>
   import('../ctx').then(module => ({ default: module.TernSecureContextWrapper })),
 );
+const TernSecureOptionsProvider = lazy(() =>
+  import('../ctx').then(module => ({ default: module.TernSecureOptionsProvider })),
+);
 const Portal = lazy(() => import('../portal').then(module => ({ default: module.Portal })));
 
-type LazyComponentRendererProps = React.PropsWithChildren<
-  {
-    node: PortalProps['node'];
-    componentName: any;
-    componentProps: any;
-    componentKey: string;
-  }
->;
+type LazyComponentRendererProps = React.PropsWithChildren<{
+  node: PortalProps['node'];
+  componentName: any;
+  componentProps: any;
+  componentKey: string;
+}>;
 
 type PortalProps = Parameters<typeof Portal>[0];
 
@@ -25,12 +26,15 @@ type PortalProps = Parameters<typeof Portal>[0];
  * making it easier to manage UI-specific concerns.
  */
 type LazyProvidersProps = React.PropsWithChildren<{
-  instance: any;
+  ternsecure: any;
   children: any;
+  options: any;
 }>;
 export const LazyProviders = (props: LazyProvidersProps) => {
   return (
-    <TernSecureContextWrapper instance={props.instance}>{props.children}</TernSecureContextWrapper>
+    <TernSecureContextWrapper ternsecure={props.ternsecure}>
+      <TernSecureOptionsProvider value={props.options}>{props.children}</TernSecureOptionsProvider>
+    </TernSecureContextWrapper>
   );
 };
 

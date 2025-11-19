@@ -3,6 +3,8 @@ import type { TernSecureAuthOptions, TernSecureSDK } from '@tern-secure/types';
 import { loadScript } from './loadScript';
 import { resolveVersion } from './resolveVersion';
 
+const FAILED_TO_LOAD_ERROR = 'TernUI: Failed to load TernSecure';
+
 export type LoadTernUISCriptOptions = TernSecureAuthOptions & {
   apiKey?: string;
   apiUrl?: string;
@@ -18,7 +20,6 @@ export type LoadTernUISCriptOptions = TernSecureAuthOptions & {
 
 export const loadTernUIScript = async (options?: LoadTernUISCriptOptions) => {
   const existingScript = document.querySelector<HTMLScriptElement>('script[data-ternui-script]');
-  console.log('[TernSecure-shared] Existing script:', existingScript);
 
   if (existingScript) {
     return new Promise((resolve, reject) => {
@@ -27,7 +28,7 @@ export const loadTernUIScript = async (options?: LoadTernUISCriptOptions) => {
       });
 
       existingScript.addEventListener('error', error => {
-        reject(error);
+        reject(FAILED_TO_LOAD_ERROR);
       });
     });
   }
@@ -41,9 +42,8 @@ export const loadTernUIScript = async (options?: LoadTernUISCriptOptions) => {
   return loadScript(ternUIgetScriptUrl(options), {
     async: true,
     //crossOrigin: undefined,
-    beforeLoad: beforeLoadWithOptions(options),
-  }).catch(error => {
-    console.error('[TernSecure] Failed to load TernUI script:', error);
+    beforeLoad: applyLoadWithOptions(options),
+  }).catch(() => {
     throw new Error('Failed to load TernUI script');
   });
 };
@@ -54,7 +54,7 @@ export const ternUIgetScriptUrl = (options: LoadTernUISCriptOptions) => {
 
   if (isTernSecureDev) {
     const localHost = process.env.TERN_UI_HOST;
-    const localPort =  process.env.TERN_UI_PORT;
+    const localPort = process.env.TERN_UI_PORT;
     const h = options.frontEndDomain;
     //return `http://${localHost}:${localPort}/ternsecure.browser.js`;
     return `${h}/ternsecure.browser.js`;
@@ -69,6 +69,9 @@ export const ternUIgetScriptUrl = (options: LoadTernUISCriptOptions) => {
   //return `https://${ternsecureCDN}/npm/@ternsecure/tern-ui@${version}/dist/ternsecure.browser.js`;
 };
 
+/**
+ * @deprecated Use applyLoadWithOptions instead
+ */
 const beforeLoadWithOptions =
   (options?: LoadTernUISCriptOptions) => (script: HTMLScriptElement) => {
     const attributes = constructScriptAttributes(options);
@@ -78,6 +81,9 @@ const beforeLoadWithOptions =
     console.log('[TernSecure-shared] Script attributes set:', attributes);
   };
 
+/**
+ * @deprecated Use constructTernUIScriptAttributes instead
+ */
 export const constructScriptAttributes = (options?: LoadTernUISCriptOptions) => {
   return {
     'data-auth-domain': options?.authDomain || '',
@@ -87,3 +93,39 @@ export const constructScriptAttributes = (options?: LoadTernUISCriptOptions) => 
     ...(options?.nonce ? { nonce: options.nonce } : {}),
   };
 };
+
+
+const constructTernUIScriptAttributes = (options: LoadTernUISCriptOptions) => {
+  const obj: Record<string, string> = {};
+
+  if (options.authDomain) {
+    obj['data-auth-domain'] = options.authDomain;
+  }
+  if (options.apiKey) {
+    obj['data-apikey'] = options.apiKey;
+  }
+  if (options.apiUrl) {
+    obj['data-api-url'] = options.apiUrl;
+  }
+  if (options.proxyUrl) {
+    obj['data-proxy-url'] = options.proxyUrl;
+  }
+
+  if (options.nonce) {
+    obj.nonce = options.nonce;
+  }
+
+  return obj;
+}
+
+const applyLoadWithOptions =
+  (options: LoadTernUISCriptOptions) => (script: HTMLScriptElement) => {
+    const attributes = constructTernUIScriptAttributes(options);
+    for (const attribute in attributes) {
+      script.setAttribute(attribute, attributes[attribute]);
+    }
+  };
+
+
+export { constructTernUIScriptAttributes, applyLoadWithOptions };
+

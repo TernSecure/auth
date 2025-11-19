@@ -6,13 +6,6 @@ import { isAllowedRedirect, relativeToAbsoluteUrl } from './construct';
 
 type ComponentMode = 'modal' | 'mounted';
 
-/**
- * RedirectUrls class handles all redirect URL construction logic
- * for sign-in, sign-up, and post-authentication flows.
- *
- * This class centralizes the redirect logic previously scattered across
- * multiple methods, making it reusable and maintainable.
- */
 export class RedirectUrls {
   private static keys: (keyof RedirectOptions)[] = [
     'signInForceRedirectUrl',
@@ -58,8 +51,7 @@ export class RedirectUrls {
 
   #toSearchParams(obj: Record<string, string | undefined | null>): URLSearchParams {
     const camelCased = Object.fromEntries(
-      Object.entries(obj).map(([key, value]) => [camelToSnake(key), value]),
-    );
+      Object.entries(obj).map(([key, value]) => [camelToSnake(key), value]));
     return new URLSearchParams(removeUndefined(camelCased) as Record<string, string>);
   }
 
@@ -109,7 +101,16 @@ export class RedirectUrls {
       afterSignInUrl,
       afterSignUpUrl,
       redirectUrl,
-    };
+    }
+
+    if (signUpForceRedirectUrl) {
+      delete res.signUpFallbackRedirectUrl;
+    }
+
+    if (signInForceRedirectUrl) {
+      delete res.signInFallbackRedirectUrl;
+    }
+
     return res;
   }
 
@@ -154,11 +155,6 @@ export class RedirectUrls {
       // @ts-expect-error
       res[key] = obj[key];
     });
-
-    //const absoluteUrls = this.#toAbsoluteUrls(filterProps(res, Boolean));
-    //const filtered = this.#filterRedirects(absoluteUrls);
-    //return applyFunctionToObj(filtered, val => val.toString());
-
     return applyFunctionToObj(
       this.#filterRedirects(this.#toAbsoluteUrls(filterProps(res, Boolean))),
       val => val.toString(),

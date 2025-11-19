@@ -1,9 +1,5 @@
 import { useTernSecure } from '@tern-secure/shared/react';
-import type {
-  AuthErrorTree,
-  SignInPropsTree,
-  SignInUIConfig,
-} from '@tern-secure/types';
+import type { AuthErrorTree, SignInPropsTree, SignInUIConfig } from '@tern-secure/types';
 
 import { cn } from '../../../lib/utils';
 import { useAuthSignIn } from '../../ctx';
@@ -17,8 +13,10 @@ import {
   CardHeader,
   CardStateProvider,
   CardTitle,
+  FieldDescription,
   useCardState,
 } from '../../elements';
+import { RouterLink } from '../../elements/RouterLink';
 import { useRouter } from '../../router';
 import { SignInPassword } from './SignInPassword';
 
@@ -42,12 +40,17 @@ export interface SessionError {
   original?: unknown;
 }
 
-function SignInStartInternal({ socialButtonsConfig, ui, className }: SignInStartProps) {
+function SignInStartInternal({
+  socialButtonsConfig,
+  ui,
+  className,
+}: SignInStartProps): React.JSX.Element {
   const signIn = useAuthSignIn();
+  const ternSecure = useTernSecure();
   const cardState = useCardState();
   const { navigate } = useRouter();
-  const { afterSignInUrl, onSignInSuccess } = useSignInContext();
-  const { createActiveSession } = useTernSecure();
+  const ctx = useSignInContext();
+  const { afterSignInUrl, signUpUrl } = ctx;
 
   const signInWithPassword = async (email: string, password: string) => {
     const res = await signIn?.withEmailAndPassword({ email, password });
@@ -59,10 +62,10 @@ function SignInStartInternal({ socialButtonsConfig, ui, className }: SignInStart
       });
     }
     if (res?.status === 'success') {
-      await createActiveSession({ session: res.user, redirectUrl: afterSignInUrl });
+      await ternSecure.createActiveSession({ session: res.user, redirectUrl: afterSignInUrl });
     }
   };
- 
+
   const handleForgotPassword = () => {
     void navigate('reset-password');
   };
@@ -74,42 +77,52 @@ function SignInStartInternal({ socialButtonsConfig, ui, className }: SignInStart
   const { appName, logo } = ui || {};
 
   return (
-    <div className="relative flex justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-      <Card className={cn('w-full max-w-md mt-8', className)}>
-        <CardHeader className="space-y-1 text-center">
-          {logo && (
-            <div className='mb-6 flex justify-center'>
-              <img
-                src={logo}
-                alt={appName ? `${appName} Logo` : 'Application Logo'}
-                className='h-16 w-auto'
-              />
-            </div>
-          )}
-          <CardTitle className={cn('font-bold')}>Sign in to {appName || 'your account'}</CardTitle>
-          <CardDescription className={cn('text-muted-foreground')}>
-            Please sign in to continue
-          </CardDescription>
-        </CardHeader>
-        <CardContent className='space-y-4'>
-          {cardState.error && (
-            <Alert
-              variant='destructive'
-              className='animate-in fade-in-50'
-            >
-              <AlertDescription>{cardState.error.message}</AlertDescription>
-            </Alert>
-          )}
-          <SignInPassword
-            signInWithPassword={signInWithPassword}
-            onError={handleError}
-            isDisabled={cardState.isLoading}
-            onForgotPassword={handleForgotPassword}
-          />
-        </CardContent>
-      </Card>
-    </div>
+    <div className='relative flex justify-center p-6 md:p-10'>
+      <div className='w-full max-w-sm'>
+        <Card className={cn('mt-8 w-full max-w-md', className)}>
+          <CardHeader className='space-y-1 text-center'>
+            {logo && (
+              <div className='mb-6 flex justify-center'>
+                <img
+                  src={logo}
+                  alt={appName ? `${appName} Logo` : 'Application Logo'}
+                  className='h-16 w-auto'
+                />
+              </div>
+            )}
+            <CardTitle className={cn('font-bold')}>
+              Sign in to {appName || 'your account'}
+            </CardTitle>
+            <CardDescription className={cn('text-muted-foreground')}>
+              Please sign in to continue
+            </CardDescription>
+          </CardHeader>
+          <CardContent className='space-y-4'>
+            {cardState.error && (
+              <Alert
+                variant='destructive'
+                className='animate-in fade-in-50'
+              >
+                <AlertDescription>{cardState.error.message}</AlertDescription>
+              </Alert>
+            )}
+            <SignInPassword
+              signInWithPassword={signInWithPassword}
+              onError={handleError}
+              isDisabled={cardState.isLoading}
+              onForgotPassword={handleForgotPassword}
+            />
+            <FieldDescription className='text-center'>
+              Don&apos;t have an account?{' '}
+              <RouterLink
+                to={signUpUrl}
+              >
+                Sign up
+              </RouterLink>
+            </FieldDescription>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

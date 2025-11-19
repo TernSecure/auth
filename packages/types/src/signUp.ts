@@ -35,7 +35,7 @@ export interface SignUpResource {
   displayName: string | null;
   email: string | null;
   phoneNumber: string | null;
-  withEmailAndPassword: (params: SignUpInitialValue) => Promise<SignUpResponse>;
+  withEmailAndPassword: (params: SignUpFormValues) => Promise<SignUpResponse>;
   /**
    * @param provider - The identifier of the social provider (e.g., 'google', 'microsoft', 'github').
    * @param options - Optional configuration for the social sign-in flow.

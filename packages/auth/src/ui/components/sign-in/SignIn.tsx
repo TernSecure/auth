@@ -4,8 +4,10 @@ import React from 'react';
 
 import { normalizeRoutingOptions } from '../../../utils/normalizeRoutingOptions';
 import { SignInContext, SignUpContext, useSignInContext } from '../../ctx';
-import { Route, Switch  } from '../../router';
+import { useFetch } from '../../hooks'
+import { Route, Switch } from '../../router';
 import type { SignUpCtx } from '../../types';
+import { preloadSignUp } from './lazy-sign-up';
 import { PasswordReset } from './ResetPassword';
 import { PasswordResetSuccess } from './ResetPasswordSuccess';
 import { SignInStart } from './SignInStart';
@@ -36,6 +38,9 @@ function SignInRoutes(): React.JSX.Element {
     </Switch>
   );
 }
+
+const usePreloadSignUp = (enabled = false) =>
+  useFetch(enabled ? preloadSignUp : undefined, 'preloadComponent', { staleTime: Infinity });
 
 function SignInRoot() {
   const signInContext = useSignInContext();
@@ -68,10 +73,12 @@ export const SignInModal = (props: SignInModalProps): React.JSX.Element => {
           mode: 'modal',
         }}
       >
-        <SignIn
-          {...props}
-          routing='virtual'
-        />
+        <div>
+          <SignIn
+            {...props}
+            routing='virtual'
+          />
+        </div>
       </SignInContext.Provider>
     </Route>
   );

@@ -62,14 +62,13 @@ export const useSignUpContext = (): SignUpContextType => {
   const navigateAfterSignUp = () => navigate(afterSignUpUrl);
 
 
-  let signUpUrl = (ctx.routing === 'path' && ctx.path) || options.signUpUrl
-  let signInUrl = ctx.signInUrl || options.signInUrl 
+  let signUpUrl = (ctx.routing === 'path' && ctx.path) || options.signUpUrl;
+  let signInUrl = ctx.signInUrl || options.signInUrl;
 
 
   const preservedParams = redirectUrls.getPreservedSearchParams();
   signInUrl = buildURL({ base: signInUrl, hashSearchParams: [queryParams, preservedParams] }, { stringify: true });
   signUpUrl = buildURL({ base: signUpUrl, hashSearchParams: [queryParams, preservedParams] }, { stringify: true });
-
 
   const authQueryString = redirectUrls.toSearchParams().toString();
 

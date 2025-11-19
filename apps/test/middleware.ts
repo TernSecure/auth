@@ -2,7 +2,7 @@ import { ternSecureProxy, createRouteMatcher } from '@tern-secure/nextjs/server'
 
 const publicPaths = createRouteMatcher([
   '/sign-in(.*)', 
-  '/sign-up',
+  '/sign-up(.*)',
   '/unauthorized',
   '/api/auth/(.*)',
   "/__/auth/(.*)",
@@ -18,7 +18,6 @@ export const config = {
 
 export default ternSecureProxy(
   async (auth, request) => {
-    //const url = new URL('/unauthorized', request.url);
     if (!publicPaths(request)) {
       await auth.protect((require) => {
         return require({ role: 'admin' });

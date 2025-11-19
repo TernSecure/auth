@@ -1,19 +1,52 @@
-import type { JSX } from 'react';
+import { useTernSecure } from '@tern-secure/shared/react';
+import type { TernSecureAuth } from '@tern-secure/types';
 import React from 'react';
 
-import { trimTrailingSlash } from '../../utils';
+import { pathFromFullPath, trimTrailingSlash } from '../../utils';
+import { useNavigateToFlowStart } from '../hooks';
 import { newPaths } from './newPaths';
 import { match } from './pathToRegexp';
 import { RouteContext, useRouter } from './RouterCtx';
 
-interface SecureRouteProps {
-  path?: string;
-  index?: boolean;
+interface RouteGuardProps {
+  canActivate: (ternsecure: TernSecureAuth) => boolean;
 }
 
-export type RouteProps = React.PropsWithChildren<SecureRouteProps>;
+interface UnSecureRooteProps {
+  path?: string;
+  index?: boolean;
+  flowStart?: boolean;
+  canActivate?: never;
+}
 
-export function Route(props: RouteProps): JSX.Element | null {
+type SecureRouteProps = {
+  path?: string;
+  index?: boolean;
+  flowStart?: boolean;
+} & UnSecureRooteProps;
+
+export type RouteProps = React.PropsWithChildren<UnSecureRooteProps | SecureRouteProps>;
+
+const RouteGuard = ({
+  canActivate,
+  children,
+}: React.PropsWithChildren<RouteGuardProps>): React.JSX.Element | null => {
+  const { navigateToFlowStart } = useNavigateToFlowStart();
+  const ternSecure = useTernSecure();
+
+  React.useEffect(() => {
+    if (!canActivate(ternSecure)) {
+      void navigateToFlowStart();
+    }
+  });
+
+  if (canActivate(ternSecure)) {
+    return <>{children}</>;
+  }
+  return null;
+};
+
+export function Route(props: RouteProps): React.JSX.Element | null {
   const router = useRouter();
 
   if (!props.children) {
@@ -64,12 +97,17 @@ export function Route(props: RouteProps): JSX.Element | null {
     paramsDict[key] = value;
   }
 
+  const flowStartPath =
+    (props.flowStart
+      ? pathFromFullPath(router.fullPath).replace('/' + router.basePath, '')
+      : router.flowStartPath) || router.startPath;
+
   return (
     <RouteContext.Provider
       value={{
         basePath: router.basePath,
         startPath: router.startPath,
-        flowStartPath: fullPath,
+        flowStartPath: flowStartPath,
         fullPath: fullPath,
         indexPath: indexPath,
         currentPath: router.currentPath,
@@ -90,8 +128,7 @@ export function Route(props: RouteProps): JSX.Element | null {
         urlStateParam: router.urlStateParam,
       }}
     >
-      {props.children}
+      {props.canActivate ? <RouteGuard canActivate={props.canActivate}>{props.children}</RouteGuard> : props.children}
     </RouteContext.Provider>
   );
 }
-

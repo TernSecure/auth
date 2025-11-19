@@ -305,7 +305,6 @@ export class IsoTernSecureAuth implements TernSecureAuth {
       }
 
       if (global.TernSecure?.isReady) {
-        console.log('[IsomorphicTernSecure] global.TernSecure.ready: Injecting TernUI...');
         return this.injectTernUI(global.TernSecure);
       }
       return;

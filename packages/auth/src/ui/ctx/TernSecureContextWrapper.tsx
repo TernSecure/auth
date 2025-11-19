@@ -3,7 +3,7 @@ import type { TernSecureAuth, TernSecureResources } from '@tern-secure/types';
 import React from 'react';
 
 type TernSecureContextWrapperProps = {
-  instance: TernSecureAuth;
+  ternsecure: TernSecureAuth;
   children: React.ReactNode;
 };
 
@@ -12,7 +12,7 @@ type TernSecureAuthProviderState = TernSecureResources;
 export function TernSecureContextWrapper(
   props: TernSecureContextWrapperProps,
 ): React.JSX.Element | null {
-  const ternSecure = props.instance;
+  const ternSecure = props.ternsecure;
 
   const [state, setState] = React.useState<TernSecureAuthProviderState>({
     user: ternSecure.user,

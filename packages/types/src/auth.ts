@@ -490,6 +490,7 @@ export type UserButtonProps = {
 };
 
 export type SignInModalProps = WithoutRouting<SignInProps>;
+export type SignUpModalProps = WithoutRouting<SignUpProps>;
 
 export type SignInRedirectOptions = RedirectOptions;
 export type SignUpRedirectOptions = RedirectOptions;

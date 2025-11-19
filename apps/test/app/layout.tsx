@@ -31,7 +31,7 @@ export default async function RootLayout({
           requiresVerification={false}
           isTernSecureDev={true}
           persistence='browserCookie'
-          frontEndDomain='http://localhost:4001'
+          frontEndDomain='http://localhost:4000'
           //afterSignOutUrl='/sign-in'  //better use it on client-side
         >
           <Header />

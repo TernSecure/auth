@@ -1,6 +1,6 @@
 import { handleFirebaseAuthError } from '@tern-secure/shared/errors';
 import type {
-  SignUpInitialValue,
+  SignUpFormValues,
   SignUpResource,
   SignUpResponse,
   SignUpStatus,
@@ -25,7 +25,7 @@ export class SignUp extends TernSecureBase implements SignUpResource {
     this.auth = auth;
   }
 
-  withEmailAndPassword = async (params: SignUpInitialValue): Promise<SignUpResponse> => {
+  withEmailAndPassword = async (params: SignUpFormValues): Promise<SignUpResponse> => {
     try {
       const { email, password } = params;
       const { user, providerId, operationType } = await createUserWithEmailAndPassword(

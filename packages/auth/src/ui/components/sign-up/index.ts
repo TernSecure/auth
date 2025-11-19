@@ -1,1 +1,2 @@
-export * from './sign-up'
+import '../../../index.css'
+export * from './SignUp'

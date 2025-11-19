@@ -1,15 +1,25 @@
 import type { TernSecureAuthOptions } from '@tern-secure/types';
 import React from 'react';
 
-const TernSecureInstanceTreeOptionsCtx = React.createContext<TernSecureAuthOptions>({});
+export const TernSecureAuthOptionsCtx = React.createContext<TernSecureAuthOptions>({});
 
-export function useTernSecureOptions(): TernSecureAuthOptions {
-  const ctx = React.useContext(TernSecureInstanceTreeOptionsCtx);
+interface OptionsProviderProps {
+  children: React.ReactNode;
+  value: TernSecureAuthOptions;
+}
 
+function TernSecureOptionsProvider({ children, value }: OptionsProviderProps) {
+  return <TernSecureAuthOptionsCtx.Provider value={value}>{children}</TernSecureAuthOptionsCtx.Provider>;
+}
+
+function useTernSecureOptions(): TernSecureAuthOptions {
+  const ctx = React.useContext(TernSecureAuthOptionsCtx);
   if (ctx === undefined) {
     throw new Error(
-      'TernSecureInstanceTreeOptions context is not available. Ensure that the context is properly initialized.',
+      'TernSecureAuthOptions context is not available. Ensure that the context is properly initialized.',
     );
   }
   return ctx;
 }
+
+export { useTernSecureOptions, TernSecureOptionsProvider };

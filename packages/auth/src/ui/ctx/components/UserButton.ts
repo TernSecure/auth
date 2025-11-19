@@ -14,7 +14,7 @@ export const useUserButtonContext = () => {
   const { navigate } = useRouter();
   const options = useTernSecureOptions();
   if (!context || context.componentName !== 'UserButton') {
-    throw new Error('Clerk: useUserButtonContext called outside of the mounted UserButton component.');
+    throw new Error('useUserButtonContext called outside of the mounted UserButton component.');
   }
 
   const { componentName, ...ctx } = context;

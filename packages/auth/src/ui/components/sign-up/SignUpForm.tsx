@@ -1,31 +1,23 @@
-import type { SignInFormValues } from '@tern-secure/types';
+import type { SignUpFormValues } from '@tern-secure/types';
 
 import { FieldGroup, useAppForm } from '../../elements';
 import { FormButton } from '../../utils/form';
 
-interface SignInPasswordProps {
-  onError?: (error: Error) => void;
-  isDisabled?: boolean;
-  signInWithPassword?: (email: string, password: string) => Promise<void>;
-  onForgotPassword?: () => void;
-}
+type SignUpFormProps = {
+  signUpWithPassword: (email: string, password: string) => Promise<void>;
+};
 
-export const SignInPassword = (props: SignInPasswordProps) => {
-  const { onError, isDisabled, signInWithPassword, onForgotPassword } = props;
+export const SignUpForm = (props: SignUpFormProps) => {
+  const { signUpWithPassword } = props;
   const form = useAppForm({
     defaultValues: {
       email: '',
       password: '',
-    } as SignInFormValues,
+    } as SignUpFormValues,
     validators: {
       onSubmitAsync: async ({ value }) => {
-        try {
-          if (signInWithPassword) {
-            await signInWithPassword(value.email, value.password);
-          }
-        } catch (error) {
-          onError?.(error as Error);
-          throw error;
+        if (signUpWithPassword) {
+          await signUpWithPassword(value.email, value.password);
         }
       },
     },
@@ -45,7 +37,6 @@ export const SignInPassword = (props: SignInPasswordProps) => {
             <field.TernEmailField
               label='Email'
               placeholder='Enter your email'
-              disabled={form.state.isSubmitting || isDisabled}
               required
             />
           )}
@@ -56,18 +47,15 @@ export const SignInPassword = (props: SignInPasswordProps) => {
             <field.TernPasswordField
               label='Password'
               placeholder='Enter your password'
-              disabled={form.state.isSubmitting || isDisabled}
               required
-              onForgotPassword={onForgotPassword}
             />
           )}
         </form.AppField>
-
         <FormButton
           canSubmit={form.state.canSubmit}
           isSubmitting={form.state.isSubmitting}
-          submitText='Sign in'
-          submittingText='Signing in...'
+          submitText='Continue'
+          submittingText='Creating Account...'
         />
       </FieldGroup>
     </form>

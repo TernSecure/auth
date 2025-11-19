@@ -1,4 +1,5 @@
 import { useTernSecure } from '@tern-secure/shared/react';
+import { isAbsoluteUrl } from '@tern-secure/shared/url';
 import type { AuthErrorTree, TernSecureUser } from '@tern-secure/types';
 import { createContext, useCallback, useContext, useMemo } from 'react';
 
@@ -24,23 +25,25 @@ export type SignInContextType = Omit<SignInCtx, 'fallbackRedirectUrl' | 'forceRe
   afterSignUpUrl: string;
   afterSignInUrl: string;
   checkRedirectResult: () => Promise<void>;
+  isCombinedFlow: boolean;
 };
 
 export const SignInContext = createContext<SignInCtx | null>(null);
 
 export const useSignInContext = (): SignInContextType => {
   const context = useContext(SignInContext);
-  const ternSecure = useTernSecure();
   const { navigate } = useRouter();
-  const ternSecureOptions = useTernSecureOptions();
-  //const ternSecureOptions = ternSecure._internal_getAllOptions();
   const { queryParams, queryString } = useRouter();
+  const ternSecureOptions = useTernSecureOptions();
+  const ternSecure = useTernSecure();
 
   if (context === null || context.componentName !== 'SignIn') {
     throw new Error(
-      'useSignInContext must be used within a SignInProvider. Please wrap your component tree with SignInProvider.',
+      'useSignInContext called outside of the mounted SignIn component.',
     );
   }
+
+  const isCombinedFlow = Boolean(!ternSecureOptions.signInUrl && ternSecureOptions.signUpUrl && !isAbsoluteUrl(ternSecureOptions.signUpUrl));
 
   const { componentName, mode, ...ctx } = context;
   const initialValuesFromQueryParams = useMemo(
@@ -82,27 +85,14 @@ export const useSignInContext = (): SignInContextType => {
 
   const redirectAfterSignIn = () => navigate(afterSignInUrl);
 
-  const preservedParams = redirectUrls.getPreservedSearchParams();
   let signInUrl = (ctx.routing === 'path' && ctx.path) || ternSecureOptions.signInUrl;
-  let signUpUrl = (ctx.routing === 'path' && ctx.path) || ternSecureOptions.signUpUrl;
+  let signUpUrl = isCombinedFlow ? (ctx.routing === 'path' && ctx.path) || ternSecureOptions.signUpUrl : ctx.signUpUrl || ternSecureOptions.signUpUrl;
+
+  const preservedParams = redirectUrls.getPreservedSearchParams();
+  signInUrl = buildURL({ base: signInUrl, hashSearchParams: [queryParams, preservedParams] }, { stringify: true });
+  signUpUrl = buildURL({ base: signUpUrl, hashSearchParams: [queryParams, preservedParams] }, { stringify: true });
 
   const authQueryString = redirectUrls.toSearchParams().toString();
-
-  signInUrl = buildURL(
-    {
-      base: signInUrl,
-      hashSearchParams: [queryParams, preservedParams],
-    },
-    { stringify: true },
-  );
-
-  signUpUrl = buildURL(
-    {
-      base: signUpUrl,
-      hashSearchParams: [queryParams, preservedParams],
-    },
-    { stringify: true },
-  );
 
   /**
    *
@@ -213,5 +203,6 @@ export const useSignInContext = (): SignInContextType => {
     onSignInSuccess,
     handleSignInError,
     redirectAfterSignIn,
+    isCombinedFlow,
   };
 };
