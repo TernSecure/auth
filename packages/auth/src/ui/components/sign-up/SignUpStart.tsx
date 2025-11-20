@@ -9,34 +9,44 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardStateProvider,
   CardTitle,
   FieldDescription,
   useCardState,
+  withCardStateProvider,
 } from '../../elements';
+import { useRouter } from '../../router';
 import { SignUpForm } from './SignUpForm';
+import { completeSignUpFlow } from './util';
 
 function SignUpStartInternal(): React.JSX.Element {
   const signUp = useAuthSignUp();
-  const cardState = useCardState();
-  const ternSecure = useTernSecure();
+  const card = useCardState();
+  const { navigate } = useRouter();
   const ctx = useSignUpContext();
-  const { signInUrl } = ctx;
+  const { afterSignUpUrl, signInUrl } = ctx;
+  const { createActiveSession } = useTernSecure();
 
-  const signUpWithPassword = async (email: string, password: string) => {
-    const res = await signUp?.withEmailAndPassword({ email, password });
-    if (res?.status === 'error') {
-      cardState.setError({
+  const signUpWithPassword = async (email: string, password: string): Promise<void> => {
+    if (!signUp) return;
+    const res = await signUp.withEmailAndPassword({ email, password });
+
+    if (res.status === 'error') {
+      card.setError({
         status: 'error',
         message: res.message,
         error: res.error,
       });
+      return;
     }
 
-    if (res?.status === 'complete') {
-      console.log('Sign up successful');
-      //createActiveSession({ session: res.user, redirectUrl: afterSignUpUrl });
-    }
+    const redirectUrlComplete = ctx.afterSignUpUrl || '/';
+    await completeSignUpFlow({
+      signUp: res,
+      verifyEmailPath: 'verify-email-address',
+      handleComplete: async () => createActiveSession({ session: res.user, redirectUrl: afterSignUpUrl }),
+      navigate,
+      redirectUrlComplete,
+    });
   };
 
   return (
@@ -50,36 +60,23 @@ function SignUpStartInternal(): React.JSX.Element {
             </CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
-            {cardState.error && (
+            {card.error && (
               <Alert
                 variant='destructive'
                 className='animate-in fade-in-50'
               >
-                <AlertDescription>{cardState.error.message}</AlertDescription>
+                <AlertDescription>{card.error.message}</AlertDescription>
               </Alert>
             )}
-            <SignUpForm
-               signUpWithPassword={signUpWithPassword}
-            />
+            <SignUpForm signUpWithPassword={signUpWithPassword} />
           </CardContent>
-            <FieldDescription className='text-center'>
-              Already have an account?{' '}
-              <a
-                href={signInUrl}
-              >
-                Sign In
-              </a>
-            </FieldDescription>
+          <FieldDescription className='text-center'>
+            Already have an account? <a href={signInUrl}>Sign In</a>
+          </FieldDescription>
         </Card>
       </div>
     </div>
   );
 }
 
-export const SignUpStart = () => {
-  return (
-    <CardStateProvider>
-      <SignUpStartInternal />
-    </CardStateProvider>
-  );
-};
+export const SignUpStart = withCardStateProvider(SignUpStartInternal);

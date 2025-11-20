@@ -6,6 +6,7 @@ import { SignUpContext } from '../../ctx';
 import { Route, Switch } from '../../router';
 import type { SignUpProps } from '../../types';
 import { SignUpStart } from './SignUpStart';
+import { SignUpVerifyEmail } from './SignUpVerifyEmail';
 
 function RedirectToSignUp() {
   const ternSecure = useTernSecure();
@@ -18,6 +19,12 @@ function RedirectToSignUp() {
 function SignUpRoutes(): React.JSX.Element {
   return (
     <Switch>
+      <Route
+        path='verify-email-address'
+        canActivate={ternsecure => !!ternsecure.signUp?.user?.email}
+      >
+        <SignUpVerifyEmail />
+      </Route>
       <Route index>
         <SignUpStart />
       </Route>
@@ -54,4 +61,4 @@ export const SignUpModal = (props: SignUpModalProps): React.JSX.Element => {
   );
 };
 
-export { SignUpStart}
+export { SignUpStart };

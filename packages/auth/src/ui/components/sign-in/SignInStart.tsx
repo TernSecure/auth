@@ -1,5 +1,5 @@
 import { useTernSecure } from '@tern-secure/shared/react';
-import type { AuthErrorTree, SignInPropsTree, SignInUIConfig } from '@tern-secure/types';
+import type { AuthErrorTree, SignInProps, SignInUIConfig } from '@tern-secure/types';
 
 import { cn } from '../../../lib/utils';
 import { useAuthSignIn } from '../../ctx';
@@ -11,10 +11,10 @@ import {
   CardContent,
   CardDescription,
   CardHeader,
-  CardStateProvider,
   CardTitle,
   FieldDescription,
   useCardState,
+  withCardStateProvider,
 } from '../../elements';
 import { RouterLink } from '../../elements/RouterLink';
 import { useRouter } from '../../router';
@@ -22,7 +22,7 @@ import { SignInPassword } from './SignInPassword';
 
 interface SignInStartProps {
   socialButtonsConfig?: SignInUIConfig['socialButtons'];
-  ui?: SignInPropsTree['ui'];
+  ui?: SignInProps['ui'];
   className?: string;
 }
 
@@ -40,11 +40,7 @@ export interface SessionError {
   original?: unknown;
 }
 
-function SignInStartInternal({
-  socialButtonsConfig,
-  ui,
-  className,
-}: SignInStartProps): React.JSX.Element {
+function SignInStartInternal(props:SignInStartProps): React.JSX.Element {
   const signIn = useAuthSignIn();
   const ternSecure = useTernSecure();
   const cardState = useCardState();
@@ -74,12 +70,12 @@ function SignInStartInternal({
     cardState.setError(error);
   };
 
-  const { appName, logo } = ui || {};
+  const { appName, logo } = props.ui || {};
 
   return (
     <div className='relative flex justify-center p-6 md:p-10'>
       <div className='w-full max-w-sm'>
-        <Card className={cn('mt-8 w-full max-w-md', className)}>
+        <Card className={cn('mt-8 w-full max-w-md', props.className)}>
           <CardHeader className='space-y-1 text-center'>
             {logo && (
               <div className='mb-6 flex justify-center'>
@@ -127,10 +123,4 @@ function SignInStartInternal({
   );
 }
 
-export const SignInStart = () => {
-  return (
-    <CardStateProvider>
-      <SignInStartInternal />
-    </CardStateProvider>
-  );
-};
+export const SignInStart = withCardStateProvider(SignInStartInternal);

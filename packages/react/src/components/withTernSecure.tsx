@@ -1,42 +1,26 @@
-import type { TernSecureAuth } from '@tern-secure/types';
+import type { TernSecureAuth, Without } from '@tern-secure/types';
 import React from 'react';
 
-import { useIsoTernSecureAuthCtx  } from '../ctx/IsomorphicTernSecureCtx';
-import { useAssertWrappedByTernSecureAuthProvider} from '../hooks/useAssertWrappedTernSecureProvider';
-
-type WithTernSecureProp<P> = P & {
-  instance: TernSecureAuth;
-  component?: string;
-};
+import { useIsoTernSecureAuthCtx } from '../ctx/IsomorphicTernSecureCtx';
+import { useAssertWrappedByTernSecureAuthProvider } from '../hooks/useAssertWrappedTernSecureProvider';
 
 
-export interface FallbackProp {
-  fallback?: React.ReactNode;
-}
-
-export const withTernSecure = <P extends { instance: TernSecureAuth; component?: string }>(
+export const withTernSecure = <P extends { ternsecure: TernSecureAuth; component?: string }>(
   Component: React.ComponentType<P>,
-  options?: { component: string; renderWhileLoading?: boolean },
+  displayNameOrOptions?: string | { component: string; renderWhileLoading?: boolean },
 ) => {
-  const displayName = options?.component || Component.displayName || Component.name || 'Component';
+  const passedDisplayName = typeof displayNameOrOptions === 'string' ? displayNameOrOptions : displayNameOrOptions?.component;
+  const displayName = passedDisplayName || Component.displayName || Component.name || 'Component';
+  Component.displayName = displayName;
 
-  const HOC = (props: Omit<P, 'instance'> & FallbackProp) => {
+  const options = typeof displayNameOrOptions === 'string' ? undefined : displayNameOrOptions;
+
+  const HOC = (props: Without<P, 'ternsecure'>) => {
     useAssertWrappedByTernSecureAuthProvider(displayName || 'withTernSecure');
 
-    const instance = useIsoTernSecureAuthCtx();
+    const ternsecure = useIsoTernSecureAuthCtx();
 
-    //console.log(
-    //  `[TernSecure] ${displayName} - Instance Status:`,
-    //  {
-    //    isReady: instance.isReady,
-    //    status: instance.status,
-    //    hasInstance: !!instance,
-    //    hasShowSignIn: !!(instance as any).showSignIn,
-    //    renderWhileLoading: options?.renderWhileLoading
-    //  }
-    //);
-
-    if (!instance.isReady && !options?.renderWhileLoading) {
+    if (!ternsecure.isReady && !options?.renderWhileLoading) {
       return null;
     }
 
@@ -44,7 +28,7 @@ export const withTernSecure = <P extends { instance: TernSecureAuth; component?:
       <Component
         {...(props as P)}
         component={displayName}
-        instance={instance}
+        ternsecure={ternsecure}
       />
     );
   };

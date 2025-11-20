@@ -23,7 +23,7 @@ type SecureRouteProps = {
   path?: string;
   index?: boolean;
   flowStart?: boolean;
-} & UnSecureRooteProps;
+} & RouteGuardProps;
 
 export type RouteProps = React.PropsWithChildren<UnSecureRooteProps | SecureRouteProps>;
 

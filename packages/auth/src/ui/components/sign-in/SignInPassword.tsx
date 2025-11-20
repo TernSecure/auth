@@ -36,7 +36,7 @@ export const SignInPassword = (props: SignInPasswordProps) => {
       onSubmit={e => {
         e.preventDefault();
         e.stopPropagation();
-        form.handleSubmit();
+        void form.handleSubmit();
       }}
     >
       <FieldGroup>

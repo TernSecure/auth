@@ -170,6 +170,13 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
   };
 
+  __unstable__updateProps = (_props: any) => {
+    const props = {
+      ..._props,
+      options: this.#initOptions({ ...this.#options, ..._props.options }),
+    };
+    return this.#componentControls?.ensureMounted().then(controls => controls.updateProps(props));
+  };
 
   #initTernAuth = (): void => {
     if (!this.#options.ternSecureConfig) {

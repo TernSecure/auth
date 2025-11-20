@@ -13,6 +13,7 @@ import type {
 } from './redirect';
 import type { AuthErrorResponse, SignInInitialValue, SignInResource } from './signIn';
 import type { SignUpInitialValue } from './signUp';
+import type { SignInUIConfig } from './theme';
 
 /**
  * @deprecated will be removed in future releases.
@@ -438,6 +439,12 @@ export type SignInProps = RoutingOptions & {
    * Used to fill the "Sign up" link in the SignUp component.
    */
   signUpUrl?: string;
+
+  /**
+   * Customize UI
+   */
+  ui?: SignInUIConfig;
+
   /** Initial form values */
   initialValues?: SignInInitialValue;
 } & SignUpForceRedirectUrl &

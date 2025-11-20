@@ -4,7 +4,7 @@ import { FieldGroup, useAppForm } from '../../elements';
 import { FormButton } from '../../utils/form';
 
 type SignUpFormProps = {
-  signUpWithPassword: (email: string, password: string) => Promise<void>;
+  signUpWithPassword: (email: string, password: string) => Promise<void> | void;
 };
 
 export const SignUpForm = (props: SignUpFormProps) => {
@@ -28,7 +28,7 @@ export const SignUpForm = (props: SignUpFormProps) => {
       onSubmit={e => {
         e.preventDefault();
         e.stopPropagation();
-        form.handleSubmit();
+        void form.handleSubmit();
       }}
     >
       <FieldGroup>

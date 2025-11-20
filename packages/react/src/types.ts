@@ -150,3 +150,30 @@ export type TernSecureProviderProps = IsoTernSecureAuthOptions & {
 };
 
 export type TernSecureAuthProps = TernSecureAuth | undefined | null;
+
+/**
+ * @deprecated use WithTernSecureProp
+ */
+export type WithTernSecureProp_DEPRECATED<P> = P & {
+  ternsecure: TernSecureAuth;
+  component?: string;
+};
+
+export type WithTernSecureProp<T = unknown> = T & {
+  ternsecure: TernSecureAuth;
+  component?: string;
+};
+
+
+export interface MountProps {
+  mount: (node: HTMLDivElement, props: any) => void;
+  unmount: (node: HTMLDivElement) => void;
+  updateProps: (props: any) => void;
+  props: any;
+}
+
+export interface OpenProps {
+  open: (props: any) => void;
+  close: () => void;
+  props?: any;
+}

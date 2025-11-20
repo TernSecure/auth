@@ -96,3 +96,14 @@ function CardStateProvider({ children }: CardStateProviderProps) {
 }
 
 export { CardStateProvider, useCardState };
+
+export const withCardStateProvider = <T, >(Component: React.ComponentType<T>) => {
+  return (props: T) => {
+    return (
+      <CardStateProvider>
+        {/* @ts-expect-error */}
+        <Component {...props} />
+      </CardStateProvider>
+    );
+  }
+}

@@ -9,6 +9,7 @@ export const allNextProviderPropsWithEnv = (
   nextProps: Omit<TernSecureNextProps, 'children'>
 ): any => {
   const {
+    tenantId,
     signInUrl,
     signUpUrl,
     signInForceRedirectUrl,
@@ -27,6 +28,7 @@ export const allNextProviderPropsWithEnv = (
   } = nextProps;
 
   const envConfig = {
+    tenantId: process.env.NEXT_PUBLIC_FIREBASE_TENANT_ID || '',
     apiKey: process.env.NEXT_PUBLIC_TERN_API_KEY,
     apiUrl: process.env.TERNSECURE_API_URL || '',
     ternUIVersion: process.env.NEXT_PUBLIC_TERN_UI_VERSION || '',
@@ -56,12 +58,12 @@ export const allNextProviderPropsWithEnv = (
     storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
     messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
-    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENTID,
-    tenantId: process.env.NEXT_PUBLIC_FIREBASE_TENANT_ID || '',
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENTID || '',
   };
 
   // Merge config values: props take precedence over environment variables
   //const finalApiKey = propsApiKey ?? envConfig.apiKey;
+  const finalTenantId = tenantId ?? envConfig.tenantId;
   const finalApiUrl = propsApiUrl ?? envConfig.apiUrl;
   const finalSignInUrl = signInUrl ?? envConfig.signInUrl;
   const finalSignUpUrl = signUpUrl ?? envConfig.signUpUrl;
@@ -82,6 +84,7 @@ export const allNextProviderPropsWithEnv = (
     
     // Set properties explicitly taken from TernSecureNextProps (props version)
     // These are part of the TernSecureProviderProps interface.
+    tenantId: finalTenantId,
     requiresVerification: propsRequiresVerification,
     isTernSecureDev: propsIsTernSecureDev,
     enableServiceWorker: propsEnableServiceWorker,

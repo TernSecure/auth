@@ -25,14 +25,15 @@ function waitForElementChildren(options: WaitForElementOptions): Promise<void> {
     }
 
     // Check if element already has children
-    if (elementToWatch?.childElementCount && elementToWatch.childElementCount > 0) {
+    const isElementAlreadyPresent = elementToWatch?.childElementCount && elementToWatch.childElementCount > 0;
+    if (isElementAlreadyPresent) {
       resolve();
       return;
     }
 
     // Set up MutationObserver to watch for children
-    const observer = new MutationObserver(mutations => {
-      for (const mutation of mutations) {
+    const observer = new MutationObserver(mutationsList => {
+      for (const mutation of mutationsList) {
         if (mutation.type === 'childList') {
           if (!elementToWatch && selector) {
             elementToWatch = root?.querySelector(selector);
@@ -71,21 +72,17 @@ export const useWaitForComponentMount = (component?: string): MountingStatus => 
 
   useEffect(() => {
     if (!component) {
-      console.error('TernSecure: no component name provided, unable to detect mount.');
-      setStatus('error');
-      return;
+      throw new Error('TernSecure: no component name provided, unable to detect mount.');
     }
 
     if (typeof window !== 'undefined' && !watcherRef.current) {
-      watcherRef.current = waitForElementChildren({ 
-        selector: `[data-ternsecure-component="${component}"]`,
-        timeout: 10000 // 10 second timeout
+      watcherRef.current = waitForElementChildren({
+        selector: `[data-ternsecure-component="${component}"]`
       })
         .then(() => {
           setStatus('rendered');
         })
-        .catch((error) => {
-          console.error('TernSecure: Error detecting component mount:', error);
+        .catch(() => {
           setStatus('error');
         });
     }
