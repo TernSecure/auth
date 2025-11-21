@@ -1,4 +1,4 @@
-import type { SignInFormValues } from '@tern-secure/types';
+import type { SignInPasswordParams } from '@tern-secure/types';
 
 import { FieldGroup, useAppForm } from '../../elements';
 import { FormButton } from '../../utils/form';
@@ -10,13 +10,15 @@ interface SignInPasswordProps {
   onForgotPassword?: () => void;
 }
 
+const defaultValues: SignInPasswordParams = {
+  email: '',
+  password: '',
+};
+
 export const SignInPassword = (props: SignInPasswordProps) => {
   const { onError, isDisabled, signInWithPassword, onForgotPassword } = props;
   const form = useAppForm({
-    defaultValues: {
-      email: '',
-      password: '',
-    } as SignInFormValues,
+    defaultValues,
     validators: {
       onSubmitAsync: async ({ value }) => {
         try {

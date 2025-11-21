@@ -39,7 +39,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
    * Now consumers can specify exactly what OAuth parameters they need
    */
   const signInWithSocialLogin = async (provider: string, customOptions: SocialProviderOptions) => {
-    const res = await signIn?.withSocialProvider(provider, {
+    const res = await signIn?.authenticateWithSocialProvider(provider, {
       mode: customOptions.mode || 'popup',
       customParameters: customOptions.customParameters,
       scopes: customOptions.scopes,

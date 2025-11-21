@@ -1,6 +1,7 @@
 import { handleFirebaseAuthError } from '@tern-secure/shared/errors';
 import type {
   SignUpFormValues,
+  SignUpJson,
   SignUpResource,
   SignUpStatus,
   TernSecureUser,
@@ -19,9 +20,10 @@ export class SignUp extends TernSecureBase implements SignUpResource {
   error?: any;
   private auth: Auth;
 
-  constructor(auth: Auth) {
+  constructor(data: SignUpJson | null = null, auth: Auth) {
     super();
     this.auth = auth;
+    this.fromJSON(data);
   }
 
   withEmailAndPassword = async (params: SignUpFormValues): Promise<SignUpResource> => {
@@ -82,4 +84,12 @@ export class SignUp extends TernSecureBase implements SignUpResource {
       return this;
     }
   };
+
+  protected fromJSON(data: SignUpJson | null): this {
+    if (data) {
+      this.id = data.id;
+      this.status = data.status;
+    }
+    return this;
+  }
 }

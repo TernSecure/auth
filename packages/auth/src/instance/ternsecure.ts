@@ -201,8 +201,8 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     this.#authCookieManager = new AuthCookieManager();
     this.csrfToken = this.#authCookieManager.getCSRFToken();
 
-    this.signIn = new SignIn(this.auth, this.csrfToken);
-    this.signUp = new SignUp(this.auth);
+    this.signIn = new SignIn(null, this.auth, this.csrfToken);
+    this.signUp = new SignUp(null, this.auth);
 
     eventBus.on(events.SessionChanged, () => {
       this.#setCreatedActiveSession(this.user || null);
@@ -404,8 +404,8 @@ export class TernSecureAuth implements TernSecureAuthInterface {
       this.#authCookieManager = new AuthCookieManager();
       this.csrfToken = this.#authCookieManager.getCSRFToken();
 
-      this.signIn = new SignIn(this.auth, this.csrfToken);
-      this.signUp = new SignUp(this.auth);
+      this.signIn = new SignIn(null, this.auth, this.csrfToken);
+      this.signUp = new SignUp(null, this.auth);
 
       eventBus.on(events.SessionChanged, () => {
         this.#setCreatedActiveSession(this.user || null);

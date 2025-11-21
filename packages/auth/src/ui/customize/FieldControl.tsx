@@ -1,9 +1,7 @@
-'use client';
-
 import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 
-import { Field, FieldError, FieldLabel, Input } from '../elements';
+import { Field as FieldCn, FieldError, FieldLabel, Input } from '../elements';
 import { useFieldContext } from './Form';
 
 export interface FieldProps {
@@ -18,28 +16,24 @@ export interface PasswordFieldProps extends FieldProps {
   onForgotPassword?: () => void;
 }
 
-export function TernFieldErrors() {
+const TernFieldErrors = () => {
   const field = useFieldContext<string>();
   const meta = field.state.meta as { errors: string[] };
   const errors = meta.errors;
 
   if (!errors || errors.length === 0) return null;
 
-  const formattedErrors = errors.map((error) => ({ message: error }));
+  const formattedErrors = errors.map(error => ({ message: error }));
 
   return <FieldError errors={formattedErrors} />;
-}
+};
 
-export function TernTextField({ label, placeholder, disabled, required }: FieldProps) {
+const TernTextField = ({ label, placeholder, disabled, required }: FieldProps) => {
   const field = useFieldContext<string>();
-  
+
   return (
-    <Field>
-      {label && (
-        <FieldLabel htmlFor={field.name}>
-          {label}
-        </FieldLabel>
-      )}
+    <FieldCn>
+      {label && <FieldLabel htmlFor={field.name}>{label}</FieldLabel>}
       <Input
         id={field.name}
         name={field.name}
@@ -51,21 +45,25 @@ export function TernTextField({ label, placeholder, disabled, required }: FieldP
         required={required}
       />
       <TernFieldErrors />
-    </Field>
+    </FieldCn>
   );
-}
+};
 
-export function TernPasswordField({ label, placeholder, disabled, required, onForgotPassword }: PasswordFieldProps) {
+const TernPasswordField = ({
+  label,
+  placeholder,
+  disabled,
+  required,
+  onForgotPassword,
+}: PasswordFieldProps) => {
   const field = useFieldContext<string>();
   const [showPassword, setShowPassword] = useState(false);
 
   return (
-    <Field>
+    <FieldCn>
       {label && (
         <div className='flex items-center'>
-          <FieldLabel htmlFor={field.name}>
-            {label}
-          </FieldLabel>
+          <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
           {onForgotPassword && (
             <button
               type='button'
@@ -106,20 +104,16 @@ export function TernPasswordField({ label, placeholder, disabled, required, onFo
         </button>
       </div>
       <TernFieldErrors />
-    </Field>
+    </FieldCn>
   );
-}
+};
 
-export function TernEmailField({ label, placeholder, disabled, required }: FieldProps) {
+const TernEmailField = ({ label, placeholder, disabled, required }: FieldProps) => {
   const field = useFieldContext<string>();
 
   return (
-    <Field>
-      {label && (
-        <FieldLabel htmlFor={field.name}>
-          {label}
-        </FieldLabel>
-      )}
+    <FieldCn>
+      {label && <FieldLabel htmlFor={field.name}>{label}</FieldLabel>}
       <Input
         id={field.name}
         name={field.name}
@@ -132,6 +126,8 @@ export function TernEmailField({ label, placeholder, disabled, required }: Field
         required={required}
       />
       <TernFieldErrors />
-    </Field>
+    </FieldCn>
   );
-}
+};
+
+export { TernTextField, TernPasswordField, TernEmailField, TernFieldErrors };

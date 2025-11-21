@@ -1,5 +1,5 @@
 import { isValidBrowserOnline } from '@tern-secure/shared/browser';
-import type { TernSecureApiErrorJSON } from '@tern-secure/types';
+import type { TernSecureApiErrorJSON, TernSecureResourceJSON } from '@tern-secure/types';
 
 import type { ApiRequestInit, ApiResponse, ApiResponseJSON } from '../instance/coreApiClient';
 //import { coreApiClient} from '../instance/coreApiClient';
@@ -25,8 +25,19 @@ export type PostMutateParams = {
   search?: ConstructorParameters<typeof URLSearchParams>[0];
 };
 
+
+export type BaseMutateParams = {
+  action?: string;
+  body?: any;
+  method?: HTTPMethod;
+  path?: string;
+};
+
+
 export abstract class TernSecureBase {
   static ternsecure: TernSecureAuth;
+  id?: string;
+  pathRoot = '';
 
   static get apiClient() {
     return TernSecureBase.ternsecure.getApiClient();
@@ -39,11 +50,15 @@ export abstract class TernSecureBase {
     return TernSecureBase.authCookieManager;
   }
 
+  public isNew(): boolean {
+    return !this.id;
+  }
+
   /**
    * Core method to fetch data from API endpoints using coreApiClient
    * This method handles the complete request lifecycle including error handling
    */
-  protected static async fetchFromCoreApi<J>(
+  protected static async _baseFetchFromCoreApi<J extends TernSecureResourceJSON | null>(
     requestInit: ApiRequestInit,
   ): Promise<ApiResponseJSON<J> | null> {
     let apiResponse: ApiResponse<J>;
@@ -97,20 +112,38 @@ export abstract class TernSecureBase {
     return null;
   }
 
+
+  protected path(action?: string): string {
+    const base = this.pathRoot;
+
+    if (this.isNew()) {
+      return base;
+    }
+    const baseWithId = base.replace(/[^/]$/, '$&/') + encodeURIComponent(this.id as string);
+
+    if (!action) {
+      return baseWithId;
+    }
+
+    return baseWithId.replace(/[^/]$/, '$&/') + encodeURIComponent(action);
+  }
+
+  protected abstract fromJSON(data: TernSecureResourceJSON | null): this;
+
   /**
    * Convenience method for making POST requests
    */
   static async basePost(params: PostMutateParams): Promise<ApiResponseJSON<any> | null> {
-    return this.fetchFromCoreApi({ ...params, method: 'POST' });
+    return this._baseFetchFromCoreApi({ ...params, method: 'POST' });
   }
 
   /**
    * Instance method to fetch data from API endpoints
    */
-  protected async fetchFromCoreApi(
+  protected async _fetchFromCoreApi<J extends TernSecureResourceJSON>(
     requestInit: ApiRequestInit,
   ): Promise<ApiResponseJSON<any> | null> {
-    return TernSecureBase.fetchFromCoreApi(requestInit);
+    return TernSecureBase._baseFetchFromCoreApi<J>(requestInit);
   }
 
   /**
@@ -120,12 +153,18 @@ export abstract class TernSecureBase {
     return TernSecureBase.basePost(params);
   }
 
+  protected async _baseMutate<J extends TernSecureResourceJSON>(params: BaseMutateParams = {}): Promise<this> {
+    const { action, body, method, path } = params;
+    const json = await TernSecureBase._baseFetchFromCoreApi<J>({ method, path: path || this.path(action), body });
+    return this.fromJSON((json?.response || json) as J);
+  }
+
   /**
    * Instance method to make GET requests
    * This is a convenience method that sets the HTTP method to GET
    */
   protected async baseGet(params: Omit<PostMutateParams, 'method'>): Promise<ApiResponseJSON<any> | null> {
-    return this.fetchFromCoreApi({ ...params, method: 'GET' });
+    return this._fetchFromCoreApi({ ...params, method: 'GET' });
   }
 
   /**
@@ -139,14 +178,18 @@ export abstract class TernSecureBase {
     });
   }
 
+  protected async _basePost<J extends TernSecureResourceJSON>(params: BaseMutateParams = {}): Promise<this> {
+    return this._baseMutate<J>({ ...params, method: 'POST' });
+  }
+
   static async makeApiRequest(requestInit: ApiRequestInit): Promise<ApiResponseJSON<any> | null> {
-    return this.fetchFromCoreApi(requestInit);
+    return this._baseFetchFromCoreApi(requestInit);
   }
 
   protected async makeApiRequest(
     requestInit: ApiRequestInit,
   ): Promise<ApiResponseJSON<any> | null> {
-    return this.fetchFromCoreApi(requestInit);
+    return this._fetchFromCoreApi(requestInit);
   }
 
   private static shouldRethrowofflineNetworkError(): boolean {

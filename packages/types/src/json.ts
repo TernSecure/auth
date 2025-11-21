@@ -16,3 +16,11 @@ export interface SessionJson extends IdTokenResult {
   status: SessionStatus;
   user?: TernSecureUser;
 }
+
+/**
+ * Currently representing API DTOs in their JSON form.
+*/
+export interface TernSecureResourceJSON {
+  id: string;
+  object: string;
+}

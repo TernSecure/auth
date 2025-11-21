@@ -11,8 +11,7 @@ import type {
   SignUpFallbackRedirectUrl,
   SignUpForceRedirectUrl,
 } from './redirect';
-import type { AuthErrorResponse, SignInInitialValue, SignInResource } from './signIn';
-import type { SignUpInitialValue } from './signUp';
+import type { AuthErrorResponse, SignInResource } from './signIn';
 import type { SignInUIConfig } from './theme';
 
 /**
@@ -446,7 +445,7 @@ export type SignInProps = RoutingOptions & {
   ui?: SignInUIConfig;
 
   /** Initial form values */
-  initialValues?: SignInInitialValue;
+  initialValues?: SignInInitialValues & SignUpInitialValues;
 } & SignUpForceRedirectUrl &
   SignUpFallbackRedirectUrl &
   AfterSignOutUrl;
@@ -472,7 +471,7 @@ export type SignUpProps = RoutingOptions & {
    */
   signInUrl?: string;
   /** Initial form values */
-  initialValues?: SignUpInitialValue;
+  initialValues?: SignUpInitialValues ;
 } & SignInFallbackRedirectUrl &
   SignInForceRedirectUrl &
   AfterSignOutUrl;
@@ -575,3 +574,20 @@ type RouterFn = (
     windowNavigate: (to: URL | string) => void;
   },
 ) => Promise<unknown> | unknown;
+
+
+
+export type SignInInitialValues = {
+  emailAddress?: string;
+  phoneNumber?: string;
+  username?: string;
+};
+
+export type SignUpInitialValues = {
+  emailAddress?: string;
+  phoneNumber?: string;
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  username?: string;
+};

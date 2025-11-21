@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
-import { TernSecureProvider, UserButton } from '@tern-secure/nextjs';
+import { TernSecureProvider } from '@tern-secure/nextjs';
 import { Header } from '@/components/header';
 import './globals.css';
 
@@ -35,7 +35,6 @@ export default async function RootLayout({
           //afterSignOutUrl='/sign-in'  //better use it on client-side
         >
           <Header />
-          <UserButton />
           {children}
         </TernSecureProvider>
       </body>

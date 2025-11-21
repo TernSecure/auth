@@ -1,4 +1,5 @@
 import type { TernSecureUser, UserCredential } from "./all";
+import type { TernSecureResourceJSON } from "./json";
 
 export type UnverifiedField = 'email_address' | 'phone_number';
 
@@ -64,3 +65,9 @@ export interface SignUpResource {
 }
 
 export type SignUpStatus = 'missing_requirements' | 'complete' | 'abandoned' | 'error';
+
+export interface SignUpJson extends TernSecureResourceJSON {
+  object: 'sign_up';
+  id: string;
+  status: SignUpStatus;
+}

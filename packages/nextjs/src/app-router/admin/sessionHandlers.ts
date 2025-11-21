@@ -17,10 +17,10 @@ import {
 } from './responses';
 import type { SessionSubEndpoint, SignInSubEndpoint, TernSecureHandlerOptions } from './types';
 
-async function sessionEndpointHandler(
+const sessionEndpointHandler = async (
   context: RequestProcessorContext,
   config: TernSecureHandlerOptions,
-): Promise<Response> {
+): Promise<Response> => {
   const { subEndpoint, method, referrer } = context;
 
   const validators = createValidators(context);
@@ -150,10 +150,10 @@ async function sessionEndpointHandler(
   }
 }
 
-async function cookieEndpointHandler(
+const cookieEndpointHandler = async (
   context: RequestProcessorContext,
   config: TernSecureHandlerOptions,
-): Promise<Response> {
+): Promise<Response> => {
   const { subEndpoint, method } = context;
 
   const validators = createValidators(context);
@@ -235,10 +235,10 @@ async function cookieEndpointHandler(
   }
 }
 
-async function signInEndpointHandler(
+const signInEndpointHandler = async (
   context: RequestProcessorContext,
   config: TernSecureHandlerOptions
-): Promise<Response> {
+): Promise<Response> => {
   const { subEndpoint, method } = context;
 
   const validators = createValidators(context);
