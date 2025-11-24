@@ -1,6 +1,6 @@
-import { Loader2 } from 'lucide-react';
 import React from 'react';
 
+import { LoaderCircle } from '../icons';
 import { Card, CardContent, CardHeader, CardTitle } from './card';
 import { withCardStateProvider } from './ctx';
 
@@ -18,7 +18,7 @@ export const LoadingCard = withCardStateProvider(() => {
           </CardHeader>
           <CardContent>
             <LoadingContainer>
-              <Loader2 className='text-muted-foreground h-8 w-8 animate-spin' />
+              <LoaderCircle className='text-muted-foreground h-8 w-8 animate-spin' />
             </LoadingContainer>
           </CardContent>
         </Card>

@@ -26,13 +26,23 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='en' suppressHydrationWarning>
+    <html
+      lang='en'
+      suppressHydrationWarning
+    >
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <TernSecureProvider
-          requiresVerification={true}
+          appName='TernSecure'
+          appCheck={{
+            provider: 'reCaptchaV3',
+            siteKey: '6LfZFhcsAAAAAMX2kZwW5USvnwNrqEnj6lh3ogzr',
+            isTokenAutoRefreshEnabled: true,
+          }}
+          requiresVerification={false}
           persistence='local'
           ternUIUrl='http://localhost:4000/ternsecure.browser.js'
           apiUrl='localhost:3000'
+          //tenantId='lifesprintcare-zsqsk'
           //afterSignOutUrl='/sign-in'  //better use it on client-side
         >
           <ThemeProvider

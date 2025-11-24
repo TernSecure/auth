@@ -193,3 +193,9 @@ export interface ServerConfigValidationResult {
 }
 
 export type InstanceType = 'production' | 'development';
+
+export interface AppCheckConfig {
+  provider: 'reCaptchaV3' | 'reCaptchaEnterprise';
+  siteKey: string;
+  isTokenAutoRefreshEnabled?: boolean;
+}

@@ -31,6 +31,11 @@ import type {
 } from '@tern-secure/types';
 import type { FirebaseApp } from 'firebase/app';
 import { getApps, initializeApp } from 'firebase/app';
+import {
+  initializeAppCheck,
+  ReCaptchaEnterpriseProvider,
+  ReCaptchaV3Provider,
+} from 'firebase/app-check';
 import type { Auth, Auth as TernAuth } from 'firebase/auth';
 import {
   browserLocalPersistence,
@@ -444,6 +449,19 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
 
     this.#configureEmulator();
+
+    if (this.#options.appCheck) {
+      const { provider, siteKey, isTokenAutoRefreshEnabled } = this.#options.appCheck;
+      const appCheckProvider =
+        provider === 'reCaptchaEnterprise'
+          ? new ReCaptchaEnterpriseProvider(siteKey)
+          : new ReCaptchaV3Provider(siteKey);
+
+      initializeAppCheck(this.firebaseClientApp, {
+        provider: appCheckProvider,
+        isTokenAutoRefreshEnabled: isTokenAutoRefreshEnabled ?? true,
+      });
+    }
 
     getInstallations(this.firebaseClientApp);
   }

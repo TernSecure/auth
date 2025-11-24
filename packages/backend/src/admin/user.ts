@@ -12,8 +12,8 @@ type RetrieveUserResult = {
     error: AuthErrorResponse;
 }
 
-export function RetrieveUser() {
-    const auth = getAuthForTenant();
+export function RetrieveUser(tenantId?: string) {
+    const auth = getAuthForTenant(tenantId);
 
     async function getUserUid(uid: string): Promise<RetrieveUserResult> {
         try {

@@ -9,3 +9,6 @@ export { default as MailCheck } from './mail-check.svg';
 export { default as ArrowRight } from './arrow-right.svg';
 export { default as ChevronLeft } from './chevron-left.svg';
 export { default as RefreshCw } from './refresh-cw.svg';
+export { default as AlertCircle } from './alert-circle.svg';
+export { default as Eye } from './eye.svg';
+export { default as EyeOff } from './eye-off.svg';

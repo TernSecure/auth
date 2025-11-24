@@ -1,7 +1,7 @@
-import { Eye, EyeOff } from 'lucide-react';
 import { useState } from 'react';
 
 import { Field as FieldCn, FieldError, FieldLabel, Input } from '../elements';
+import { Eye, EyeOff } from '../icons';
 import { useFieldContext } from './Form';
 
 export interface FieldProps {

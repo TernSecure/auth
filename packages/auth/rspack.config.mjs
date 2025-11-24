@@ -1,11 +1,3 @@
-// @ts-check
-//const rspack = require('@rspack/core');
-//const packageJSON = require('./package.json');
-//const path = require('path');
-//const { merge } = require('webpack-merge');
-//const ReactRefreshPlugin = require('@rspack/plugin-react-refresh');
-//const { RsdoctorRspackPlugin } = require('@rsdoctor/rspack-plugin');
-
 import rspack from '@rspack/core';
 import path from 'path';
 import { fileURLToPath } from 'url';

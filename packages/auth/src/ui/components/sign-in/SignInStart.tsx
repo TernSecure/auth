@@ -43,22 +43,38 @@ export interface SessionError {
   original?: unknown;
 }
 
+const Logo = ({ src, alt }: { src: string; alt: string }) => (
+  <div className='mb-4 flex justify-center'>
+    <img
+      src={src}
+      alt={alt}
+      className='h-10 w-auto'
+    />
+  </div>
+);
+
 function SignInStartInternal(): React.JSX.Element {
   const signIn = useAuthSignIn();
   const ternSecure = useTernSecure();
   const ternSecureOptions = useTernSecureOptions();
+  const { appName } = ternSecureOptions;
   const ctx = useSignInContext();
   const signUpMode = ternSecureOptions.signUpMode || 'public';
   const passwordAuthentication = ternSecureOptions.passwordAuthentication ?? true;
   const requiresVerification = ternSecure.requiresVerification;
   const card = useCardState();
   const { navigate } = useRouter();
-    const { afterSignInUrl, signUpUrl, showCombinedForm, isCombinedFlow } = ctx;
+  const { afterSignInUrl, signUpUrl, showCombinedForm, appearance } = ctx;
   const preferredEmailStrategy = ctx.preferredEmailStrategy || 'password';
   const identifierAttributes: SignInStartIdentifier[] = useMemo(
     () => ['email_address', 'phone_number'],
     [],
   );
+
+  const layout = appearance?.layout;
+  const logoPlacement = layout?.logoPlacement || 'inside';
+  const logoImageUrl = layout?.logoImageUrl;
+  const socialButtonsPlacement = layout?.socialButtonsPlacement || 'bottom';
 
   const onlyPhoneNumberInitialValueExists =
     ctx.initialValues?.phoneNumber !== undefined && ctx.initialValues.emailAddress === undefined;
@@ -182,9 +198,23 @@ function SignInStartInternal(): React.JSX.Element {
   return (
     <div className='relative flex justify-center p-6 md:p-10'>
       <div className='w-full max-w-sm'>
+        {logoPlacement === 'outside' && logoImageUrl && (
+          <Logo
+            src={logoImageUrl}
+            alt={appName || 'App Logo'}
+          />
+        )}
         <Card className={cn('mt-8 w-full max-w-md')}>
           <CardHeader className='space-y-1 text-center'>
-            <CardTitle className={cn('font-bold')}>Sign in to {'your account'}</CardTitle>
+            {logoPlacement === 'inside' && logoImageUrl && (
+              <Logo
+                src={logoImageUrl}
+                alt={appName || 'App Logo'}
+              />
+            )}
+            <CardTitle className={cn('font-bold')}>
+              {appName ? `Sign in to ${appName}` : 'Sign in'}
+            </CardTitle>
             <CardDescription className={cn('text-muted-foreground')}>
               Please sign in to continue
             </CardDescription>
@@ -200,47 +230,60 @@ function SignInStartInternal(): React.JSX.Element {
             )}
 
             {showCombinedForm ? (
-              <form
-                onSubmit={e => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  void form.handleSubmit();
-                }}
-              >
-                <FieldGroup>
-                  {passwordAuthentication && (
-                    <>
-                      <form.AppField name={fieldName}>
-                        {field => {
-                          return fieldComponentType === 'tel' ? (
-                            <field.TernTextField
-                              label={label}
-                              placeholder={placeholder}
-                              disabled={form.state.isSubmitting || card.isLoading}
-                              required
-                            />
-                          ) : (
-                            <field.TernEmailField
-                              label={label}
-                              placeholder={placeholder}
-                              disabled={form.state.isSubmitting || card.isLoading}
-                              required
-                            />
-                          );
-                        }}
-                      </form.AppField>
-                      <FormButton
-                        canSubmit={form.state.canSubmit}
-                        isSubmitting={form.state.isSubmitting}
-                        submitText="Continue"
-                        submittingText="Signing in..."
-                      />
-                      <FieldSeparator>Or continue with</FieldSeparator>
-                    </>
-                  )}
-                  <SignInSocialButtons />
-                </FieldGroup>
-              </form>
+              <FieldGroup>
+                {socialButtonsPlacement === 'top' && (
+                  <>
+                    <SignInSocialButtons />
+                    {passwordAuthentication && <FieldSeparator>Or continue with</FieldSeparator>}
+                  </>
+                )}
+                {passwordAuthentication && (
+                  <form
+                    onSubmit={e => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      void form.handleSubmit();
+                    }}
+                    className='flex flex-col gap-7'
+                  >
+                    <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
+                      {([canSubmit, isSubmitting]) => (
+                        <>
+                          <form.AppField name={fieldName}>
+                            {field => {
+                              return fieldComponentType === 'tel' ? (
+                                <field.TernTextField
+                                  label={label}
+                                  placeholder={placeholder}
+                                  disabled={isSubmitting || card.isLoading}
+                                  required
+                                />
+                              ) : (
+                                <field.TernEmailField
+                                  label={label}
+                                  placeholder={placeholder}
+                                  disabled={isSubmitting || card.isLoading}
+                                  required
+                                />
+                              );
+                            }}
+                          </form.AppField>
+                          <FormButton
+                            canSubmit={canSubmit}
+                            isSubmitting={isSubmitting}
+                            submitText='Continue'
+                            submittingText='Continuing...'
+                          />
+                          {socialButtonsPlacement === 'bottom' && (
+                            <FieldSeparator>Or continue with</FieldSeparator>
+                          )}
+                        </>
+                      )}
+                    </form.Subscribe>
+                  </form>
+                )}
+                {socialButtonsPlacement === 'bottom' && <SignInSocialButtons />}
+              </FieldGroup>
             ) : (
               passwordAuthentication && (
                 <SignInPassword
@@ -253,7 +296,7 @@ function SignInStartInternal(): React.JSX.Element {
             )}
 
             {signUpMode === 'public' && (
-              <FieldDescription className="text-center">
+              <FieldDescription className='text-center'>
                 Don&apos;t have an account? <RouterLink to={signUpUrl}>Sign up</RouterLink>
               </FieldDescription>
             )}

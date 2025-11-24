@@ -1,10 +1,11 @@
-import { AlertCircle } from 'lucide-react';
 import React from 'react';
 
+import { AlertCircle } from '../icons';
 import { Alert, AlertDescription, AlertTitle } from './alert';
 import { Button } from './button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from './card';
 import { useCardState, withCardStateProvider } from './ctx';
+
 
 type ErrorCardProps = {
   cardTitle?: string;

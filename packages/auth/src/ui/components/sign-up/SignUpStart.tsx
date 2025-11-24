@@ -2,6 +2,7 @@ import { useTernSecure } from '@tern-secure/shared/react';
 import type { SignUpFormValues } from '@tern-secure/types';
 
 import { cn } from '../../../lib/utils';
+import { useTernSecureOptions } from '../../ctx';
 import { useAuthSignUp, useSignUpContext } from '../../ctx';
 import {
   Alert,
@@ -30,6 +31,7 @@ function SignUpStartInternal(): React.JSX.Element {
   const ctx = useSignUpContext();
   const { afterSignUpUrl, signInUrl, shouldShowForm = true } = ctx;
   const { createActiveSession } = useTernSecure();
+  const { appName } = useTernSecureOptions();
 
   const defaultValues: SignUpFormValues = {
     email: '',
@@ -74,9 +76,11 @@ function SignUpStartInternal(): React.JSX.Element {
       <div className='w-full max-w-sm'>
         <Card className={cn('mt-8 w-full max-w-md')}>
           <CardHeader className='space-y-1 text-center'>
-            <CardTitle>Create Account</CardTitle>
+            <CardTitle>{appName ? `Create your ${appName} account` : 'Create your account'}</CardTitle>
             <CardDescription className={cn('text-muted-foreground')}>
-              Please sign up to continue
+              {shouldShowForm
+                ? 'Welcome! Please fill in the details to get started.'
+                : 'Welcome! Please sign up to continue.'}
             </CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
@@ -89,47 +93,56 @@ function SignUpStartInternal(): React.JSX.Element {
               </Alert>
             )}
 
-            <form
-              onSubmit={e => {
-                e.preventDefault();
-                e.stopPropagation();
-                void form.handleSubmit();
-              }}
-            >
-              <FieldGroup>
-                {shouldShowForm && (
-                  <>
-                    <form.AppField name='email'>
-                      {field => (
-                        <field.TernEmailField
-                          label='Email'
-                          placeholder='Enter your email'
-                          required
-                        />
-                      )}
-                    </form.AppField>
+            <FieldGroup>
+              {shouldShowForm && (
+                <form
+                  onSubmit={e => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    void form.handleSubmit();
+                  }}
+                  className="flex flex-col gap-7"
+                >
+                  <form.Subscribe
+                    selector={state => [state.canSubmit, state.isSubmitting]}
+                  >
+                    {([canSubmit, isSubmitting]) => (
+                      <>
+                        <form.AppField name='email'>
+                          {field => (
+                            <field.TernEmailField
+                              label='Email'
+                              placeholder='Enter your email'
+                              disabled={isSubmitting || card.isLoading}
+                              required
+                            />
+                          )}
+                        </form.AppField>
 
-                    <form.AppField name='password'>
-                      {field => (
-                        <field.TernPasswordField
-                          label='Password'
-                          placeholder='Enter your password'
-                          required
+                        <form.AppField name='password'>
+                          {field => (
+                            <field.TernPasswordField
+                              label='Password'
+                              placeholder='Enter your password'
+                              disabled={isSubmitting || card.isLoading}
+                              required
+                            />
+                          )}
+                        </form.AppField>
+                        <FormButton
+                          canSubmit={canSubmit}
+                          isSubmitting={isSubmitting}
+                          submitText='Continue'
+                          submittingText='Creating Account...'
                         />
-                      )}
-                    </form.AppField>
-                    <FormButton
-                      canSubmit={form.state.canSubmit}
-                      isSubmitting={form.state.isSubmitting}
-                      submitText='Continue'
-                      submittingText='Creating Account...'
-                    />
-                    <FieldSeparator>Or continue with</FieldSeparator>
-                  </>
-                )}
-                <SignUpSocialButtons />
-              </FieldGroup>
-            </form>
+                        <FieldSeparator>Or continue with</FieldSeparator>
+                      </>
+                    )}
+                  </form.Subscribe>
+                </form>
+              )}
+              <SignUpSocialButtons />
+            </FieldGroup>
           </CardContent>
           <FieldDescription className='text-center'>
             Already have an account? <a href={signInUrl}>Sign In</a>

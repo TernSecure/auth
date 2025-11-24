@@ -5,7 +5,7 @@ import {
   clearSessionCookie,
   CreateNextSessionCookie,
   createSessionCookie,
-  RetrieveUser,
+  RetrieveUser as RetrieveUserBackend,
   SetNextServerSession,
   SetNextServerToken,
   VerifyNextTernIdToken,
@@ -50,4 +50,6 @@ export async function verifyNextTernIdToken(idToken: string) {
   return VerifyNextTernIdToken(idToken);
 }
 
-export { RetrieveUser }
+export function RetrieveUser() {
+  return RetrieveUserBackend(TENANT_ID);
+}

@@ -1,3 +1,8 @@
+declare module '*.svg' {
+  const value: React.FC<React.SVGAttributes<SVGElement>>;
+  export default value;
+}
+
 declare const __TERN_UI_PACKAGE_NAME__: string;
 declare const __TERN_UI_PACKAGE_VERSION__: string;
 declare const __TERN_UI_BUILD_DATE__: string;

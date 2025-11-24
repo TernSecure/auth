@@ -1,7 +1,7 @@
 import type { SignedInSession } from 'session';
 import type { SignUpResource } from 'signUp';
 
-import type { InstanceType, TernSecureConfig, TernSecureUser } from './all';
+import type { AppCheckConfig, InstanceType, TernSecureConfig, TernSecureUser } from './all';
 import type { DecodedIdToken } from './jwt';
 import type {
   AfterSignOutUrl,
@@ -12,7 +12,7 @@ import type {
   SignUpForceRedirectUrl,
 } from './redirect';
 import type { AuthErrorResponse, SignInResource } from './signIn';
-import type { SignInUIConfig } from './theme';
+import type { SignInTheme, SignUpTheme } from './theme';
 
 /**
  * @deprecated will be removed in future releases.
@@ -195,6 +195,10 @@ export type TernSecureAuthOptions = TernSecureOptionsNavigation &
       /** rethrow network errors that occur while the offline */
       rethrowOfflineNetworkErrors?: boolean;
     };
+    /**
+     * ReCaptcha V3 Site Key for Firebase App Check
+     */
+    appCheck?: AppCheckConfig;
   };
 
 /**
@@ -454,7 +458,7 @@ export type SignInProps = RoutingOptions & {
   /**
    * Customize UI
    */
-  ui?: SignInUIConfig;
+  appearance?: SignInTheme;
 
   /** Initial form values */
   initialValues?: SignInInitialValues & SignUpInitialValues;
@@ -490,6 +494,10 @@ export type SignUpProps = RoutingOptions & {
    * Used to fill the "Sign in" link in the SignUp component.
    */
   signInUrl?: string;
+  /**
+   * Customize UI
+   */
+  appearance?: SignUpTheme;
   /**
    * Whether to show the sign up form.
    * @default true
