@@ -6,3 +6,5 @@ export {
     getIdentifiers,
     groupIdentifiers,
 } from './constants';
+
+export { ProviderInitialIcon } from './ProviderInitialIcon';

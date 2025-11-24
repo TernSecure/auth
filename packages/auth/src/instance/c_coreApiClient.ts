@@ -18,6 +18,7 @@ export type ApiRequestInit = RequestInit & {
   path?: string;
   search?: ConstructorParameters<typeof URLSearchParams>[0];
   sessionId?: string;
+  pathPrefix?: string;
   url?: URL;
 };
 
@@ -233,7 +234,7 @@ async function retryWithBackoff<T>(
 
 export function createCoreApiClient(clientOptions: ApiClientOptions): ApiClient {
   function buildUrl(requestInit: ApiRequestInit): URL {
-     const isLocalhost = clientOptions.apiUrl?.includes('localhost') || clientOptions.apiUrl?.includes('127.0.0.1');
+    const isLocalhost = clientOptions.apiUrl?.includes('localhost') || clientOptions.apiUrl?.includes('127.0.0.1');
     const { path } = requestInit;
     const { instanceType, authDomain, apiUrl, apiBasePath = '/api/auth' } = clientOptions;
     const domainInProd = instanceType === 'production' ? authDomain : '';

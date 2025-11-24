@@ -172,8 +172,13 @@ export type TernSecureAuthOptions = TernSecureOptionsNavigation &
     sdkMetadata?: TernAuthSDK;
     signInUrl?: string;
     signUpUrl?: string;
+    signUpMode?: 'public' | 'restricted' | 'waitlist';
+    passwordAuthentication?: boolean;
     mode?: Mode;
     requiresVerification?: boolean;
+    /**
+     * @deprecated will be removed in future releases. please use  ternUIUrl
+     */
     isTernSecureDev?: boolean;
     ternSecureConfig?: TernSecureConfig;
     persistence?: Persistence;
@@ -440,12 +445,27 @@ export type SignInProps = RoutingOptions & {
   signUpUrl?: string;
 
   /**
+   * Preferred strategy for sign-in when using email identifier.
+   * Options: 'password' | 'email_code'
+   * @default 'password'
+   */
+  preferredEmailStrategy?: 'password' | 'email_code';
+
+  /**
    * Customize UI
    */
   ui?: SignInUIConfig;
 
   /** Initial form values */
   initialValues?: SignInInitialValues & SignUpInitialValues;
+
+  /**
+   * Whether to show the combined email and password form.
+   * If true, the email and password fields will be shown together.
+   * If false, the email field will be shown first, followed by the password field.
+   * @default true
+   */
+  showCombinedForm?: boolean;
 } & SignUpForceRedirectUrl &
   SignUpFallbackRedirectUrl &
   AfterSignOutUrl;
@@ -470,6 +490,11 @@ export type SignUpProps = RoutingOptions & {
    * Used to fill the "Sign in" link in the SignUp component.
    */
   signInUrl?: string;
+  /**
+   * Whether to show the sign up form.
+   * @default true
+   */
+  shouldShowForm?: boolean;
   /** Initial form values */
   initialValues?: SignUpInitialValues ;
 } & SignInFallbackRedirectUrl &

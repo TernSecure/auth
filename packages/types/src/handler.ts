@@ -3,7 +3,7 @@ import type { CookieOptions } from './cookie'
 export type AuthEndpoint = 'cookies' | 'sessions' | 'users' | 'sign_ins';
 export type CookieSubEndpoint = 'get' | 'set' | 'delete' | 'clear' | 'list';
 export type SessionSubEndpoint = 'verify' | 'createsession' | 'refresh' | 'revoke';
-export type SignInSubEndpoint = 'resetPasswordEmail';
+export type SignInSubEndpoint = 'create' | 'resetPasswordEmail';
 export interface CorsOptions {
   allowedOrigins: string[] | '*';
   allowedMethods?: string[];

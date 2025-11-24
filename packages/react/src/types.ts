@@ -129,11 +129,11 @@ export type TernSecureProps =
 export type IsoTernSecureAuthOptions = TernSecureAuthOptions & {
   TernSecureAuth?: TernSecureAuthProps;
   TernSecure?: TernSecureProps;
+  ternUIUrl?: string;
   ternUIVersion?: string;
   apiKey?: string;
   apiUrl?: string;
   authDomain?: string;
-  frontEndDomain?: string;
   proxyUrl?: string;
   nonce?: string;
 };

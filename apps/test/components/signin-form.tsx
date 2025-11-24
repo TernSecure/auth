@@ -80,7 +80,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
   };
 
   const signInPasswordField = async () => {
-    const res = await signIn?.withEmailAndPassword({ email, password });
+    const res = await signIn?.authenticateWithPassword({ email, password });
     if (res?.status === 'error') {
       setFormError({
         status: 'error',

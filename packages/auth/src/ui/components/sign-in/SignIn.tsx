@@ -8,7 +8,9 @@ import { Route, Switch } from '../../router';
 import type { SignUpCtx } from '../../types';
 import { PasswordReset } from './ResetPassword';
 import { PasswordResetSuccess } from './ResetPasswordSuccess';
+import { SignInFactorOne } from './SignInFactorOne';
 import { SignInStart } from './SignInStart';
+import { SignInVerifyEmail } from './SignInVerifyEmail';
 
 function RedirectToSignIn() {
   const ternSecure = useTernSecure();
@@ -27,6 +29,15 @@ function SignInRoutes(): React.JSX.Element {
       <Route path='reset-password-success'>
         <PasswordResetSuccess />
       </Route>
+      <Route path='factor-one'>
+        <SignInFactorOne />
+      </Route>
+      <Route
+        path='verify-email-address'
+        canActivate={ternsecure => !!ternsecure.signIn?.identifier}
+      >
+        <SignInVerifyEmail />
+      </Route>
       <Route index>
         <SignInStart />
       </Route>
@@ -36,7 +47,6 @@ function SignInRoutes(): React.JSX.Element {
     </Switch>
   );
 }
-
 
 function SignInRoot() {
   const signInContext = useSignInContext();

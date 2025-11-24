@@ -61,4 +61,4 @@ export const SignUpModal = (props: SignUpModalProps): React.JSX.Element => {
   );
 };
 
-export { SignUpStart };
+export { SignUpStart, SignUpVerifyEmail};

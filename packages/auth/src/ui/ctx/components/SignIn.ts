@@ -26,6 +26,7 @@ export type SignInContextType = Omit<SignInCtx, 'fallbackRedirectUrl' | 'forceRe
   afterSignInUrl: string;
   checkRedirectResult: () => Promise<void>;
   isCombinedFlow: boolean;
+  showCombinedForm: boolean;
 };
 
 export const SignInContext = createContext<SignInCtx | null>(null);
@@ -43,7 +44,11 @@ export const useSignInContext = (): SignInContextType => {
     );
   }
 
-  const isCombinedFlow = Boolean(!ternSecureOptions.signInUrl && ternSecureOptions.signUpUrl && !isAbsoluteUrl(ternSecureOptions.signUpUrl));
+  const isCombinedFlow =
+    (ternSecureOptions.signUpMode !== 'restricted'
+      && Boolean(!ternSecureOptions.signUpUrl && ternSecureOptions.signInUrl && !isAbsoluteUrl(ternSecureOptions.signInUrl))) || false;
+
+  const showCombinedForm = context.showCombinedForm ?? true;
 
   const { componentName, mode, ...ctx } = context;
   const initialValuesFromQueryParams = useMemo(
@@ -189,6 +194,13 @@ export const useSignInContext = (): SignInContextType => {
     }
   }, [ternSecure, onSignInSuccess, handleSignInError, createAuthError]);
 
+  if (isCombinedFlow) {
+    signUpUrl = buildURL(
+      { base: signInUrl, hashPath: '/challenge', hashSearchParams: [queryParams, preservedParams] },
+      { stringify: true },
+    );
+  }
+
   return {
     ...(ctx as SignInCtx),
     componentName,
@@ -204,5 +216,6 @@ export const useSignInContext = (): SignInContextType => {
     handleSignInError,
     redirectAfterSignIn,
     isCombinedFlow,
+    showCombinedForm,
   };
 };

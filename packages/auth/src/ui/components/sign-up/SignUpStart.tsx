@@ -1,4 +1,5 @@
 import { useTernSecure } from '@tern-secure/shared/react';
+import type { SignUpFormValues } from '@tern-secure/types';
 
 import { cn } from '../../../lib/utils';
 import { useAuthSignUp, useSignUpContext } from '../../ctx';
@@ -11,11 +12,15 @@ import {
   CardHeader,
   CardTitle,
   FieldDescription,
+  FieldGroup,
+  FieldSeparator,
+  useAppForm,
   useCardState,
   withCardStateProvider,
 } from '../../elements';
 import { useRouter } from '../../router';
-import { SignUpForm } from './SignUpForm';
+import { FormButton } from '../../utils/form';
+import { SignUpSocialButtons } from './SignUpSocialButtons';
 import { completeSignUpFlow } from './util';
 
 function SignUpStartInternal(): React.JSX.Element {
@@ -23,8 +28,22 @@ function SignUpStartInternal(): React.JSX.Element {
   const card = useCardState();
   const { navigate } = useRouter();
   const ctx = useSignUpContext();
-  const { afterSignUpUrl, signInUrl } = ctx;
+  const { afterSignUpUrl, signInUrl, shouldShowForm = true } = ctx;
   const { createActiveSession } = useTernSecure();
+
+  const defaultValues: SignUpFormValues = {
+    email: '',
+    password: '',
+  };
+
+  const form = useAppForm({
+    defaultValues,
+    validators: {
+      onSubmitAsync: async ({ value }) => {
+        return await signUpWithPassword(value.email, value.password);
+      },
+    },
+  });
 
   const signUpWithPassword = async (email: string, password: string): Promise<void> => {
     if (!signUp) return;
@@ -43,7 +62,8 @@ function SignUpStartInternal(): React.JSX.Element {
     await completeSignUpFlow({
       signUp: res,
       verifyEmailPath: 'verify-email-address',
-      handleComplete: async () => createActiveSession({ session: res.user, redirectUrl: afterSignUpUrl }),
+      handleComplete: async () =>
+        createActiveSession({ session: res.user, redirectUrl: afterSignUpUrl }),
       navigate,
       redirectUrlComplete,
     });
@@ -68,7 +88,48 @@ function SignUpStartInternal(): React.JSX.Element {
                 <AlertDescription>{card.error.message}</AlertDescription>
               </Alert>
             )}
-            <SignUpForm signUpWithPassword={signUpWithPassword} />
+
+            <form
+              onSubmit={e => {
+                e.preventDefault();
+                e.stopPropagation();
+                void form.handleSubmit();
+              }}
+            >
+              <FieldGroup>
+                {shouldShowForm && (
+                  <>
+                    <form.AppField name='email'>
+                      {field => (
+                        <field.TernEmailField
+                          label='Email'
+                          placeholder='Enter your email'
+                          required
+                        />
+                      )}
+                    </form.AppField>
+
+                    <form.AppField name='password'>
+                      {field => (
+                        <field.TernPasswordField
+                          label='Password'
+                          placeholder='Enter your password'
+                          required
+                        />
+                      )}
+                    </form.AppField>
+                    <FormButton
+                      canSubmit={form.state.canSubmit}
+                      isSubmitting={form.state.isSubmitting}
+                      submitText='Continue'
+                      submittingText='Creating Account...'
+                    />
+                    <FieldSeparator>Or continue with</FieldSeparator>
+                  </>
+                )}
+                <SignUpSocialButtons />
+              </FieldGroup>
+            </form>
           </CardContent>
           <FieldDescription className='text-center'>
             Already have an account? <a href={signInUrl}>Sign In</a>

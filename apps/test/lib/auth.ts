@@ -2,7 +2,13 @@ import { type TernSecureHandlerOptions } from '@tern-secure/nextjs/admin';
 
 const authHandlerOptions: TernSecureHandlerOptions = {
   cors: {
-    allowedOrigins: ['http://localhost:3000', 'http://localhost:3001', 'https://ternsecure.com'],
+    allowedOrigins: [
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'https://ternsecure.com',
+      'https://api.ternsecure.com',
+      'http://api.ternsecure.com',
+    ],
     allowedMethods: ['GET', 'POST'],
   },
   cookies: {

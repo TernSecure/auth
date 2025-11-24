@@ -1,4 +1,5 @@
 import { snakeToCamel } from "@tern-secure/shared/caseUtils";
+import type { SignInFactor } from '@tern-secure/types';
 
 export function getInitialValuesFromQueryParams(queryString: string, params: string[]) {
   const props: Record<string, string> = {};
@@ -10,4 +11,14 @@ export function getInitialValuesFromQueryParams(queryString: string, params: str
   });
 
   return props;
+}
+
+export function determineCurrentFactor(
+  selectedFactor: SignInFactor | null,
+  supportedFirstFactors: SignInFactor[] | null | undefined,
+): SignInFactor | null {
+  if (selectedFactor) {
+    return selectedFactor;
+  }
+  return supportedFirstFactors?.[0] || null;
 }

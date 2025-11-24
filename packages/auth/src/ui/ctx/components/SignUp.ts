@@ -19,6 +19,7 @@ export type SignUpContextType = Omit<SignUpCtx, 'fallbackRedirectUrl' | 'forceRe
   signUpUrl: string;
   afterSignUpUrl: string;
   afterSignInUrl: string;
+  shouldShowForm?: boolean;
 };
 
 export const SignUpContext = createContext<SignUpCtx | null>(null);

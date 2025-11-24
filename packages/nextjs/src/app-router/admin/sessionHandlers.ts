@@ -15,6 +15,7 @@ import {
   HttpResponseHelper,
   SessionResponseHelper,
 } from './responses';
+import { processSignInCreate } from './signInCreateHandler';
 import type { SessionSubEndpoint, SignInSubEndpoint, TernSecureHandlerOptions } from './types';
 
 const sessionEndpointHandler = async (
@@ -262,6 +263,10 @@ const signInEndpointHandler = async (
   }
 
   const PostHandler = async (subEndpoint: SignInSubEndpoint): Promise<Response> => {
+    const create = async (): Promise<Response> => {
+      return await processSignInCreate(context);
+    };
+
     const passwordResetEmail = async (): Promise<Response> => {
       try {
         const body = await context.request.json();
@@ -301,6 +306,8 @@ const signInEndpointHandler = async (
     };
 
     switch (subEndpoint) {
+      case 'create':
+        return create();
       case 'resetPasswordEmail':
         return passwordResetEmail();
       default:

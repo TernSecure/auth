@@ -1,3 +1,4 @@
+import { useSafeLayoutEffect } from '@tern-secure/shared/react';
 import type { TernSecureAuth, TernSecureAuthOptions } from '@tern-secure/types';
 import React, { Suspense } from 'react';
 
@@ -6,7 +7,7 @@ import { preloadComponent } from './lazyLoading/components';
 import { LazyComponentRenderer, LazyProviders } from './lazyLoading/providersCtx';
 import type { AvailableComponentProps } from './types';
 
-export const useSafeLayoutEffect = typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect;
+//export const useSafeLayoutEffect = typeof window !== 'undefined' ? React.useLayoutEffect : React.useEffect;
 
 const ROOT_ELEMENT_ID = 'data-ternsecure-component';
 

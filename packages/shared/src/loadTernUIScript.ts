@@ -9,8 +9,8 @@ export type LoadTernUISCriptOptions = TernSecureAuthOptions & {
   apiKey?: string;
   apiUrl?: string;
   authDomain?: string;
-  frontEndDomain?: string;
   proxyUrl?: string;
+  ternUIUrl?: string;
   ternUIVersion?: string;
   sdkMetadata?: TernSecureSDK;
   scriptHost?: string;
@@ -49,23 +49,19 @@ export const loadTernUIScript = async (options?: LoadTernUISCriptOptions) => {
 };
 
 export const ternUIgetScriptUrl = (options: LoadTernUISCriptOptions) => {
-  const { ternUIVersion, isTernSecureDev } = options;
+  const { ternUIUrl, ternUIVersion } = options;
   const version = resolveVersion(ternUIVersion);
 
-  if (isTernSecureDev) {
-    const localHost = process.env.TERN_UI_HOST;
-    const localPort = process.env.TERN_UI_PORT;
-    const h = options.frontEndDomain;
-    //return `http://${localHost}:${localPort}/ternsecure.browser.js`;
-    return `${h}/ternsecure.browser.js`;
-    //return `http://cdn.lifesprintcare.ca/dist/ternsecure.browser.js`
+  if (ternUIUrl) {
+    return ternUIUrl;
   }
+
   //return `https://cdn.lifesprintcare.ca/dist/ternsecure.browser.js`
   //return `https://cdn.jsdelivr.net/npm/@tern-secure/ui@${version}/dist/ternsecure.browser.js`;
 
-  //const ternsecureCDN = options?.customDomain ||
-  //(options?.proxyUrl && new URL(options.proxyUrl).host) || 'cdn.tern-secure.com';
-  //return `${ternsecureCDN}/ternsecure.browser.js`;
+  const ternsecureCDN = options?.authDomain ||
+    (options?.proxyUrl && new URL(options.proxyUrl).host);
+  return `${ternsecureCDN}/${version}/ternsecure.browser.js`;
   //return `https://${ternsecureCDN}/npm/@ternsecure/tern-ui@${version}/dist/ternsecure.browser.js`;
 };
 

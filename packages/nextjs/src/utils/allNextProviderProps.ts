@@ -23,6 +23,7 @@ export const allNextProviderPropsWithEnv = (
     enableServiceWorker: propsEnableServiceWorker,
     loadingComponent: propsLoadingComponent,
     persistence: propsPersistence,
+    ternUIUrl: propsTernUIUrl,
     ternUIVersion: propsTernUIVersion,
     ...baseProps 
   } = nextProps;
@@ -31,6 +32,7 @@ export const allNextProviderPropsWithEnv = (
     tenantId: process.env.NEXT_PUBLIC_FIREBASE_TENANT_ID || '',
     apiKey: process.env.NEXT_PUBLIC_TERN_API_KEY,
     apiUrl: process.env.TERNSECURE_API_URL || '',
+    ternUIUrl: process.env.NEXT_PUBLIC_TERN_UI_URL || '',
     ternUIVersion: process.env.NEXT_PUBLIC_TERN_UI_VERSION || '',
     projectId: process.env.NEXT_PUBLIC_TERN_PROJECT_ID,
     customDomain: process.env.NEXT_PUBLIC_TERN_CUSTOM_DOMAIN,
@@ -72,6 +74,7 @@ export const allNextProviderPropsWithEnv = (
   const finalSignInFallbackRedirectUrl = signInFallbackRedirectUrl ?? envConfig.signInFallbackRedirectUrl;
   const finalSignUpFallbackRedirectUrl = signUpFallbackRedirectUrl ?? envConfig.signUpFallbackRedirectUrl;
   const finalPersistence = propsPersistence ?? envConfig.persistence;
+  const finalTernUIUrl = propsTernUIUrl ?? envConfig.ternUIUrl;
   const finalTernUIVersion = propsTernUIVersion ?? envConfig.ternUIVersion;
 
   // Construct the result, ensuring it conforms to NextProviderProcessedProps
@@ -102,6 +105,7 @@ export const allNextProviderPropsWithEnv = (
     mode: baseProps.mode,
     apiUrl: finalApiUrl,
     persistence: finalPersistence,
+    ternUIUrl: finalTernUIUrl,
     ternUIVersion: finalTernUIVersion
   };
 

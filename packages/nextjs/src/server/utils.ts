@@ -230,7 +230,7 @@ export async function buildRequestLike(): Promise<NextRequest> {
     }
 
     throw new Error(
-      `Clerk: auth(), currentUser() and clerkClient(), are only supported in App Router (/app directory).\nIf you're using /pages, try getAuth() instead.\nOriginal error: ${e}`,
+      `TernSecure: auth(), currentUser() and ternSecureClient(), are only supported in App Router (/app directory).\nIf you're using /pages, try getAuth() instead.\nOriginal error: ${e}`,
     );
   }
 }

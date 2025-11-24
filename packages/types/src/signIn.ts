@@ -1,11 +1,16 @@
 import type { UserCredential } from "./all";
 import type { ErrorCode } from "./errors";
 import type {
+  BackupCodeFactor,
   EmailCodeAttempt,
+  EmailCodeFactor,
   PasswordAttempt,
+  PasswordFactor,
   PhoneCodeAttempt,
+  PhoneCodeFactor,
   ResetPasswordEmailCodeAttempt,
-  ResetPasswordPhoneCodeAttempt
+  ResetPasswordPhoneCodeAttempt,
+  TOTPFactor,
 } from './factors'
 import type { TernSecureResourceJSON } from './json'
 import type {
@@ -21,6 +26,7 @@ export type SignInStatus =
   | 'needs_first_factor'
   | 'needs_second_factor'
   | 'needs_new_password'
+  | 'needs_email_verification'
   | 'idle'
   | 'pending_email_password'
   | 'pending_social'
@@ -119,9 +125,17 @@ export interface SocialProviderOptions {
   scopes?: string[];
 }
 
+export interface SignInVerificationResponse {
+  status: SignInStatus;
+  message?: string;
+  error?: any;
+}
+
 export interface SignInResource {
 
   status: SignInStatus | null;
+  supportedFirstFactors: SignInFirstFactor[] | null;
+  identifier: string | null;
   /**
    * Create combine email and phone sign in method
    */
@@ -137,7 +151,10 @@ export interface SignInResource {
 
   sendPasswordResetEmail: (email: string) => Promise<{ response: { email: string } } | null>;
 
-  resendEmailVerification: () => Promise<ResendEmailVerification>;
+  attemptEmailVerification: (options?: {
+    url?: string;
+    handleCodeInApp?: boolean;
+  }) => Promise<SignInVerificationResponse>;
 
   attemptFirstFactor: (params: AttemptFirstFactorParams) => Promise<SignInResource>;
 
@@ -145,10 +162,19 @@ export interface SignInResource {
 }
 
 
+export type SignInFirstFactor =
+  | EmailCodeFactor
+  | PasswordFactor;
+
+export type SignInSecondFactor = PhoneCodeFactor | TOTPFactor | BackupCodeFactor;
+
+export type SignInFactor = SignInFirstFactor | SignInSecondFactor;
+
+
 export type SignInCreateParams = (
   | {
     strategy: PasswordStrategy;
-    password: string;
+    password?: string;
     identifier: string;
   } | {
     strategy:
@@ -173,4 +199,8 @@ export interface SignInJson extends TernSecureResourceJSON {
   object: 'sign_in';
   id: string;
   status: SignInStatus;
+  supportedFirstFactors: SignInFirstFactor[];
+  firstFactorVerification?: SignInFirstFactor;
+  secondFactorVerification?: SignInSecondFactor;
+  identifier: string | null;
 }

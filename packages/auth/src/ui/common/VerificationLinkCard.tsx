@@ -2,13 +2,14 @@ import { cn } from '../../lib/utils';
 import {
   Alert,
   AlertDescription,
-  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
   FieldDescription,
+  TimerButton,
+  useCardState,
 } from '../elements';
 import { useRouter } from '../router';
 
@@ -20,6 +21,7 @@ type VerificationLinkCardProps = {
 
 export const VerificationLinkCard = (props: VerificationLinkCardProps) => {
   const { navigate } = useRouter();
+  const card = useCardState();
 
   const goBack = () => {
     return navigate('../');
@@ -38,6 +40,14 @@ export const VerificationLinkCard = (props: VerificationLinkCardProps) => {
             </CardDescription>
           </CardHeader>
           <CardContent className='space-y-4'>
+            {card.error && (
+              <Alert
+                variant='destructive'
+                className='animate-in fade-in-50'
+              >
+                <AlertDescription>{card.error.message}</AlertDescription>
+              </Alert>
+            )}
             {props.emailSent && props.onResend && (
               <div className='space-y-2'>
                 <Alert>
@@ -46,19 +56,21 @@ export const VerificationLinkCard = (props: VerificationLinkCardProps) => {
                     to resend.
                   </AlertDescription>
                 </Alert>
-                <Button
+                <TimerButton
                   onClick={() => void props.onResend?.()}
                   disabled={props.isLoading}
                   variant='outline'
                   className='w-full'
+                  startDisabled
+                  throttleTimeInSec={60}
                 >
                   {props.isLoading ? 'Sending...' : 'Resend verification email'}
-                </Button>
+                </TimerButton>
               </div>
             )}
           </CardContent>
           <FieldDescription className='text-center'>
-            <a onClick={goBack}>Go back</a>
+            <a onClick={() => void goBack()}>Go back</a>
           </FieldDescription>
         </Card>
       </div>
