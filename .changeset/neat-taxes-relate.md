@@ -5,7 +5,6 @@
 '@tern-secure/react': patch
 '@tern-secure/types': patch
 '@tern-secure/auth': patch
-'test': patch
 ---
 
 feat(auth): enhance phone authentication flow with reCAPTCHA support and verification code handling
