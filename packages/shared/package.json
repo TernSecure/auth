@@ -100,6 +100,7 @@
   },
   "dependencies": {
     "@tern-secure/types": "workspace:*",
+    "dequal": "2.0.3",
     "glob-to-regexp": "0.4.1",
     "js-cookie": "^3.0.5",
     "tslib": "catalog:repo"

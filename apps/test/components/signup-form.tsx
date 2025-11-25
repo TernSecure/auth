@@ -7,16 +7,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Field, FieldDescription, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useSignUp, useTernSecure, useSignUpContext } from '@tern-secure/nextjs';
+import { useSignUp } from '@tern-secure/nextjs';
 import type { SignUpResponse } from '@tern-secure/nextjs';
 
 export function SignupForm({ className, ...props }: React.ComponentProps<'div'>) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { signUp } = useSignUp();
-  const { createActiveSession } = useTernSecure();
-  const ctx = useSignUpContext();
-  const { afterSignUpUrl } = ctx;
+  //const { createActiveSession } = useTernSecure();
+  //const ctx = useSignUpContext();
+  //const { afterSignUpUrl } = ctx;
   const [formError, setFormError] = useState<SignUpResponse | null>(null);
 
   const signUpWithPassword = async () => {
@@ -30,7 +30,7 @@ export function SignupForm({ className, ...props }: React.ComponentProps<'div'>)
     }
 
     if (res?.status === 'complete') {
-      createActiveSession({ session: res.user, redirectUrl: afterSignUpUrl });
+      //createActiveSession({ session: res.user, redirectUrl: afterSignUpUrl });
     }
   };
 

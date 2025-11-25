@@ -1,12 +1,9 @@
-'use client'
+'use client';
 
-import type { 
-  TernSecureAuth,
-} from '@tern-secure/types';
+import type { TernSecureAuth } from '@tern-secure/types';
 import { useContext } from 'react';
 
 import { createContextAndHook } from './ternsecureCtx';
-
 
 const [TernSecureAuthCtx, useTernSecureAuthCtx] =
   createContextAndHook<TernSecureAuth>('TernSecureAuthCtx');
@@ -14,27 +11,21 @@ const [TernSecureAuthCtx, useTernSecureAuthCtx] =
 function useAssertWrappedByTernSecureAuthProvider(displayNameOrFn: string | (() => void)): void {
   //const ctx = useTernSecureInstanceContext();
   const ctx = useContext(TernSecureAuthCtx);
-  
+
   if (!ctx) {
     if (typeof displayNameOrFn === 'function') {
       displayNameOrFn();
       return;
     }
-    
+
     throw new Error(
       `${displayNameOrFn} can only be used within the <TernSecureProvider /> component.
       
 Possible fixes:
 1. Ensure that the <TernSecureProvider /> is correctly wrapping your application
-2. Check for multiple versions of @tern-secure packages in your project`
+2. Check for multiple versions of @tern-secure packages in your project`,
     );
   }
 }
 
-
-
-export {
-  TernSecureAuthCtx,
-  useTernSecureAuthCtx,
-  useAssertWrappedByTernSecureAuthProvider,
-};
+export { TernSecureAuthCtx, useTernSecureAuthCtx, useAssertWrappedByTernSecureAuthProvider };

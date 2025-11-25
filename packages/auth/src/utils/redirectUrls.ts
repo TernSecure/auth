@@ -4,13 +4,8 @@ import type { RedirectOptions, TernSecureAuthOptions } from '@tern-secure/types'
 
 import { isAllowedRedirect, relativeToAbsoluteUrl } from './construct';
 
-/**
- * RedirectUrls class handles all redirect URL construction logic
- * for sign-in, sign-up, and post-authentication flows.
- *
- * This class centralizes the redirect logic previously scattered across
- * multiple methods, making it reusable and maintainable.
- */
+type ComponentMode = 'modal' | 'mounted';
+
 export class RedirectUrls {
   private static keys: (keyof RedirectOptions)[] = [
     'signInForceRedirectUrl',
@@ -28,12 +23,14 @@ export class RedirectUrls {
   private readonly fromOptions: RedirectOptions;
   private readonly fromProps: RedirectOptions;
   private readonly fromSearchParams: RedirectOptions & { redirectUrl?: string | null };
+  private readonly mode?: ComponentMode;
 
-  constructor(options: TernSecureAuthOptions, props: RedirectOptions = {}, searchParams: any = {}) {
+  constructor(options: TernSecureAuthOptions, props: RedirectOptions = {}, searchParams: any = {}, mode?: ComponentMode) {
     this.options = options;
     this.fromOptions = this.#parse(options || {});
     this.fromProps = this.#parse(props || {});
     this.fromSearchParams = this.#parseSearchParams(searchParams || {});
+    this.mode = mode;
   }
 
   getAfterSignInUrl() {
@@ -54,8 +51,7 @@ export class RedirectUrls {
 
   #toSearchParams(obj: Record<string, string | undefined | null>): URLSearchParams {
     const camelCased = Object.fromEntries(
-      Object.entries(obj).map(([key, value]) => [camelToSnake(key), value]),
-    );
+      Object.entries(obj).map(([key, value]) => [camelToSnake(key), value]));
     return new URLSearchParams(removeUndefined(camelCased) as Record<string, string>);
   }
 
@@ -105,14 +101,22 @@ export class RedirectUrls {
       afterSignInUrl,
       afterSignUpUrl,
       redirectUrl,
-    };
+    }
+
+    if (signUpForceRedirectUrl) {
+      delete res.signUpFallbackRedirectUrl;
+    }
+
+    if (signInForceRedirectUrl) {
+      delete res.signInFallbackRedirectUrl;
+    }
+
     return res;
   }
 
   #getRedirectUrl(prefix: 'signIn' | 'signUp') {
     const forceKey = `${prefix}ForceRedirectUrl` as const;
     const fallbackKey = `${prefix}FallbackRedirectUrl` as const;
-
     let newKeyInUse: string | undefined;
 
     let result;
@@ -138,12 +142,10 @@ export class RedirectUrls {
       newKeyInUse = fallbackKey;
     }
 
-    if (!result) {
-      if (typeof window === 'undefined') {
-        return '/';
-      }
+    if (!result && this.mode === 'modal') {
       return window.location.href;
     }
+
     return result || '/';
   }
 
@@ -153,11 +155,6 @@ export class RedirectUrls {
       // @ts-expect-error
       res[key] = obj[key];
     });
-
-    //const absoluteUrls = this.#toAbsoluteUrls(filterProps(res, Boolean));
-    //const filtered = this.#filterRedirects(absoluteUrls);
-    //return applyFunctionToObj(filtered, val => val.toString());
-
     return applyFunctionToObj(
       this.#filterRedirects(this.#toAbsoluteUrls(filterProps(res, Boolean))),
       val => val.toString(),
@@ -181,16 +178,10 @@ export class RedirectUrls {
   }
 
   #toAbsoluteUrls(obj: RedirectOptions) {
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    // If no origin (server-side), return URLs as-is without conversion
-    // They will be properly converted on the client-side
-    if (!origin) return obj;
-
-    return applyFunctionToObj(obj, (url: string) => relativeToAbsoluteUrl(url, origin));
+    return applyFunctionToObj(obj, (url: string) => relativeToAbsoluteUrl(url, window.location.origin));
   }
 
   #filterRedirects = (obj: RedirectOptions) => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : '';
-    return filterProps(obj, isAllowedRedirect(this.options?.allowedRedirectOrigins, origin));
+    return filterProps(obj, isAllowedRedirect(this.options?.allowedRedirectOrigins, window.location.origin));
   };
 }

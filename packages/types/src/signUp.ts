@@ -1,9 +1,13 @@
-import type { UserCredential } from "./all";
+import type { TernSecureUser, UserCredential } from "./all";
+import type { TernSecureResourceJSON } from "./json";
+
+export type UnverifiedField = 'email_address' | 'phone_number';
 
 interface BaseSignUpResponse {
   status?: SignUpStatus;
   message?: string;
-  error?: any | undefined;
+  error?: any;
+  unverifiedFields?: UnverifiedField[];
 }
 
 export interface SignUpSuccessResponse extends BaseSignUpResponse, UserCredential {
@@ -14,31 +18,32 @@ export interface SignUpErrorResponse extends BaseSignUpResponse {
   status: 'error';
 }
 
+export interface SignUpMissingRequirementsResponse extends BaseSignUpResponse, UserCredential {
+  status: 'missing_requirements';
+  unverifiedFields: UnverifiedField[];
+}
+
 export type SignUpResponse =
   | SignUpSuccessResponse
-  | SignUpErrorResponse;
+  | SignUpErrorResponse
+  | SignUpMissingRequirementsResponse;
 
 export type SignUpFormValues = {
   email: string;
   password: string;
 };
 
-export type SignUpInitialValue = {
-  email: string;
-  password: string;
-};
+export type SignUpInitialValue = Partial<SignUpFormValues>;
 
 //export type SignUpCreateParams = {};
 
 export interface SignUpResource {
   status: SignUpStatus | null;
-  username: string | null;
-  firstName: string | null;
-  lastName: string | null;
-  displayName: string | null;
-  email: string | null;
-  phoneNumber: string | null;
-  withEmailAndPassword: (params: SignUpInitialValue) => Promise<SignUpResponse>;
+  user: TernSecureUser | null;  
+  unverifiedFields?: UnverifiedField[];
+  message?: string;
+  error?: any;
+  withEmailAndPassword: (params: SignUpFormValues) => Promise<SignUpResource>;
   /**
    * @param provider - The identifier of the social provider (e.g., 'google', 'microsoft', 'github').
    * @param options - Optional configuration for the social sign-in flow.
@@ -48,6 +53,21 @@ export interface SignUpResource {
     provider: string,
     options?: { mode?: 'popup' | 'redirect' },
   ) => Promise<SignUpResponse | void>;
+  /**
+   * Sends an email verification link to the user's email address.
+   * @param options - Optional configuration for the verification email.
+   * @returns A promise that resolves with the updated SignUpResource.
+   */
+  attemptEmailVerification: (options?: {
+    url?: string;
+    handleCodeInApp?: boolean;
+  }) => Promise<SignUpResource>;
 }
 
 export type SignUpStatus = 'missing_requirements' | 'complete' | 'abandoned' | 'error';
+
+export interface SignUpJson extends TernSecureResourceJSON {
+  object: 'sign_up';
+  id: string;
+  status: SignUpStatus;
+}

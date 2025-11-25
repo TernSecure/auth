@@ -1,22 +1,30 @@
-import { handleFirebaseAuthError } from '@tern-secure/shared/errors';
+import { handleFirebaseAuthError, TernSecureError } from '@tern-secure/shared/errors';
 import type {
+  AttemptFirstFactorParams,
   ResendEmailVerification,
-  SignInFormValues,
+  SignInCreateParams,
+  SignInFirstFactor,
+  SignInJson,
+  SignInPasswordParams,
+  SignInPhoneParams,
   SignInResource,
   SignInResponse as SignInResponseFromTypes,
   SignInStatus,
+  SignInVerificationResponse,
   SocialProviderOptions,
-  TernSecureUser,
+  TernSecureUser
 } from '@tern-secure/types';
-import type { Auth, UserCredential } from 'firebase/auth';
+import type { ApplicationVerifier, Auth, ConfirmationResult, UserCredential } from 'firebase/auth';
 import {
   getRedirectResult,
   GoogleAuthProvider,
   OAuthProvider,
+  RecaptchaVerifier,
   sendEmailVerification,
   signInWithEmailAndPassword,
+  signInWithPhoneNumber,
   signInWithPopup,
-  signInWithRedirect,
+  signInWithRedirect
 } from 'firebase/auth';
 
 import { TernSecureBase } from './Base';
@@ -55,18 +63,63 @@ export type SupportedProvider =
   | string; // Allow custom providers like 'custom.provider.com'
 
 export class SignIn extends TernSecureBase implements SignInResource {
-  pathRoot = '/sessions/createsession';
+  pathRoot = '/sign_ins/create';
+  pathSessionRoot = '/sessions/createsession';
 
+  id?: string;
   status: SignInStatus | null = null;
+  supportedFirstFactors: SignInFirstFactor[] | null = [];
+  identifier: string | null = null;
   private auth: Auth;
   private csrfToken: string | undefined;
   private _currentUser: TernSecureUser | null = null;
+  private _confirmationResult: ConfirmationResult | null = null;
 
-  constructor(auth: Auth, csrfToken: string | undefined) {
+  constructor(data: SignInJson | null = null, auth: Auth, csrfToken: string | undefined) {
     super();
     this.auth = auth;
     this.csrfToken = csrfToken;
+    this.fromJSON(data);
   }
+
+  get user(): TernSecureUser | null {
+    return this._currentUser;
+  }
+
+  create = (params: SignInCreateParams): Promise<this> => {
+    return this._basePost({
+      path: this.pathRoot,
+      body: params
+    });
+  };
+
+  attemptFirstFactor = async (params: AttemptFirstFactorParams): Promise<SignInResource> => {
+    const config = { ...params }
+    return this._basePost({
+      body: { config, strategy: params.strategy, },
+      action: 'attempt_first_factor',
+    });
+  };
+
+  attemptPhoneNumberVerification = async (params: { code: string }): Promise<SignInResource> => {
+    if (!this._confirmationResult) {
+      throw new TernSecureError('UNKNOWN_ERROR', 'No confirmation result found');
+    }
+
+    try {
+      const result = await this._confirmationResult.confirm(params.code);
+      this._currentUser = result.user as TernSecureUser;
+      this.status = 'success';
+      this._confirmationResult = null;
+      return this;
+    } catch (error) {
+      const authError = handleFirebaseAuthError(error);
+      this.status = 'error';
+      console.error(authError);
+      throw new TernSecureError(authError.code, authError.message);
+    }
+  };
+
 
   signInWithCredential = async (credential: UserCredential) => {
     const idToken = await credential.user.getIdToken();
@@ -76,12 +129,12 @@ export class SignIn extends TernSecureBase implements SignInResource {
     };
 
     return this._post({
-      path: this.pathRoot,
+      path: this.pathSessionRoot,
       body: params,
     });
   };
 
-  withEmailAndPassword = async (params: SignInFormValues): Promise<SignInResponse> => {
+  authenticateWithPassword = async (params: SignInPasswordParams): Promise<SignInResponse> => {
     try {
       const { email, password } = params;
       const { user, providerId, operationType } = await signInWithEmailAndPassword(
@@ -89,13 +142,13 @@ export class SignIn extends TernSecureBase implements SignInResource {
         email,
         password,
       );
+      this._currentUser = user;
       return {
         status: 'success',
         user,
         providerId,
         operationType,
         message: 'Authentication successful',
-        error: !user.emailVerified ? 'REQUIRES_VERIFICATION' : 'AUTHENTICATED',
       };
     } catch (error) {
       const authError = handleFirebaseAuthError(error);
@@ -107,7 +160,41 @@ export class SignIn extends TernSecureBase implements SignInResource {
     }
   };
 
-  withCredential = async (params: SignInFormValues): Promise<void> => {
+  createRecaptchaVerifier = (containerOrId: string | HTMLElement, parameters?: any): ApplicationVerifier => {
+    return new RecaptchaVerifier(this.auth, containerOrId, parameters);
+  };
+
+  authenticateWithPhoneNumber = async (params: SignInPhoneParams): Promise<SignInResponse> => {
+    try {
+      const { phoneNumber, appVerifier } = params as SignInPhoneParams & { appVerifier?: ApplicationVerifier };
+
+      //if (!appVerifier) {
+      //  return {
+      //    status: 'error',
+      //    message: 'ApplicationVerifier is missing',
+      //    error: 'missing_app_verifier',
+      //  };
+      //}
+
+      this._confirmationResult = await signInWithPhoneNumber(this.auth, phoneNumber, appVerifier);
+
+      this.status = 'needs_first_factor';
+
+      return {
+        status: 'needs_first_factor',
+        message: 'Verification code sent',
+      } as any as SignInResponse;
+    } catch (error) {
+      const authError = handleFirebaseAuthError(error);
+      return {
+        status: 'error',
+        message: authError.message,
+        error: authError.code,
+      };
+    }
+  };
+
+  withCredential = async (params: SignInPasswordParams): Promise<void> => {
     try {
       const { email, password } = params;
       const userCredential = await signInWithEmailAndPassword(this.auth, email, password);
@@ -118,7 +205,7 @@ export class SignIn extends TernSecureBase implements SignInResource {
     }
   };
 
-  withSocialProvider = async (
+  authenticateWithSocialProvider = async (
     provider: SupportedProvider,
     options: SocialProviderOptions = {},
   ): Promise<SignInResponse> => {
@@ -148,17 +235,23 @@ export class SignIn extends TernSecureBase implements SignInResource {
     throw new Error('Method not implemented.');
   };
 
-  sendPasswordResetEmail = async (email: string): Promise<void> => {
-    console.log(`Sending password reset email to ${email}`);
+  sendPasswordResetEmail = async (email: string) => {
+    return this._post({
+      path: '/sign_ins/resetPasswordEmail',
+      body: {
+        email,
+      },
+    })
   };
 
-  resendEmailVerification = async (): Promise<ResendEmailVerification> => {
+  private resendEmailVerification = async (options?: {
+    url?: string;
+    handleCodeInApp?: boolean;
+  }): Promise<ResendEmailVerification> => {
     const user = this._currentUser;
     if (!user) {
       throw new Error('No user is currently signed in');
     }
-
-    await user.reload();
 
     if (user.emailVerified) {
       return {
@@ -167,14 +260,40 @@ export class SignIn extends TernSecureBase implements SignInResource {
     }
 
     const actionCodeSettings = {
-      url: '/sign-in', // TODO: Make this configurable
-      handleCodeInApp: true,
+      url: options?.url || '/sign-in',
+      handleCodeInApp: options?.handleCodeInApp ?? true,
     };
 
     await sendEmailVerification(user, actionCodeSettings);
     return {
       isVerified: false,
     };
+  };
+
+  attemptEmailVerification = async (options?: {
+    url?: string;
+    handleCodeInApp?: boolean;
+  }): Promise<SignInVerificationResponse> => {
+    try {
+      const res = await this.resendEmailVerification(options);
+      if (!res.isVerified) {
+        return {
+          status: 'needs_email_verification',
+          message: 'Verification email sent',
+        };
+      }
+      return {
+        status: 'success',
+        message: 'Email is already verified',
+      };
+    } catch (error) {
+      const authError = handleFirebaseAuthError(error);
+      return {
+        status: 'error',
+        message: authError.message,
+        error: authError.code,
+      };
+    }
   };
 
   private getProviderConfig(providerName: SupportedProvider): ProviderConfig {
@@ -328,5 +447,15 @@ export class SignIn extends TernSecureBase implements SignInResource {
 
   public async checkRedirectResult(): Promise<SignInResponse | null> {
     return this.authRedirectResult();
+  }
+
+  protected fromJSON(data: SignInJson | null): this {
+    if (data) {
+      this.id = data.id;
+      this.status = data.status;
+      this.supportedFirstFactors = data.supportedFirstFactors;
+      this.identifier = data.identifier;
+    }
+    return this;
   }
 }

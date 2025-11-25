@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import { TernSecureProvider } from '@tern-secure/nextjs';
-import { Header} from '@/components/header';
+import { ThemeProvider } from '@/components/theme-provider';
+import { Header } from '@/components/header';
 import './globals.css';
 
 const geistSans = Geist({
@@ -25,16 +26,32 @@ export default async function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang='en'>
+    <html
+      lang='en'
+      suppressHydrationWarning
+    >
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <TernSecureProvider
+          appName='TernSecure'
+          appCheck={{
+            provider: 'reCaptchaEnterprise',
+            siteKey: '6LfzGRgsAAAAAGEvbwbcLgT4IHWmuWv4kEDRA5hi',
+            isTokenAutoRefreshEnabled: true,
+          }}
           requiresVerification={false}
-          isTernSecureDev={true}
-          persistence='browserCookie'
-          //afterSignOutUrl='/sign-in'  //better use it on client-side
+          persistence='local'
+          ternUIUrl='http://localhost:4000/ternsecure.browser.js'
+          apiUrl='localhost:3000'
         >
-          <Header />
-          {children}
+          <ThemeProvider
+            attribute='class'
+            defaultTheme='light'
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Header />
+            {children}
+          </ThemeProvider>
         </TernSecureProvider>
       </body>
     </html>

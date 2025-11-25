@@ -9,6 +9,7 @@ export const allNextProviderPropsWithEnv = (
   nextProps: Omit<TernSecureNextProps, 'children'>
 ): any => {
   const {
+    tenantId,
     signInUrl,
     signUpUrl,
     signInForceRedirectUrl,
@@ -22,12 +23,18 @@ export const allNextProviderPropsWithEnv = (
     enableServiceWorker: propsEnableServiceWorker,
     loadingComponent: propsLoadingComponent,
     persistence: propsPersistence,
+    ternUIUrl: propsTernUIUrl,
+    ternUIVersion: propsTernUIVersion,
+    appCheck,
     ...baseProps 
   } = nextProps;
 
   const envConfig = {
+    tenantId: process.env.NEXT_PUBLIC_FIREBASE_TENANT_ID || '',
     apiKey: process.env.NEXT_PUBLIC_TERN_API_KEY,
     apiUrl: process.env.TERNSECURE_API_URL || '',
+    ternUIUrl: process.env.NEXT_PUBLIC_TERN_UI_URL || '',
+    ternUIVersion: process.env.NEXT_PUBLIC_TERN_UI_VERSION || '',
     projectId: process.env.NEXT_PUBLIC_TERN_PROJECT_ID,
     customDomain: process.env.NEXT_PUBLIC_TERN_CUSTOM_DOMAIN,
     proxyUrl: process.env.NEXT_PUBLIC_TERN_PROXY_URL,
@@ -54,12 +61,12 @@ export const allNextProviderPropsWithEnv = (
     storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || '',
     messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || '',
     appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '',
-    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENTID,
-    tenantId: process.env.NEXT_PUBLIC_FIREBASE_TENANT_ID || '',
+    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENTID || '',
   };
 
   // Merge config values: props take precedence over environment variables
   //const finalApiKey = propsApiKey ?? envConfig.apiKey;
+  const finalTenantId = tenantId ?? envConfig.tenantId;
   const finalApiUrl = propsApiUrl ?? envConfig.apiUrl;
   const finalSignInUrl = signInUrl ?? envConfig.signInUrl;
   const finalSignUpUrl = signUpUrl ?? envConfig.signUpUrl;
@@ -68,6 +75,8 @@ export const allNextProviderPropsWithEnv = (
   const finalSignInFallbackRedirectUrl = signInFallbackRedirectUrl ?? envConfig.signInFallbackRedirectUrl;
   const finalSignUpFallbackRedirectUrl = signUpFallbackRedirectUrl ?? envConfig.signUpFallbackRedirectUrl;
   const finalPersistence = propsPersistence ?? envConfig.persistence;
+  const finalTernUIUrl = propsTernUIUrl ?? envConfig.ternUIUrl;
+  const finalTernUIVersion = propsTernUIVersion ?? envConfig.ternUIVersion;
 
   // Construct the result, ensuring it conforms to NextProviderProcessedProps
   // (Omit<TernSecureProviderProps, 'children'>)
@@ -79,10 +88,12 @@ export const allNextProviderPropsWithEnv = (
     
     // Set properties explicitly taken from TernSecureNextProps (props version)
     // These are part of the TernSecureProviderProps interface.
+    tenantId: finalTenantId,
     requiresVerification: propsRequiresVerification,
     isTernSecureDev: propsIsTernSecureDev,
     enableServiceWorker: propsEnableServiceWorker,
     loadingComponent: propsLoadingComponent,
+    appCheck,
 
     //TernSecure: baseProps.Instance,
     initialState: baseProps.initialState,
@@ -95,7 +106,9 @@ export const allNextProviderPropsWithEnv = (
     signUpFallbackRedirectUrl: finalSignUpFallbackRedirectUrl,
     mode: baseProps.mode,
     apiUrl: finalApiUrl,
-    persistence: finalPersistence
+    persistence: finalPersistence,
+    ternUIUrl: finalTernUIUrl,
+    ternUIVersion: finalTernUIVersion
   };
 
   // Clean up undefined keys that might have resulted from spreading if not present in baseProps

@@ -5,14 +5,14 @@ import type {
   RequestState,
   TernSecureRequest,
 } from '@tern-secure/backend';
-import { AuthStatus, constants, createRedirect, createTernSecureRequest} from '@tern-secure/backend';
+import { AuthStatus, constants, createRedirect, createTernSecureRequest } from '@tern-secure/backend';
 import { notFound as nextjsNotFound } from 'next/navigation';
 import type { NextMiddleware, NextRequest } from 'next/server';
 import { NextResponse } from 'next/server';
 
 import { isRedirect, setHeader } from '../utils/response';
 import { serverRedirectWithAuth } from '../utils/serverRedirectAuth';
-import {FIREBASE_API_KEY, SIGN_IN_URL, SIGN_UP_URL } from './constant';
+import { FIREBASE_API_KEY, SIGN_IN_URL, SIGN_UP_URL } from './constant';
 import {
   isNextjsNotFoundError,
   isNextjsRedirectError,
@@ -80,7 +80,7 @@ interface TernSecureMiddleware {
   (request: NextMiddlewareRequestParam, event: NextMiddlewareEvtParam): NextMiddlewareReturn;
 }
 
-export const ternSecureProxy= ((
+export const ternSecureProxy = ((
   ...args: unknown[]
 ): NextMiddleware | NextMiddlewareReturn => {
   const [request, event] = parseRequestAndEvent(args);
@@ -122,10 +122,8 @@ export const ternSecureProxy= ((
 
       const authObjectClient = requestStateClient.auth();
 
-      const { redirectToSignIn } = createMiddlewareRedirects(ternSecureRequest);
-
-      const { redirectToSignUp } = createMiddlewareRedirects(ternSecureRequest);
-
+      const redirectToSignIn = createProxyRedirectToSignIn(ternSecureRequest);
+      const redirectToSignUp = createProxyRedirectToSignUp(ternSecureRequest);
       const protect = await createMiddlewareProtect(
         ternSecureRequest,
         authObjectClient,
@@ -190,8 +188,28 @@ const parseHandlerAndOptions = (args: unknown[]) => {
   ] as [MiddlewareHandler | undefined, MiddlewareOptions | MiddlewareOptionsCallback];
 };
 
+
+const createProxyRedirectToSignIn = (
+  ternSecureRequest: TernSecureRequest,
+): MiddlewareAuthObject['redirectToSignIn'] => {
+  return (opts = {}) => {
+    const url = ternSecureRequest.ternUrl.toString();
+    redirectToSignInError(url, opts.returnBackUrl);
+  };
+};
+
+const createProxyRedirectToSignUp = (
+  ternSecureRequest: TernSecureRequest,
+): MiddlewareAuthObject['redirectToSignUp'] => {
+  return (opts = {}) => {
+    const url = ternSecureRequest.ternUrl.toString();
+    redirectToSignUpError(url, opts.returnBackUrl);
+  };
+};
+
 /**
  * Create middleware redirect functions
+ * @deprecated
  */
 const createMiddlewareRedirects = (ternSecureRequest: TernSecureRequest) => {
   const redirectToSignIn: MiddlewareAuthObject['redirectToSignIn'] = (opts = {}) => {

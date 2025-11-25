@@ -20,6 +20,11 @@ export const signUpEndpoint = (apiKey: string) => {
   return `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${apiKey}`;
 };
 
+export const sendOobCode = (apiKey: string) => {
+  return `https://identitytoolkit.googleapis.com/v1/accounts:sendOobCode?key=${apiKey}`;
+}
+
+
 export const getCustomTokenEndpoint = (apiKey: string) => {
   if (useEmulator() && FIREBASE_AUTH_EMULATOR_HOST) {
     let protocol = 'http://';
@@ -32,6 +37,6 @@ export const getCustomTokenEndpoint = (apiKey: string) => {
   return `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${apiKey}`;
 };
 
-export const passwordResetEndpoint = (apiKey: string) => {
+export const verifyPasswordResetCode = (apiKey: string) => {
   return `https://identitytoolkit.googleapis.com/v1/accounts:resetPassword?key=${apiKey}`;
 };

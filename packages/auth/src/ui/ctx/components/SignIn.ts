@@ -1,18 +1,15 @@
-'use client';
-
-import type {
-  AuthErrorTree,
-  SignInFallbackRedirectUrl,
-  SignInForceRedirectUrl,
-  SignInProps,
-  TernSecureUser,
-} from '@tern-secure/auth';
-import { buildURL, RedirectUrls } from '@tern-secure/auth';
 import { useTernSecure } from '@tern-secure/shared/react';
-import type { ReactNode } from 'react';
+import { isAbsoluteUrl } from '@tern-secure/shared/url';
+import type { AuthErrorTree, TernSecureUser } from '@tern-secure/types';
 import { createContext, useCallback, useContext, useMemo } from 'react';
 
-export type SignInCtx = SignInProps & SignInForceRedirectUrl & SignInFallbackRedirectUrl;
+import { SIGN_IN_INITIAL_VALUE_KEYS } from '../../../instance/constants';
+import { buildURL, RedirectUrls } from '../../../utils';
+import type { ParsedQueryString } from '../../router';
+import { useRouter } from '../../router';
+import type { SignInCtx } from '../../types';
+import { useTernSecureOptions } from '../TernSecureOptions';
+import { getInitialValuesFromQueryParams } from '../utils';
 
 export type SignInContextType = Omit<SignInCtx, 'fallbackRedirectUrl' | 'forceRedirectUrl'> & {
   onSignInSuccess: (
@@ -21,33 +18,43 @@ export type SignInContextType = Omit<SignInCtx, 'fallbackRedirectUrl' | 'forceRe
   ) => void;
   handleSignInError: (error: AuthErrorTree) => void;
   redirectAfterSignIn: () => any;
+  queryParams: ParsedQueryString;
   signInUrl: string;
   signUpUrl: string;
+  authQueryString: string | null;
   afterSignUpUrl: string;
   afterSignInUrl: string;
   checkRedirectResult: () => Promise<void>;
+  isCombinedFlow: boolean;
+  showCombinedForm: boolean;
 };
 
 export const SignInContext = createContext<SignInCtx | null>(null);
 
 export const useSignInContext = (): SignInContextType => {
   const context = useContext(SignInContext);
+  const { navigate } = useRouter();
+  const { queryParams, queryString } = useRouter();
+  const ternSecureOptions = useTernSecureOptions();
   const ternSecure = useTernSecure();
-  const ternSecureOptions = ternSecure._internal_getAllOptions();
-  const currentParams = useMemo(() => {
-    if (typeof window !== 'undefined') {
-      return new URLSearchParams(window.location.search);
-    }
-    return new URLSearchParams();
-  }, []);
 
-  if (context === null) {
+  if (context === null || context.componentName !== 'SignIn') {
     throw new Error(
-      'useSignInContext must be used within a SignInProvider. Please wrap your component tree with SignInProvider.',
+      'useSignInContext called outside of the mounted SignIn component.',
     );
   }
 
-  const { ...ctx } = context;
+  const isCombinedFlow =
+    (ternSecureOptions.signUpMode !== 'restricted'
+      && Boolean(!ternSecureOptions.signUpUrl && ternSecureOptions.signInUrl && !isAbsoluteUrl(ternSecureOptions.signInUrl))) || false;
+
+  const showCombinedForm = context.showCombinedForm ?? true;
+
+  const { componentName, mode, ...ctx } = context;
+  const initialValuesFromQueryParams = useMemo(
+    () => getInitialValuesFromQueryParams(queryString, SIGN_IN_INITIAL_VALUE_KEYS),
+    [],
+  );
 
   const createAuthError = useCallback(
     (message: string, code: string, name: string = 'AuthError', response?: any): AuthErrorTree => {
@@ -68,36 +75,29 @@ export const useSignInContext = (): SignInContextType => {
     ternSecureOptions,
     {
       ...ctx,
-      signInForceRedirectUrl: ctx.signInForceRedirectUrl || ctx.forceRedirectUrl,
       signInFallbackRedirectUrl: ctx.signInFallbackRedirectUrl || ctx.fallbackRedirectUrl,
+      signInForceRedirectUrl: ctx.signInForceRedirectUrl || ctx.forceRedirectUrl,
     },
-    currentParams,
+    queryParams,
+    mode
   );
+
+  delete ctx.fallbackRedirectUrl;
+  delete ctx.forceRedirectUrl;
 
   const afterSignInUrl = ternSecure.constructUrlWithAuthRedirect(redirectUrls.getAfterSignInUrl());
   const afterSignUpUrl = ternSecure.constructUrlWithAuthRedirect(redirectUrls.getAfterSignUpUrl());
 
-  const redirectAfterSignIn = () => ternSecure.navigate(afterSignInUrl);
+  const redirectAfterSignIn = () => navigate(afterSignInUrl);
+
+  let signInUrl = (ctx.routing === 'path' && ctx.path) || ternSecureOptions.signInUrl;
+  let signUpUrl = isCombinedFlow ? (ctx.routing === 'path' && ctx.path) || ternSecureOptions.signUpUrl : ctx.signUpUrl || ternSecureOptions.signUpUrl;
 
   const preservedParams = redirectUrls.getPreservedSearchParams();
-  const baseSignInUrl = ctx.path || ternSecureOptions.signInUrl;
-  const baseSignUpUrl = ternSecureOptions.signUpUrl;
+  signInUrl = buildURL({ base: signInUrl, hashSearchParams: [queryParams, preservedParams] }, { stringify: true });
+  signUpUrl = buildURL({ base: signUpUrl, hashSearchParams: [queryParams, preservedParams] }, { stringify: true });
 
-  const signInUrl = buildURL(
-    {
-      base: baseSignInUrl,
-      hashSearchParams: [currentParams, preservedParams],
-    },
-    { stringify: true },
-  );
-
-  const signUpUrl = buildURL(
-    {
-      base: baseSignUpUrl,
-      hashSearchParams: [currentParams, preservedParams],
-    },
-    { stringify: true },
-  );
+  const authQueryString = redirectUrls.toSearchParams().toString();
 
   /**
    *
@@ -194,26 +194,28 @@ export const useSignInContext = (): SignInContextType => {
     }
   }, [ternSecure, onSignInSuccess, handleSignInError, createAuthError]);
 
+  if (isCombinedFlow) {
+    signUpUrl = buildURL(
+      { base: signInUrl, hashPath: '/challenge', hashSearchParams: [queryParams, preservedParams] },
+      { stringify: true },
+    );
+  }
+
   return {
     ...(ctx as SignInCtx),
+    componentName,
     afterSignInUrl,
     afterSignUpUrl,
     signInUrl,
     signUpUrl,
+    queryParams,
+    initialValues: { ...ctx.initialValues, ...initialValuesFromQueryParams },
+    authQueryString,
     checkRedirectResult,
     onSignInSuccess,
     handleSignInError,
     redirectAfterSignIn,
+    isCombinedFlow,
+    showCombinedForm,
   };
 };
-
-interface SignInProviderProps extends Partial<SignInCtx> {
-  children: ReactNode;
-}
-
-export function SignInProvider({ children, ...ctxProps }: SignInProviderProps) {
-  const contextValue = ctxProps as SignInCtx;
-  return <SignInContext.Provider value={contextValue}>{children}</SignInContext.Provider>;
-}
-
-export { useTernSecure };

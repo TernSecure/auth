@@ -1,4 +1,6 @@
 import { defineConfig } from 'tsup';
+
+import { version as ternAuthUiVersion } from '../auth/package.json';
 import { name, version } from './package.json';
 
 export default defineConfig(() => {
@@ -20,7 +22,8 @@ export default defineConfig(() => {
     ],
     define: {
       PACKAGE_NAME: `"${name}"`,
-      PACKAGE_VERSION: `"${version}"`
+      PACKAGE_VERSION: `"${version}"`,
+      TERN_UI_VERSION: `"${ternAuthUiVersion}"`
     },
   };
 });

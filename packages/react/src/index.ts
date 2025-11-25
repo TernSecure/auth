@@ -5,8 +5,6 @@ export { useSignIn, signIn } from './hooks/useSignIn';
 export { useSignUp } from './hooks/useSignUp';
 export { TernSecureCtxProvider } from './ctx/TernSecureCtxProvider';
 export { TernSecureProvider } from './ctx/TernSecureProvider';
-export { useSignInContext, SignInProvider, useTernSecure } from './ctx/SignInCtx';
-export { useSignUpContext, SignUpProvider } from './ctx/SignUpCtx';
 
 export {
   isAuthRoute,
@@ -18,8 +16,21 @@ export {
 export { cn } from './lib/utils';
 
 export type {
-  IsomorphicTernSecureOptions,
   IsoTernSecureAuthOptions,
   Browser,
   TernSecureProviderProps,
 } from './types';
+
+export {
+    SignIn,
+    SignUp,
+    UserButton
+} from './components/uiComponent'
+
+export {
+    loadTernUIScript,
+    ternUIgetScriptUrl,
+    constructScriptAttributes,
+    constructTernUIScriptAttributes
+} from '@tern-secure/shared/loadTernUIScript'
+

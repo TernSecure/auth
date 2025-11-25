@@ -19,7 +19,6 @@ export type TernSecureCtxProviderState = TernSecureResources;
 
 export function TernSecureCtxProvider(props: TernSecureCtxProviderProps) {
   const { children, initialState, instanceOptions } = props;
-
   const { isoTernSecureAuth: instance, instanceStatus } = useInitTernSecureAuth(instanceOptions);
 
   const [authState, setAuthState] = useState<TernSecureCtxProviderState>({
@@ -44,11 +43,7 @@ export function TernSecureCtxProvider(props: TernSecureCtxProviderProps) {
   }, [userId, user, sessionClaims]);
 
   const ternAuthCtx = useMemo(
-    () => ({
-      value: instance,
-      instanceStatus,
-    }),
-    [instance, instanceStatus],
+    () => ({ value: instance}),[instanceStatus],
   );
 
   return (

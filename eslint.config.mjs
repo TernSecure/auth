@@ -68,6 +68,7 @@ export default tseslint.config([
       'eslint.config.mjs',
       'packages/backend/src/runtime/**/*',
       'packages/shared/src/compiled/path-to-regexp/index.js',
+      'packages/ui/rspack.config.mjs',
       '**/__tests__/**',
     ],
   },

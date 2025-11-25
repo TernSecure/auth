@@ -62,8 +62,52 @@ export interface Appearance {
 }
 
 
+export type Layout = {
+  /**
+   * @default inside
+   */
+  logoPlacement?: 'inside' | 'outside' | 'none';
+  /**
+   * @default undefined
+   */
+  logoImageUrl?: string;
+  /**
+   * @default undefined
+   */
+  logoLinkUrl?: string;
+  /**
+   * @default auto
+   */
+  socialButtonsVariant?: 'auto' | 'iconButton' | 'blockButton';
+  /**
+   * @default bottom
+   */
+  socialButtonsPlacement?: 'top' | 'bottom';
+  /**
+   * enables "Terms" link
+   */
+  termsPageUrl?: string;
+  /**
+   * enables "Help" link
+   */
+  helpPageUrl?: string;
+  /**
+   * enables "Privacy Policy" link
+   */
+  privacyPageUrl?: string;
+}
+
+export type TernSecureTheme = {
+  appearance?: Appearance;
+  layout?: Layout;
+}
+
+export type SignInTheme = TernSecureTheme;
+export type SignUpTheme = TernSecureTheme;
+
 /**
  * Base UI configuration shared between SignIn and SignUp
+ * @deprecated Use TernSecureTheme instead.
  */
 export interface BaseAuthUIConfig {
   /** Visual appearance configuration */
@@ -93,6 +137,7 @@ export interface BaseAuthUIConfig {
 
 /**
  * Sign-in specific UI configuration
+ * @deprecated Use SignInTheme instead.
  */
 export interface SignInUIConfig extends BaseAuthUIConfig {
   /** Social sign-in buttons configuration */
@@ -112,16 +157,11 @@ export interface SignInUIConfig extends BaseAuthUIConfig {
     enabled?: boolean;
     defaultChecked?: boolean;
   };
-  /** Sign-up link configuration */
-  signUpLink?: {
-    enabled?: boolean;
-    text?: string;
-    href?: string;
-  };
 }
 
 /**
  * Sign-up specific UI configuration
+ * @deprecated Use SignUpTheme instead.
  */
 export interface SignUpUIConfig extends BaseAuthUIConfig {
   /** Password requirements display configuration */

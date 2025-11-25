@@ -1,8 +1,9 @@
 import type { CookieOptions } from './cookie'
 
-export type AuthEndpoint = 'cookies' | 'sessions' | 'users';
+export type AuthEndpoint = 'cookies' | 'sessions' | 'users' | 'sign_ins';
 export type CookieSubEndpoint = 'get' | 'set' | 'delete' | 'clear' | 'list';
 export type SessionSubEndpoint = 'verify' | 'createsession' | 'refresh' | 'revoke';
+export type SignInSubEndpoint = 'create' | 'resetPasswordEmail';
 export interface CorsOptions {
   allowedOrigins: string[] | '*';
   allowedMethods?: string[];
@@ -74,6 +75,12 @@ export interface SessionEndpointConfig extends EndpointConfig {
     [K in SessionSubEndpoint]?: Partial<EndpointConfig>;
   };
 }
+
+export interface SignInEndpointConfig extends EndpointConfig {
+  subEndpoints?: {
+    [K in SignInSubEndpoint]?: Partial<EndpointConfig>;
+  };
+}
 export interface TernSecureHandlerOptions {
   cors?: CorsOptions;
   cookies?: CookieOpts;
@@ -82,6 +89,7 @@ export interface TernSecureHandlerOptions {
   endpoints?: {
     cookies?: CookieEndpointConfig;
     sessions?: SessionEndpointConfig;
+    signIns?: SignInEndpointConfig;
   };
   tenantId?: string | null;
   revokeRefreshTokensOnSignOut?: boolean;

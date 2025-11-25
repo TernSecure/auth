@@ -1,34 +1,37 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { useSignIn, useSignInContext, useTernSecure } from '@tern-secure/nextjs';
+import { useSignIn } from '@tern-secure/nextjs';
 import type { SignInResponse, SocialProviderOptions, TernSecureUser } from '@tern-secure/nextjs';
 import { createNextSessionCookie } from '@/app/actions';
+import { useRouter } from 'next/navigation';
 
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
+  const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const { signIn, isLoaded } = useSignIn();
-  const ctx = useSignInContext();
-  const { afterSignInUrl, onSignInSuccess } = ctx;
-  const { createActiveSession, getRedirectResult } = useTernSecure();
+  //const ctx = useSignInContext();
+  //const { afterSignInUrl, onSignInSuccess, signInUrl } = ctx;
+  //const { createActiveSession, getRedirectResult } = useTernSecure();
   const [formError, setFormError] = useState<SignInResponse | null>(null);
 
   const handleSignInSuccess = async (user: TernSecureUser) => {
-    onSignInSuccess(user, {
-      onPreRedirect: async () => {
-        const token = await user.getIdToken();
-        createNextSessionCookie(token);
-        return true; // Return true to proceed with redirect
-      },
-    });
+    //onSignInSuccess(user, {
+    //  onPreRedirect: async () => {
+    //    if (!user.emailVerified) {
+    //      router.push(`${signInUrl}/verify`);
+    //    }
+    //    return false;
+    //  },
+    //});
   };
 
   /**
@@ -36,7 +39,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
    * Now consumers can specify exactly what OAuth parameters they need
    */
   const signInWithSocialLogin = async (provider: string, customOptions: SocialProviderOptions) => {
-    const res = await signIn?.withSocialProvider(provider, {
+    const res = await signIn?.authenticateWithSocialProvider(provider, {
       mode: customOptions.mode || 'popup',
       customParameters: customOptions.customParameters,
       scopes: customOptions.scopes,
@@ -77,7 +80,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
   };
 
   const signInPasswordField = async () => {
-    const res = await signIn?.withEmailAndPassword({ email, password });
+    const res = await signIn?.authenticateWithPassword({ email, password });
     if (res?.status === 'error') {
       setFormError({
         status: 'error',
@@ -86,7 +89,8 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
       });
     }
     if (res?.status === 'success') {
-      createActiveSession({ session: res.user, redirectUrl: afterSignInUrl });
+      //createActiveSession({ session: res.user, redirectUrl: afterSignInUrl });
+      handleSignInSuccess(res.user);
     }
   };
 

@@ -1,4 +1,4 @@
-export type { TernSecureAuth } from '../instance/TernAuth';
+export type { TernSecureAuth } from '../instance/ternsecure';
 export * from './Session';
 export * from './SignUp';
 export * from './SignIn';

@@ -66,3 +66,7 @@ export const logError = (component: string, error: Error | unknown) => {
     } : error,
   })
 }
+
+export const debugConsoleLog = (component: string, action: string, data?: any) => {
+  console.log(`[TernSecure:${component}] ${action}`, data || '');
+};

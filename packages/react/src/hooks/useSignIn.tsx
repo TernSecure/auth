@@ -1,9 +1,9 @@
 'use client';
 
 import type {
-  ResendEmailVerification,
-  SignInFormValues,
+  SignInPasswordParams,
   SignInResponse,
+  SignInVerificationResponse,
   SocialProviderOptions,
   UseSignInReturn,
 } from '@tern-secure/types';
@@ -33,15 +33,15 @@ export const useSignIn = (): UseSignInReturn => {
 };
 
 export const signIn = {
-  withEmailAndPassword: async (params: SignInFormValues): Promise<SignInResponse> => {
+  authenticateWithPasswordd: async (params: SignInPasswordParams): Promise<SignInResponse> => {
     const auth = useAuthSignInCtx();
     if (!auth) {
       throw new Error('SignIn methods not available - auth not initialized');
     }
-    return auth.withEmailAndPassword(params);
+    return auth.authenticateWithPassword(params);
   },
 
-  withSocialProvider: async (
+  authenticateWithSocialProvider: async (
     provider: string,
     customOptions: SocialProviderOptions,
   ): Promise<SignInResponse | void> => {
@@ -49,15 +49,15 @@ export const signIn = {
     if (!auth) {
       throw new Error('SignIn methods not available - auth not initialized');
     }
-    return auth.withSocialProvider(provider, customOptions);
+    return auth.authenticateWithSocialProvider(provider, customOptions);
   },
 
-  resendEmailVerification: async (): Promise<ResendEmailVerification> => {
+  attemptEmailVerification: async (): Promise<SignInVerificationResponse> => {
     const auth = useAuthSignInCtx();
     if (!auth) {
       throw new Error('SignIn methods not available - auth not initialized');
     }
-    return auth.resendEmailVerification();
+    return auth.attemptEmailVerification();
   },
 
   checkRedirectResult: async (): Promise<SignInResponse | null> => {

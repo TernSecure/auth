@@ -57,8 +57,7 @@ export async function authenticateRequest(
 
     const currentTime = Math.floor(Date.now() / 1000);
     const authAge = currentTime - authTimeValue;
-
-    console.log('Current time:', currentTime, 'Auth age:', authAge, 'Reauth period (s):', REAUTH_PERIOD_SECONDS);
+    
 
     if (authTimeValue > 0 && authAge > REAUTH_PERIOD_SECONDS) {
       return signedOut(context, AuthErrorReason.AuthTimeout, 'Authentication expired');

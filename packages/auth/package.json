@@ -1,49 +1,88 @@
 {
   "name": "@tern-secure/auth",
   "version": "1.0.4",
+  "description": "Firebase authentication client ready to use functions",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/TernSecure/auth.git",
     "directory": "packages/auth"
   },
-  "publishConfig": {
-    "access": "public"
-  },
+  "license": "MIT",
+  "main": "dist/ternsecure.js",
+  "jsdelivr": "dist/ternsecure.browser.js",
+  "module": "dist/ternsecure.mjs",
+  "types": "dist/types/ternsecure.d.ts",
+  "style": "dist/ternsecure.css",
   "files": [
-    "dist"
+    "dist",
+    "dist/*.css"
   ],
-  "license": "ISC",
-  "description": "Firebase authentication client ready to use functions",
-  "exports": {
-    ".": {
-      "types": "./dist/types/index.d.ts",
-      "import": "./dist/esm/index.js",
-      "require": "./dist/cjs/index.js"
-    },
-    "./package.json": "./package.json"
-  },
   "scripts": {
+    "build": "pnpm build:js && pnpm build:types",
+    "build:js": "pnpm clean && rspack build --config rspack.config.mjs --env production",
+    "build:types": "tsc -p tsconfig.add.json",
     "clean": "rimraf dist",
-    "build": "pnpm clean && tsup",
-    "build:add": "tsc -p tsconfig.add.json",
-    "dev": "tsup --watch",
+    "dev": "rspack serve --config rspack.config.mjs",
+    "dev:build": "rspack build --config rspack.config.mjs --env development",
+    "dev:origin": "rspack serve --config rspack.config.mjs --env devOrigin=http://localhost:4000",
+    "dev:test": "rspack serve --config rspack.config.mjs --env devOrigin=http://localhost:4000 --env test",
+    "dev:two": "pnpm clean && concurrently \"pnpm dev:build\" \" pnpm dev:types\" \"pnpm dev:test\"",
+    "dev:types": "tsc -p tsconfig.add.json --watch",
+    "dev:watch": "rspack serve --config rspack.config.mjs --env devOrigin=http://localhost:4000",
     "lint": "eslint src",
-    "check-types": "pnpm exec tsc --noEmit"
+    "upload:gcs": "node ../../scripts/gcs.mjs",
+    "watch": "rspack build --config rspack.config.mjs --env production --watch"
   },
+  "browserslist": "last 2 years",
   "dependencies": {
+    "@radix-ui/react-avatar": "^1.1.10",
     "@tern-secure/shared": "workspace:*",
     "@tern-secure/types": "workspace:*",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "core-js": "3.41.0",
+    "lucide-react": "^0.468.0",
+    "regenerator-runtime": "0.13.11",
     "server-only": "^0.0.1",
-    "tslib": "catalog:repo"
+    "styled-components": "^6.1.19",
+    "tailwind-merge": "^2.6.0",
+    "tailwindcss-animate": "^1.0.7",
+    "tslib": "catalog:repo",
+    "tw-animate-css": "^1.3.3"
   },
   "devDependencies": {
-    "firebase": "catalog:firebase",
-    "jose": "^5.10.0"
+    "@radix-ui/react-label": "^2.1.7",
+    "@radix-ui/react-separator": "^1.1.7",
+    "@radix-ui/react-slot": "^1.2.3",
+    "@rsdoctor/rspack-plugin": "^0.4.13",
+    "@rspack/cli": "^1.3.13",
+    "@rspack/core": "^1.3.13",
+    "@rspack/plugin-react-refresh": "^1.4.3",
+    "@svgr/webpack": "^8.1.0",
+    "@tailwindcss/cli": "^4.1.8",
+    "@tailwindcss/postcss": "^4.1.8",
+    "@tanstack/react-form": "^1.12.0",
+    "@types/webpack-env": "^1.18.8",
+    "autoprefixer": "^10.4.21",
+    "concurrently": "^9.1.2",
+    "eslint": "^9.28.0",
+    "jose": "^5.10.0",
+    "postcss": "^8.5.4",
+    "postcss-loader": "^8.1.1",
+    "rimraf": "^5.0.10",
+    "tailwindcss": "^4.1.8",
+    "webpack-merge": "^5.10.0"
   },
   "peerDependencies": {
-    "firebase": "catalog:peer-firebase"
+    "firebase": "catalog:peer-firebase",
+    "react": "catalog:peer-react",
+    "react-dom": "catalog:peer-react"
   },
   "engines": {
     "node": ">=20"
-  }
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "browserslistLegacy": "Chrome > 73, Firefox > 66, Safari > 12, iOS > 12, Edge > 18, Opera > 58"
 }

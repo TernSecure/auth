@@ -2,12 +2,18 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "declaration": true,
+    "outDir": "./dist",
     "declarationDir": "./dist/types",
-    "declarationMap": true,
+    "declarationMap": false,
     "emitDeclarationOnly": true,
     "noEmit": false,
     "skipLibCheck": true,
+    "noImplicitReturns": false,
     "sourceMap": false
   },
-  "exclude": ["node_modules", "dist", "**/__tests__/**/*"]
+  "include": [
+    "src/index.ts",
+    "src/index.browser.ts",
+    "src/**/*.d.ts"
+  ],
 }

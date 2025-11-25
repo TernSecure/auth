@@ -10,7 +10,7 @@ export {
     UserContext,
     TernSecureAuthContext,
     TernSecureInstanceContext
-} from './ternSecureProvider'
+} from './ternsecureProvider'
 
 export {
     assertContextExists,

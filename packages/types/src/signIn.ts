@@ -1,7 +1,32 @@
-import type { UserCredential } from "./all";
-import type { ErrorCode} from "./errors";
+import type { TernSecureUser, UserCredential } from "./all";
+import type { ErrorCode } from "./errors";
+import type {
+  BackupCodeFactor,
+  EmailCodeAttempt,
+  EmailCodeFactor,
+  PasswordAttempt,
+  PasswordFactor,
+  PhoneCodeAttempt,
+  PhoneCodeFactor,
+  ResetPasswordEmailCodeAttempt,
+  ResetPasswordPhoneCodeAttempt,
+  TOTPFactor,
+} from './factors'
+import type { TernSecureResourceJSON } from './json'
+import type {
+  EmailCodeStrategy,
+  PasswordStrategy,
+  PhoneCodeStrategy,
+  ResetPasswordEmailCodeStrategy,
+  ResetPasswordPhoneCodeStrategy
+} from "./strategies";
 
 export type SignInStatus =
+  | 'needs_identifier'
+  | 'needs_first_factor'
+  | 'needs_second_factor'
+  | 'needs_new_password'
+  | 'needs_email_verification'
   | 'idle'
   | 'pending_email_password'
   | 'pending_social'
@@ -11,11 +36,32 @@ export type SignInStatus =
   | 'error';
 
 
-export type SignInFormValues = {
-  email: string;
-  password: string;
+/**
+ * @deprecated Use `SignInFormValues` instead.
+ * Initial values for the sign-in form.
+ */
+type SignInInitialValues = Partial<SignInFormValues>;
+type SignInFormValues = {
+  email?: string;
+  password?: string;
   phoneNumber?: string;
 };
+
+/**
+ * @deprecated
+ */
+export type SignInInitialValue = Partial<SignInFormValues>;
+
+
+export type SignInPasswordParams = {
+  email: string;
+  password: string;
+}
+
+export type SignInPhoneParams = {
+  phoneNumber: string;
+  appVerifier?: any;
+}
 
 export interface AuthErrorResponse {
   success: false
@@ -48,18 +94,17 @@ export interface SignInPendingResponse extends BaseSignInResponse {
   status: 'redirecting' | 'pending_social' | 'pending_email_password';
 }
 
-export type SignInResponse = 
-  | SignInSuccessResponse 
-  | SignInErrorResponse 
+export type SignInResponse =
+  | SignInSuccessResponse
+  | SignInErrorResponse
   | SignInPendingResponse;
 
-
-export type SignInInitialValue = Partial<SignInFormValues>;
 
 
 export interface ResendEmailVerification {
   isVerified?: boolean;
 }
+
 
 export function isSignInResponseTree(value: any): value is SignInResponse {
   return (
@@ -81,45 +126,85 @@ export interface SocialProviderOptions {
   scopes?: string[];
 }
 
+export interface SignInVerificationResponse {
+  status: SignInStatus;
+  message?: string;
+  error?: any;
+}
 
 export interface SignInResource {
-  /**
-   * The current status of the sign-in process.
-   */
+
   status: SignInStatus | null;
+  supportedFirstFactors: SignInFirstFactor[] | null;
+  identifier: string | null;
+  user?: TernSecureUser | null;
   /**
-   * Signs in a user with their email and password.
-   * @param params - The sign-in form values.
-   * @returns A promise that resolves with the sign-in response.
+   * Create combine email and phone sign in method
    */
-  withEmailAndPassword: (params: SignInFormValues) => Promise<SignInResponse>;
-  /**
-   * @param provider - The identifier of the social provider (e.g., 'google', 'microsoft', 'github').
-   * @param options - Optional configuration for the social sign-in flow.
-   * @returns A promise that resolves with the sign-in response.
-   */
-  withSocialProvider: (provider: string, options: SocialProviderOptions) => Promise<SignInResponse>;
-  /**
-   * Completes an MFA (Multi-Factor Authentication) step after a primary authentication attempt.
-   * @param mfaToken - The MFA token or code submitted by the user.
-   * @param mfaContext - Optional context or session data from the MFA initiation step.
-   * @returns A promise that resolves with the sign-in response upon successful MFA verification.
-   */
+  create: (params: SignInCreateParams) => Promise<SignInResource>;
+
+  authenticateWithPassword: (params: SignInPasswordParams) => Promise<SignInResponse>;
+
+  createRecaptchaVerifier: (containerOrId: string | HTMLElement, parameters?: any) => any;
+
+  authenticateWithPhoneNumber: (params: SignInPhoneParams) => Promise<SignInResponse>;
+
+  authenticateWithSocialProvider: (provider: string, options: SocialProviderOptions) => Promise<SignInResponse>;
+
   completeMfaSignIn: (mfaToken: string, mfaContext?: any) => Promise<SignInResponse>;
-  /**
-   * Sends a password reset email to the given email address.
-   * @param email - The user's email address.
-   * @returns A promise that resolves when the email is sent.
-   */
-  sendPasswordResetEmail: (email: string) => Promise<void>;
-  /**
-   * Resends the email verification link to the user's email address.
-   * @returns A promise that resolves with the sign-in response.
-   */
-  resendEmailVerification: () => Promise<ResendEmailVerification>;
-  /**
-   * Checks the result of a redirect-based sign-in flow, typically used in OAuth or SSO scenarios.
-   * @returns A promise that resolves with the sign-in response or null if no result is available.
-   */
-  checkRedirectResult: () => Promise<SignInResponse| null>;
+
+  sendPasswordResetEmail: (email: string) => Promise<{ response: { email: string } } | null>;
+
+  attemptEmailVerification: (options?: {
+    url?: string;
+    handleCodeInApp?: boolean;
+  }) => Promise<SignInVerificationResponse>;
+
+  attemptFirstFactor: (params: AttemptFirstFactorParams) => Promise<SignInResource>;
+
+  checkRedirectResult: () => Promise<SignInResponse | null>;
+}
+
+
+export type SignInFirstFactor =
+  | EmailCodeFactor
+  | PasswordFactor;
+
+export type SignInSecondFactor = PhoneCodeFactor | TOTPFactor | BackupCodeFactor;
+
+export type SignInFactor = SignInFirstFactor | SignInSecondFactor;
+
+
+export type SignInCreateParams = (
+  | {
+    strategy: PasswordStrategy;
+    password?: string;
+    identifier: string;
+  } | {
+    strategy:
+    | PhoneCodeStrategy
+    | EmailCodeStrategy
+    | ResetPasswordEmailCodeStrategy
+    | ResetPasswordPhoneCodeStrategy;
+    identifier: string;
+  }
+)
+
+
+export type AttemptFirstFactorParams =
+  | EmailCodeAttempt
+  | PhoneCodeAttempt
+  | PasswordAttempt
+  | ResetPasswordPhoneCodeAttempt
+  | ResetPasswordEmailCodeAttempt;
+
+
+export interface SignInJson extends TernSecureResourceJSON {
+  object: 'sign_in';
+  id: string;
+  status: SignInStatus;
+  supportedFirstFactors: SignInFirstFactor[];
+  firstFactorVerification?: SignInFirstFactor;
+  secondFactorVerification?: SignInSecondFactor;
+  identifier: string | null;
 }

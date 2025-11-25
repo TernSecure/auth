@@ -18,6 +18,7 @@ export type ApiRequestInit = RequestInit & {
   path?: string;
   search?: ConstructorParameters<typeof URLSearchParams>[0];
   sessionId?: string;
+  pathPrefix?: string;
   url?: URL;
 };
 
@@ -41,7 +42,7 @@ export interface ApiRequestOptions {
 }
 
 export interface ApiClientOptions {
-  domain?: string;
+  authDomain?: string;
   apiUrl?: string;
   frontendApi?: string;
   instanceType?: InstanceType;
@@ -233,10 +234,10 @@ async function retryWithBackoff<T>(
 
 export function createCoreApiClient(clientOptions: ApiClientOptions): ApiClient {
   function buildUrl(requestInit: ApiRequestInit): URL {
-     const isLocalhost = clientOptions.apiUrl?.includes('localhost') || clientOptions.apiUrl?.includes('127.0.0.1');
+    const isLocalhost = clientOptions.apiUrl?.includes('localhost') || clientOptions.apiUrl?.includes('127.0.0.1');
     const { path } = requestInit;
-    const { instanceType, domain, apiUrl, apiBasePath = '/api/auth' } = clientOptions;
-    const domainInProd = instanceType === 'production' ? domain : '';
+    const { instanceType, authDomain, apiUrl, apiBasePath = '/api/auth' } = clientOptions;
+    const domainInProd = instanceType === 'production' ? authDomain : '';
 
     let baseUrl: string;
     if (isLocalhost) {

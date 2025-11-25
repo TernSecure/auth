@@ -9,7 +9,7 @@ import {
   getCustomTokenEndpoint,
   getRefreshTokenEndpoint,
   lookupEndpoint,
-  passwordResetEndpoint,
+  sendOobCode,
   signInWithPassword,
   signUpEndpoint,
 } from "./endpointUrl";
@@ -62,8 +62,8 @@ const FIREBASE_ENDPOINT_MAP: Record<FirebaseEndpoint, (apiKey: string) => string
   signInWithPassword: signInWithPassword,
   signUp: signUpEndpoint,
   signInWithCustomToken: getCustomTokenEndpoint,
-  passwordReset: passwordResetEndpoint,
-  sendOobCode: signInWithPassword,
+  passwordReset: sendOobCode,
+  sendOobCode: sendOobCode,
   lookup: lookupEndpoint
 };
 

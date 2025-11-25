@@ -4,3 +4,10 @@
  * @internal
  */
 export type Autocomplete<U extends T, T = string> = U | (T & Record<never, never>);
+
+/**
+ * Omit without union flattening
+ * */
+export type Without<T, W> = {
+  [P in keyof T as Exclude<P, W>]: T[P];
+};

@@ -1,11 +1,10 @@
 
 import type { DecodedIdToken } from '@tern-secure/types';
-import { afterEach,beforeEach, describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { getAuth } from '../auth';
 import { constants } from '../constants';
 import { ternDecodeJwt } from '../jwt/verifyJwt';
-import { TokenVerificationError, TokenVerificationErrorReason } from '../utils/errors';
 import { AuthErrorReason, signedIn, signedOut } from '../tokens/authstate';
 import type { RequestProcessorContext } from '../tokens/c-authenticateRequestProcessor';
 import { createRequestProcessor } from '../tokens/c-authenticateRequestProcessor';
@@ -15,9 +14,9 @@ import { verifyToken } from '../tokens/verify';
 
 vi.mock('../auth');
 vi.mock('../jwt/verifyJwt');
-vi.mock('./authstate');
-vi.mock('./c-authenticateRequestProcessor');
-vi.mock('./verify');
+vi.mock('../tokens/authstate');
+vi.mock('../tokens/c-authenticateRequestProcessor');
+vi.mock('../tokens/verify');
 
 const mockedGetAuth = vi.mocked(getAuth);
 const mockedTernDecodeJwt = vi.mocked(ternDecodeJwt);
@@ -30,6 +29,8 @@ const mockOptions: AuthenticateRequestOptions = {
   apiKey: 'test-api-key',
 };
 
+const request = new Request('https://example.com', { method: 'GET' });
+
 const createDecodedToken = (authTime: number): DecodedIdToken =>
   ({
     auth_time: authTime,
@@ -37,286 +38,256 @@ const createDecodedToken = (authTime: number): DecodedIdToken =>
     uid: 'user-id',
   } as unknown as DecodedIdToken);
 
-describe('authenticateRequest re-sign and refresh logic', () => {
-  const idToken = 'valid-id-token';
-  const refreshToken = 'valid-refresh-token';
-  const request = new Request('https://example.com', { method: 'GET' });
-  const ternUrl = new URL('https://example.com');
+const buildContext = (
+  overrides: Partial<RequestProcessorContext> = {},
+): RequestProcessorContext =>
+  ({
+    sessionTokenInHeader: undefined,
+    origin: undefined,
+    host: undefined,
+    forwardedHost: undefined,
+    forwardedProto: undefined,
+    referrer: undefined,
+    userAgent: undefined,
+    secFetchDest: undefined,
+    accept: undefined,
+    idTokenInCookie: undefined,
+    refreshTokenInCookie: undefined,
+    csrfTokenInCookie: undefined,
+    sessionTokenInCookie: undefined,
+    customTokenInCookie: undefined,
+    ternAuth: 0,
+    handshakeNonce: undefined,
+    handshakeToken: undefined,
+    method: 'GET',
+    pathSegments: [],
+    ternUrl: new URL('https://example.com'),
+    instanceType: 'test',
+    session: undefined,
+    apiKey: mockOptions.apiKey,
+    ...overrides,
+  }) as unknown as RequestProcessorContext;
 
-  beforeEach(() => {
-    vi.useFakeTimers();
-    vi.resetAllMocks();
+let refreshExpiredIdTokenMock: ReturnType<typeof vi.fn>;
 
-    mockedGetAuth.mockReturnValue({
-      refreshExpiredIdToken: vi.fn().mockResolvedValue({
-        data: { idToken: 'new-id-token' },
-        error: null,
-      }),
-    } as any);
+beforeEach(() => {
+  vi.resetAllMocks();
+  vi.useRealTimers();
 
-    mockedVerifyToken.mockImplementation((token) => {
-      const payload = createDecodedToken(Math.floor(Date.now() / 1000));
-      return Promise.resolve({ data: payload });
+  refreshExpiredIdTokenMock = vi.fn().mockResolvedValue({
+    data: { idToken: 'new-id-token' },
+    error: null,
+  });
+  mockedGetAuth.mockReturnValue({ refreshExpiredIdToken: refreshExpiredIdTokenMock } as any);
+
+  mockedSignedIn.mockImplementation((context, claims, headers = new Headers(), token) => ({
+    isSignedIn: true,
+    context,
+    claims,
+    headers,
+    token,
+  }) as any);
+
+  mockedSignedOut.mockImplementation((context, reason, message = '', headers = new Headers()) => ({
+    isSignedIn: false,
+    context,
+    reason,
+    message,
+    headers,
+  }) as any);
+});
+
+describe('authenticateRequest cookie handling', () => {
+  it('signs out when both ternAuth and id token are absent', async () => {
+    const context = buildContext({ ternAuth: 0, idTokenInCookie: undefined, refreshTokenInCookie: undefined });
+    mockedCreateRequestProcessor.mockReturnValue(context);
+
+    const result = await authenticateRequest(request, mockOptions);
+
+    expect(mockedSignedIn).not.toHaveBeenCalled();
+    expect(mockedSignedOut).toHaveBeenCalledWith(context, AuthErrorReason.SessionTokenAndAuthMissing);
+    expect(result).toEqual(mockedSignedOut.mock.results[0].value);
+  });
+
+  it('signs in locally when ternAuth is missing but id token is present', async () => {
+    const authTime = Math.floor(Date.now() / 1000) - 60;
+    const context = buildContext({
+      ternAuth: 0,
+      idTokenInCookie: 'cookie-id-token',
+      refreshTokenInCookie: 'refresh-token',
+      session: { maxAge: '1h' },
     });
+    mockedCreateRequestProcessor.mockReturnValue(context);
 
     mockedTernDecodeJwt.mockReturnValue({
-      data: { payload: { iat: 0, auth_time: 0 } },
+      data: { payload: { iat: authTime, auth_time: authTime } },
       errors: null,
     } as any);
+    mockedVerifyToken.mockResolvedValue({
+      data: createDecodedToken(authTime),
+      errors: undefined,
+    } as any);
 
-    mockedSignedIn.mockImplementation((context, claims, headers, token) => ({
-      isKnown: true,
-      isSignedIn: true,
-      reason: 'signed-in',
-      message: '',
-      context,
-      token,
-      headers,
-      claims,
-    } as any));
+    const result = await authenticateRequest(request, mockOptions);
 
-    mockedSignedOut.mockImplementation((context, reason, message) => ({
-      isKnown: false,
-      isSignedIn: false,
-      reason: reason || 'signed-out',
-      message: message || '',
-      context,
-    } as any));
+    expect(refreshExpiredIdTokenMock).not.toHaveBeenCalled();
+    expect(mockedSignedOut).not.toHaveBeenCalled();
+    expect(mockedSignedIn).toHaveBeenCalledTimes(1);
+    const headers = mockedSignedIn.mock.calls[0][2] as Headers;
+    expect(headers.get('Set-Cookie')).toContain(`${constants.Cookies.TernAut}=${authTime}`);
+    expect(result.token).toBe('cookie-id-token');
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  describe('session.maxAge scenarios', () => {
-    describe('when session.maxAge is 5 minutes (less than token lifetime)', () => {
-      const maxAge = 5 * 60 * 1000;
-
-      it('should result in signedIn when auth age is less than maxAge', async () => {
-        const now = Date.now();
-        vi.setSystemTime(now);
-        const ternAuth = Math.floor((now - 4 * 60 * 1000) / 1000); // 4 minutes ago
-
-        mockedCreateRequestProcessor.mockReturnValue({
-          idTokenInCookie: idToken,
-          refreshTokenInCookie: refreshToken,
-          ternAuth,
-          session: { maxAge },
-          ternUrl,
-        } as unknown as RequestProcessorContext);
-        mockedTernDecodeJwt.mockReturnValue({
-          data: { payload: { iat: ternAuth, auth_time: ternAuth } },
-        } as any);
-  mockedVerifyToken.mockResolvedValue({ data: createDecodedToken(ternAuth) });
-
-        await authenticateRequest(request, mockOptions);
-
-        expect(mockedSignedOut).not.toHaveBeenCalled();
-        expect(mockedSignedIn).toHaveBeenCalled();
-      });
-
-      it('should sign out when auth age exceeds maxAge, without refresh attempt', async () => {
-        const now = Date.now();
-        vi.setSystemTime(now);
-        const ternAuth = Math.floor((now - 6 * 60 * 1000) / 1000); // 6 minutes ago
-
-        mockedCreateRequestProcessor.mockReturnValue({
-          idTokenInCookie: idToken,
-          refreshTokenInCookie: refreshToken,
-          ternAuth,
-          session: { maxAge },
-          ternUrl,
-        } as unknown as RequestProcessorContext);
-
-        await authenticateRequest(request, mockOptions);
-
-        expect(mockedSignedIn).not.toHaveBeenCalled();
-        expect(mockedSignedOut).toHaveBeenCalledWith(
-          expect.anything(),
-          AuthErrorReason.SessionTokenExpired,
-          expect.any(String),
-        );
-      });
-    });
-
-    describe('when session.maxAge is 60 minutes (same as token lifetime)', () => {
-      const maxAge = 60 * 60 * 1000;
-
-      it('should result in signedIn if token is not expired', async () => {
-        const now = Date.now();
-        vi.setSystemTime(now);
-        const ternAuth = Math.floor((now - 59 * 60 * 1000) / 1000); // 59 minutes ago
-
-        mockedCreateRequestProcessor.mockReturnValue({
-          idTokenInCookie: idToken,
-          refreshTokenInCookie: refreshToken,
-          ternAuth,
-          session: { maxAge },
-          ternUrl,
-        } as unknown as RequestProcessorContext);
-        mockedTernDecodeJwt.mockReturnValue({
-          data: { payload: { iat: ternAuth, auth_time: ternAuth } },
-        } as any);
-  mockedVerifyToken.mockResolvedValue({ data: createDecodedToken(ternAuth) });
-
-        await authenticateRequest(request, mockOptions);
-
-        expect(mockedSignedOut).not.toHaveBeenCalled();
-        expect(mockedSignedIn).toHaveBeenCalled();
-      });
-
-      it('should refresh token if token is expired, but auth age is within maxAge', async () => {
-        const now = Date.now();
-        vi.setSystemTime(now);
-        const ternAuth = Math.floor((now - 59 * 60 * 1000) / 1000); // 59 mins ago
-        const tokenIat = Math.floor((now - 61 * 60 * 1000) / 1000); // 61 mins ago, so expired
-
-        mockedCreateRequestProcessor.mockReturnValue({
-          idTokenInCookie: idToken,
-          refreshTokenInCookie: refreshToken,
-          ternAuth,
-          session: { maxAge },
-          ternUrl,
-        } as unknown as RequestProcessorContext);
-        mockedTernDecodeJwt.mockReturnValue({
-          data: { payload: { iat: tokenIat, auth_time: ternAuth } },
-        } as any);
-        mockedVerifyToken.mockImplementation((tokenToVerify) => {
-          if (tokenToVerify === idToken) {
-            throw new TokenVerificationError({
-              message: 'Token expired',
-              reason: TokenVerificationErrorReason.TokenExpired,
-            });
-          }
-          if (tokenToVerify === 'new-id-token') {
-            return Promise.resolve({ data: createDecodedToken(Math.floor(Date.now() / 1000)) });
-          }
-          return Promise.resolve({
-            errors: [
-              new TokenVerificationError({
-                message: 'unexpected token',
-                reason: TokenVerificationErrorReason.TokenVerificationFailed,
-              }),
-            ],
-          });
-        });
-        const refreshMock = vi.fn().mockResolvedValue({
-          data: { idToken: 'new-id-token' },
-          error: null,
-        });
-        mockedGetAuth.mockReturnValue({ refreshExpiredIdToken: refreshMock } as any);
-
-        const result = await authenticateRequest(request, mockOptions);
-
-        expect(refreshMock).toHaveBeenCalled();
-        expect(mockedSignedOut).not.toHaveBeenCalled();
-        expect(mockedSignedIn).toHaveBeenCalled();
-        expect(result.token).toBe('new-id-token');
-      });
-    });
-
-    describe('when session.maxAge is 70 minutes (longer than token lifetime)', () => {
-      const maxAge = 70 * 60 * 1000;
-
-      it('should refresh token if token is expired and auth age is within maxAge', async () => {
-        const now = Date.now();
-        vi.setSystemTime(now);
-        const ternAuth = Math.floor((now - 65 * 60 * 1000) / 1000); // 65 mins ago
-        const tokenIat = Math.floor((now - 61 * 60 * 1000) / 1000); // 61 mins ago, so expired
-
-        mockedCreateRequestProcessor.mockReturnValue({
-          idTokenInCookie: idToken,
-          refreshTokenInCookie: refreshToken,
-          ternAuth,
-          session: { maxAge },
-          ternUrl,
-        } as unknown as RequestProcessorContext);
-        mockedTernDecodeJwt.mockReturnValue({
-          data: { payload: { iat: tokenIat, auth_time: ternAuth } },
-        } as any);
-        mockedVerifyToken.mockImplementation((tokenToVerify) => {
-          if (tokenToVerify === idToken) {
-            throw new TokenVerificationError({
-              message: 'Token expired',
-              reason: TokenVerificationErrorReason.TokenExpired,
-            });
-          }
-          if (tokenToVerify === 'new-id-token') {
-            return Promise.resolve({ data: createDecodedToken(Math.floor(Date.now() / 1000)) });
-          }
-          return Promise.resolve({
-            errors: [
-              new TokenVerificationError({
-                message: 'unexpected token',
-                reason: TokenVerificationErrorReason.TokenVerificationFailed,
-              }),
-            ],
-          });
-        });
-        const refreshMock = vi.fn().mockResolvedValue({
-          data: { idToken: 'new-id-token' },
-          error: null,
-        });
-        mockedGetAuth.mockReturnValue({ refreshExpiredIdToken: refreshMock } as any);
-
-        const result = await authenticateRequest(request, mockOptions);
-
-        expect(refreshMock).toHaveBeenCalled();
-        expect(mockedSignedOut).not.toHaveBeenCalled();
-        expect(mockedSignedIn).toHaveBeenCalled();
-        expect(result.token).toBe('new-id-token');
-      });
-
-      it('should sign out if auth age exceeds maxAge', async () => {
-        const now = Date.now();
-        vi.setSystemTime(now);
-        const ternAuth = Math.floor((now - 71 * 60 * 1000) / 1000); // 71 minutes ago
-
-        mockedCreateRequestProcessor.mockReturnValue({
-          idTokenInCookie: idToken,
-          refreshTokenInCookie: refreshToken,
-          ternAuth,
-          session: { maxAge },
-          ternUrl,
-        } as unknown as RequestProcessorContext);
-
-        await authenticateRequest(request, mockOptions);
-
-        expect(mockedSignedIn).not.toHaveBeenCalled();
-        expect(mockedSignedOut).toHaveBeenCalledWith(
-          expect.anything(),
-          AuthErrorReason.SessionTokenExpired,
-          expect.any(String),
-        );
-      });
-    });
-  });
-
-  describe('Re-sign (handleLocalHandshake) trigger', () => {
-    it('should trigger "re-sign" if token iat is before ternAuth', async () => {
+  it('signs out when ternAuth exists without id token and session check fails', async () => {
+    vi.useFakeTimers();
+    try {
       const now = Date.now();
       vi.setSystemTime(now);
-      const newerTernAuth = Math.floor((now - 5 * 60 * 1000) / 1000); // 5 mins ago
-      const olderTokenIat = Math.floor((now - 10 * 60 * 1000) / 1000); // 10 mins ago
+      const ternAuth = Math.floor((now - 2 * 60 * 60 * 1000) / 1000);
+      const context = buildContext({
+        ternAuth,
+        idTokenInCookie: undefined,
+        refreshTokenInCookie: 'refresh-token',
+        session: { maxAge: '1h' },
+      });
+      mockedCreateRequestProcessor.mockReturnValue(context);
 
-      mockedCreateRequestProcessor.mockReturnValue({
-        idTokenInCookie: idToken,
-        refreshTokenInCookie: refreshToken,
-        ternAuth: newerTernAuth,
-        session: { maxAge: 60 * 60 * 1000 },
-        ternUrl,
-      } as unknown as RequestProcessorContext);
-      mockedTernDecodeJwt.mockReturnValue({
-        data: { payload: { iat: olderTokenIat, auth_time: olderTokenIat } },
-      } as any);
-  mockedVerifyToken.mockResolvedValue({ data: createDecodedToken(olderTokenIat) });
+      const result = await authenticateRequest(request, mockOptions);
 
-      await authenticateRequest(request, mockOptions);
+      expect(mockedSignedIn).not.toHaveBeenCalled();
+      expect(mockedSignedOut).toHaveBeenCalledWith(
+        context,
+        AuthErrorReason.AuthTimeout,
+        'Authentication expired',
+      );
+      expect(refreshExpiredIdTokenMock).not.toHaveBeenCalled();
+      expect(result).toEqual(mockedSignedOut.mock.results[0].value);
+    } finally {
+      vi.useRealTimers();
+    }
+  });
 
-      expect(mockedSignedIn).toHaveBeenCalled();
-      const signedInCallArgs = mockedSignedIn.mock.calls[0];
-      const headers = signedInCallArgs[2] as Headers;
-      expect(headers.get('Set-Cookie')).toContain(`${constants.Cookies.TernAut}=${olderTokenIat}`);
+  describe('checkSessionTimeout with 1 hour maxAge', () => {
+    it('keeps the session active when auth age is within the limit', async () => {
+      vi.useFakeTimers();
+      try {
+        const now = Date.now();
+        vi.setSystemTime(now);
+        const ternAuth = Math.floor((now - 30 * 60 * 1000) / 1000);
+        const context = buildContext({
+          ternAuth,
+          idTokenInCookie: 'valid-id',
+          refreshTokenInCookie: 'refresh-token',
+          session: { maxAge: '1h' },
+        });
+        mockedCreateRequestProcessor.mockReturnValue(context);
+
+        mockedTernDecodeJwt.mockReturnValue({
+          data: { payload: { iat: ternAuth, auth_time: ternAuth } },
+          errors: null,
+        } as any);
+        mockedVerifyToken.mockResolvedValueOnce({
+          data: createDecodedToken(ternAuth),
+          errors: undefined,
+        } as any);
+
+        const result = await authenticateRequest(request, mockOptions);
+
+        expect(mockedSignedOut).not.toHaveBeenCalled();
+        expect(mockedSignedIn).toHaveBeenCalledTimes(1);
+        expect(result.token).toBe('valid-id');
+      } finally {
+        vi.useRealTimers();
+      }
     });
+
+    it('signs out when auth age exceeds the configured maxAge', async () => {
+      vi.useFakeTimers();
+      try {
+        const now = Date.now();
+        vi.setSystemTime(now);
+        const ternAuth = Math.floor((now - 75 * 60 * 1000) / 1000);
+        const context = buildContext({
+          ternAuth,
+          idTokenInCookie: 'valid-id',
+          refreshTokenInCookie: 'refresh-token',
+          session: { maxAge: '1h' },
+        });
+        mockedCreateRequestProcessor.mockReturnValue(context);
+
+        const result = await authenticateRequest(request, mockOptions);
+
+        expect(mockedSignedIn).not.toHaveBeenCalled();
+        expect(mockedSignedOut).toHaveBeenCalledWith(
+          context,
+          AuthErrorReason.AuthTimeout,
+          'Authentication expired',
+        );
+        expect(mockedVerifyToken).not.toHaveBeenCalled();
+        expect(result).toEqual(mockedSignedOut.mock.results[0].value);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
+  it('re-signs without rechecking timeout when token iat is older than ternAuth', async () => {
+    vi.useFakeTimers();
+    try {
+      const now = Date.now();
+      vi.setSystemTime(now);
+      const ternAuth = Math.floor((now - 30 * 60 * 1000) / 1000);
+      const tokenIat = Math.floor((now - 90 * 60 * 1000) / 1000);
+      const context = buildContext({
+        ternAuth,
+        idTokenInCookie: 'stale-id-token',
+        refreshTokenInCookie: 'refresh-token',
+        session: { maxAge: '1h' },
+      });
+      mockedCreateRequestProcessor.mockReturnValue(context);
+
+      mockedTernDecodeJwt
+        .mockImplementationOnce(() => ({
+          data: { payload: { iat: tokenIat, auth_time: tokenIat } },
+          errors: null,
+        } as any))
+        .mockImplementationOnce(() => ({
+          data: { payload: { iat: tokenIat, auth_time: tokenIat } },
+          errors: null,
+        } as any));
+
+      mockedVerifyToken.mockResolvedValueOnce({
+        data: createDecodedToken(tokenIat),
+        errors: undefined,
+      } as any);
+
+      const result = await authenticateRequest(request, mockOptions);
+
+      expect(refreshExpiredIdTokenMock).not.toHaveBeenCalled();
+      expect(mockedSignedOut).not.toHaveBeenCalled();
+      expect(mockedSignedIn).toHaveBeenCalledTimes(1);
+      const headers = mockedSignedIn.mock.calls[0][2] as Headers;
+      expect(headers.get('Set-Cookie')).toContain(`${constants.Cookies.TernAut}=${tokenIat}`);
+      expect(result.token).toBe('stale-id-token');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('throws when local handshake fails to decode the session token', async () => {
+    const decodeError = new Error('decode failed');
+    mockedTernDecodeJwt.mockReturnValue({ data: null, errors: [decodeError] } as any);
+    const context = buildContext({
+      ternAuth: 0,
+      idTokenInCookie: 'cookie-id-token',
+      refreshTokenInCookie: 'refresh-token',
+      session: { maxAge: '1h' },
+    });
+    mockedCreateRequestProcessor.mockReturnValue(context);
+
+    await expect(authenticateRequest(request, mockOptions)).rejects.toBe(decodeError);
+    expect(mockedSignedOut).not.toHaveBeenCalled();
+    expect(mockedVerifyToken).not.toHaveBeenCalled();
+    expect(refreshExpiredIdTokenMock).not.toHaveBeenCalled();
   });
 });

@@ -23,3 +23,4 @@ export {
 
 export type { SignInAuthObject, RequestState } from '../instance/backendInstance'
 export { createBackendInstance, authenticateRequest, signedIn } from '../instance/backendInstance'
+export { RetrieveUser } from './user'

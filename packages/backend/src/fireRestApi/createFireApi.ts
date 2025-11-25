@@ -1,4 +1,4 @@
-import { EmailApi, PasswordApi, SignInTokenApi, SignUpApi, TokenApi, UserData } from './endpoints';
+import { EmailApi, PasswordApi, SignInApi, SignInTokenApi, SignUpApi, TokenApi, UserData } from './endpoints';
 import { createRequest } from './request';
 
 export type CreateFireApiOptions = Parameters<typeof createRequest>[0];
@@ -9,7 +9,8 @@ export function createFireApi(options: CreateFireApiOptions) {
   return {
     email: new EmailApi(request),
     password: new PasswordApi(request),
-    signIn: new SignInTokenApi(request),
+    signIn: new SignInApi(request),
+    signInToken: new SignInTokenApi(request),
     signUp: new SignUpApi(request),
     tokens: new TokenApi(request),
     userData: new UserData(request),

@@ -1,5 +1,4 @@
 import { LoginForm } from '@/components/signin-form';
-import { SignInProvider } from '@tern-secure/nextjs';
 
 export default function UnauthorizedPage() {
   return (
@@ -8,9 +7,7 @@ export default function UnauthorizedPage() {
         <main>
           <h1>401 - Unauthorized</h1>
           <p>Please log in to access this page.</p>
-          <SignInProvider>
             <LoginForm />
-          </SignInProvider>
         </main>
       </div>
     </div>

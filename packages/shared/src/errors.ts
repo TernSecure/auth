@@ -57,7 +57,7 @@ export function handleFirebaseAuthError(error: unknown): AuthErrorResponse {
     'invalid-credential': { message: 'Invalid email or password', code: 'INVALID_CREDENTIALS' },
     'invalid-login-credentials': { message: 'Invalid email or password', code: 'INVALID_CREDENTIALS' },
     'wrong-password': { message: 'Invalid email or password', code: 'INVALID_CREDENTIALS' },
-    'user-not-found': { message: 'Invalid email or password', code: 'INVALID_CREDENTIALS' },
+    'user-not-found': { message: 'User not found', code: 'USER_NOT_FOUND' },
     'user-disabled': { message: 'This account has been disabled', code: 'USER_DISABLED' },
     'too-many-requests': { message: 'Too many attempts. Please try again later', code: 'TOO_MANY_ATTEMPTS' },
     'network-request-failed': { message: 'Network error. Please check your connection', code: 'NETWORK_ERROR' },

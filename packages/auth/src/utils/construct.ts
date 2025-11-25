@@ -22,9 +22,9 @@ interface BuildURLParams extends Partial<URL> {
   hashPath?: string;
   hashSearch?: string;
   hashSearchParams?:
-    | URLSearchParams
-    | Record<string, string>
-    | Array<URLSearchParams | Record<string, string>>;
+  | URLSearchParams
+  | Record<string, string>
+  | Array<URLSearchParams | Record<string, string>>;
 }
 
 interface BuildURLOptions<T> {
@@ -88,7 +88,6 @@ export function buildURL(
     dummyUrlForHash.pathname = joinPaths(dummyUrlForHash.pathname, hashPath || '');
 
     const searchParamsFromHashSearchString = getQueryParams(hashSearch || '');
-
     for (const [key, val] of Object.entries(searchParamsFromHashSearchString)) {
       dummyUrlForHash.searchParams.append(key, val);
     }
@@ -184,6 +183,7 @@ export const storePreviousPath = (path: string): void => {
     sessionStorage.setItem('previousPath', path);
   }
 };
+
 
 /**
  * Gets the stored previous path
@@ -328,37 +328,67 @@ export function hasBannedProtocol(val: string | URL) {
   return BANNED_URI_PROTOCOLS.some(bp => bp === protocol);
 }
 
+export const hasUrlInFragment = (_url: URL | string) => {
+  return new URL(_url, DUMMY_URL_BASE).hash.startsWith('#/');
+};
+
+
+export const mergeFragmentIntoUrl = (_url: string | URL): URL => {
+  const url = new URL(_url);
+
+  if (!hasUrlInFragment(url)) {
+    return url;
+  }
+
+  const fragmentUrl = new URL(url.hash.replace('#/', '/'), url.href);
+  const mergedPathname = [url.pathname, fragmentUrl.pathname]
+    .map(s => s.split('/'))
+    .flat()
+    .filter(Boolean)
+    .join('/');
+
+  const mergedUrl = new URL(mergedPathname, url.origin);
+
+  url.searchParams.forEach((val, key) => {
+    mergedUrl.searchParams.set(key, val);
+  });
+
+  fragmentUrl.searchParams.forEach((val, key) => {
+    mergedUrl.searchParams.set(key, val);
+  });
+
+  return mergedUrl;
+};
+
+export const pathFromFullPath = (fullPath: string) => {
+  return fullPath.replace(/TERN-ROUTER\/(.*?)\//, '');
+};
+
 export const isAllowedRedirect =
   (allowedRedirectOrigins: Array<string | RegExp> | undefined, currentOrigin: string) =>
-  (_url: URL | string) => {
-    // On server-side (no origin), allow all redirects
-    // They will be validated on client-side
-    if (!currentOrigin) return true;
+    (_url: URL | string) => {
+      let url = _url;
+      if (typeof url === 'string') {
+        url = relativeToAbsoluteUrl(url, currentOrigin);
+      }
 
-    let url = _url;
-    if (typeof url === 'string') {
-      url = relativeToAbsoluteUrl(url, currentOrigin);
-    }
+      if (!allowedRedirectOrigins) {
+        return true;
+      }
 
-    if (!allowedRedirectOrigins) {
-      return true;
-    }
+      const isSameOrigin = currentOrigin === url.origin;
 
-    const isSameOrigin = currentOrigin === url.origin;
+      const isAllowed =
+        !isProblematicUrl(url) &&
+        (isSameOrigin ||
+          allowedRedirectOrigins
+            .map(origin => (typeof origin === 'string' ? globs.toRegexp(trimTrailingSlash(origin)) : origin))
+            .some(origin => origin.test(trimTrailingSlash(url.origin))));
 
-    const isAllowed =
-      !isProblematicUrl(url) &&
-      (isSameOrigin ||
-        allowedRedirectOrigins
-          .map(origin =>
-            typeof origin === 'string' ? globs.toRegexp(trimTrailingSlash(origin)) : origin,
-          )
-          .some(origin => origin.test(trimTrailingSlash(url.origin))));
-
-    if (!isAllowed) {
-      logger.warnOnce(
-        `Clerk: Redirect URL ${url} is not on one of the allowedRedirectOrigins, falling back to the default redirect URL.`,
-      );
-    }
-    return isAllowed;
-  };
+      if (!isAllowed) {
+        logger.warnOnce(
+          `TernSecure: Redirect URL ${url} is not on one of the allowedRedirectOrigins, falling back to the default redirect URL.`,
+        );
+      }
+      return isAllowed;
+    };

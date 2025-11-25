@@ -7,8 +7,10 @@ import type {
   SecurityOptions,
   SessionEndpointConfig,
   SessionSubEndpoint,
+  SignInEndpointConfig,
+  SignInSubEndpoint,
   TernSecureHandlerOptions,
-  TokenCookieConfig,
+  TokenCookieConfig
 } from '@tern-secure/types';
 import { type NextResponse } from 'next/server';
 
@@ -138,6 +140,17 @@ export const DEFAULT_SESSIONS_CONFIG: SessionEndpointConfig = {
   },
 };
 
+export const DEFAULT_SIGNINS_CONFIG: SignInEndpointConfig = {
+  ...DEFAULT_ENDPOINT_CONFIG,
+  subEndpoints: {
+    resetPasswordEmail: {
+      enabled: true,
+      methods: ['POST'],
+      requireAuth: false
+    },
+  },
+};
+
 export const DEFAULT_HANDLER_OPTIONS: Required<TernSecureHandlerOptions> & {
   endpoints: Required<NonNullable<TernSecureHandlerOptions['endpoints']>>;
 } = {
@@ -153,6 +166,7 @@ export const DEFAULT_HANDLER_OPTIONS: Required<TernSecureHandlerOptions> & {
   endpoints: {
     cookies: DEFAULT_COOKIE_REQUEST_CONFIG,
     sessions: DEFAULT_SESSIONS_CONFIG,
+    signIns: DEFAULT_SIGNINS_CONFIG,
   },
   tenantId: '',
   revokeRefreshTokensOnSignOut: true,
@@ -247,5 +261,7 @@ export {
   SessionSubEndpoint,
   EndpointConfig,
   SessionEndpointConfig,
+  SignInEndpointConfig,
+  SignInSubEndpoint,
   TernSecureHandlerOptions,
 };
