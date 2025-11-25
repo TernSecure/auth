@@ -153,14 +153,41 @@ export const processPasswordStrategy = async (identifier: string): Promise<Respo
 };
 
 
-export const processPhoneCodeStrategy = (_phoneNumber: string): Response => {
-  // Note: Firebase Admin SDK doesn't have getUserByPhoneNumber in the current implementation
-  // This would need to be added to RetrieveUser if phone authentication is required
-  return createApiErrorResponse(
-    'NOT_IMPLEMENTED',
-    'Phone code strategy not yet implemented',
-    501
-  );
+export const processPhoneCodeStrategy = async (phoneNumber: string): Promise<Response> => {
+  try {
+    //const retrieveUser = RetrieveUser();
+    //const { data: user, error } = await retrieveUser.getUserByPhoneNumber(phoneNumber);
+
+    //if (error) {
+   //   return createApiErrorResponse(
+   //     error.code,
+    //    error.message,
+   //     400
+   //   );
+   // }
+
+    return createApiSuccessResponse({
+      status: 'needs_first_factor',
+      identifier: phoneNumber,
+      supportedFirstFactors: [{ strategy: 'phone_code' }],
+      //userId: user.uid,
+      message: 'User verified. Proceed with phone authentication',
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('no user record')) {
+      return createApiErrorResponse(
+        'USER_NOT_FOUND',
+        'No user found with this phone number',
+        404
+      );
+    }
+
+    return createApiErrorResponse(
+      'PHONE_VERIFICATION_ERROR',
+      error instanceof Error ? error.message : 'Failed to verify phone number',
+      500
+    );
+  }
 };
 
 

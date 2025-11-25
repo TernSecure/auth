@@ -8,6 +8,7 @@ import { determineCurrentFactor } from '../../ctx/utils';
 import { ErrorCard, LoadingCard, useCardState, withCardStateProvider } from '../../elements';
 import { useRouter } from '../../router';
 import { SignInFactorOnePasswordCard } from './SignInFactorOnePasswordCard';
+import { SignInFactorOnePhoneCodeCard } from './SignInFactorOnePhoneCodeCard';
 
 function SignInFactorOneInternal(): React.JSX.Element {
   const signIn = useAuthSignIn();
@@ -77,6 +78,8 @@ function SignInFactorOneInternal(): React.JSX.Element {
           onForgotPassword={handleForgotPassword}
         />
       );
+      case 'phone_code':
+      return <SignInFactorOnePhoneCodeCard factor={{...currentFactor}} />;
     default:
       return <LoadingCard />;
   }

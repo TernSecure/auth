@@ -3,6 +3,7 @@ import type {
   SessionJson,
   SessionResource,
   SessionStatus,
+  TernSecureResourceJSON,
   TernSecureUser,
 } from '@tern-secure/types';
 
@@ -34,6 +35,7 @@ export class Session extends TernSecureBase implements SessionResource {
   constructor(sessionData: Partial<SessionResource>) {
     super();
     this.initializeFromSessionData(sessionData);
+    this.fromJSON(sessionData as unknown as SessionJson);
   }
 
   /**
@@ -99,5 +101,12 @@ export class Session extends TernSecureBase implements SessionResource {
       signInSecondFactor: this.signInSecondFactor,
       user: this.user,
     };
+  }
+
+  protected fromJSON(data: SessionJson | TernSecureResourceJSON | null): this {
+    if (data) {
+      this.initializeFromSessionData(data as any);
+    }
+    return this;
   }
 }

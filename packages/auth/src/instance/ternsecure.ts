@@ -145,6 +145,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     }
 
     this.#options = this.#initOptions(options);
+    console.debug('[TernSecureAuth] Loading with options:', this.#options);
 
     if (this.#options.sdkMetadata) {
       TernSecureAuth.sdkMetadata = this.#options.sdkMetadata;

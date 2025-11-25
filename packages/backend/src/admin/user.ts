@@ -32,8 +32,18 @@ export function RetrieveUser(tenantId?: string) {
         }
     }
 
+    async function getUserByPhoneNumber(phoneNumber: string): Promise<RetrieveUserResult> {
+        try {
+            const user = await auth.getUserByPhoneNumber(phoneNumber);
+            return { data: user, error: null };
+        } catch (error) {
+            return { data: null, error: handleFirebaseAuthError(error) };
+        }
+    }
+
     return {
         getUserUid,
         getUserByEmail,
+        getUserByPhoneNumber,
     }
 }

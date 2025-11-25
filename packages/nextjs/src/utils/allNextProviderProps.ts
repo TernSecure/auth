@@ -25,6 +25,7 @@ export const allNextProviderPropsWithEnv = (
     persistence: propsPersistence,
     ternUIUrl: propsTernUIUrl,
     ternUIVersion: propsTernUIVersion,
+    appCheck,
     ...baseProps 
   } = nextProps;
 
@@ -92,6 +93,7 @@ export const allNextProviderPropsWithEnv = (
     isTernSecureDev: propsIsTernSecureDev,
     enableServiceWorker: propsEnableServiceWorker,
     loadingComponent: propsLoadingComponent,
+    appCheck,
 
     //TernSecure: baseProps.Instance,
     initialState: baseProps.initialState,

@@ -1,4 +1,4 @@
-import type { UserCredential } from "./all";
+import type { TernSecureUser, UserCredential } from "./all";
 import type { ErrorCode } from "./errors";
 import type {
   BackupCodeFactor,
@@ -60,6 +60,7 @@ export type SignInPasswordParams = {
 
 export type SignInPhoneParams = {
   phoneNumber: string;
+  appVerifier?: any;
 }
 
 export interface AuthErrorResponse {
@@ -136,12 +137,15 @@ export interface SignInResource {
   status: SignInStatus | null;
   supportedFirstFactors: SignInFirstFactor[] | null;
   identifier: string | null;
+  user?: TernSecureUser | null;
   /**
    * Create combine email and phone sign in method
    */
   create: (params: SignInCreateParams) => Promise<SignInResource>;
 
   authenticateWithPassword: (params: SignInPasswordParams) => Promise<SignInResponse>;
+
+  createRecaptchaVerifier: (containerOrId: string | HTMLElement, parameters?: any) => any;
 
   authenticateWithPhoneNumber: (params: SignInPhoneParams) => Promise<SignInResponse>;
 

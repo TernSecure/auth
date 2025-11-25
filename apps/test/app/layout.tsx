@@ -34,16 +34,14 @@ export default async function RootLayout({
         <TernSecureProvider
           appName='TernSecure'
           appCheck={{
-            provider: 'reCaptchaV3',
-            siteKey: '6LfZFhcsAAAAAMX2kZwW5USvnwNrqEnj6lh3ogzr',
+            provider: 'reCaptchaEnterprise',
+            siteKey: '6LfzGRgsAAAAAGEvbwbcLgT4IHWmuWv4kEDRA5hi',
             isTokenAutoRefreshEnabled: true,
           }}
           requiresVerification={false}
           persistence='local'
           ternUIUrl='http://localhost:4000/ternsecure.browser.js'
           apiUrl='localhost:3000'
-          //tenantId='lifesprintcare-zsqsk'
-          //afterSignOutUrl='/sign-in'  //better use it on client-side
         >
           <ThemeProvider
             attribute='class'

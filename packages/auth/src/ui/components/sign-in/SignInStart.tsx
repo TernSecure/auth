@@ -142,7 +142,7 @@ function SignInStartInternal(): React.JSX.Element {
         status: 'error',
         message: apiError?.message || error.message,
         error: apiError,
-        code: apiError?.code,
+        //code: apiError?.code,
       });
     } else {
       card.setError({
