@@ -161,6 +161,8 @@ export interface SignInResource {
   }) => Promise<SignInVerificationResponse>;
 
   attemptFirstFactor: (params: AttemptFirstFactorParams) => Promise<SignInResource>;
+  
+  attemptPhoneNumberVerification: (params: { code: string }) => Promise<SignInResponse>;
 
   checkRedirectResult: () => Promise<SignInResponse | null>;
 }

@@ -31,6 +31,9 @@ import type {
 } from '@tern-secure/types';
 import type { FirebaseApp } from 'firebase/app';
 import { getApps, initializeApp } from 'firebase/app';
+import type {
+  AppCheck
+} from 'firebase/app-check';
 import {
   initializeAppCheck,
   ReCaptchaEnterpriseProvider,
@@ -72,6 +75,7 @@ declare global {
     authDomain: TernSecureAuthInterface['authDomain'];
     frontEndDomain?: TernSecureAuthInterface['frontEndDomain'];
     proxyUrl?: TernSecureAuthInterface['proxyUrl'];
+    FIREBASE_APPCHECK_DEBUG_TOKEN?: string | boolean;
   }
 }
 
@@ -91,6 +95,7 @@ export class TernSecureAuth implements TernSecureAuthInterface {
   private _currentUser: TernSecureUser | null = null;
   private signedInSession: SignedInSession | null = null;
   private firebaseClientApp: FirebaseApp | undefined;
+  private appCheckApp: AppCheck | undefined;
   private authStateUnsubscribe: (() => void) | null = null;
   private auth!: Auth;
   private csrfToken: string | undefined;
@@ -452,13 +457,17 @@ export class TernSecureAuth implements TernSecureAuthInterface {
     this.#configureEmulator();
 
     if (this.#options.appCheck) {
-      const { provider, siteKey, isTokenAutoRefreshEnabled } = this.#options.appCheck;
+      const { provider, siteKey, isTokenAutoRefreshEnabled, debugToken } = this.#options.appCheck;
+      if (debugToken && inBrowser()) {
+        window.FIREBASE_APPCHECK_DEBUG_TOKEN = debugToken;
+      }
+
       const appCheckProvider =
         provider === 'reCaptchaEnterprise'
           ? new ReCaptchaEnterpriseProvider(siteKey)
           : new ReCaptchaV3Provider(siteKey);
 
-      initializeAppCheck(this.firebaseClientApp, {
+      this.appCheckApp = initializeAppCheck(this.firebaseClientApp, {
         provider: appCheckProvider,
         isTokenAutoRefreshEnabled: isTokenAutoRefreshEnabled ?? true,
       });
@@ -488,6 +497,14 @@ export class TernSecureAuth implements TernSecureAuthInterface {
 
   get currentSession(): SignedInSession | null {
     return this.signedInSession;
+  }
+
+  get firebaseApp(): FirebaseApp | undefined {
+    return this.firebaseClientApp;
+  }
+
+  get appCheck(): AppCheck | undefined {
+    return this.appCheckApp;
   }
 
   private initAuthListener(): () => void {

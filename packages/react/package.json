@@ -58,6 +58,7 @@
     "tailwindcss": "^4.1.6"
   },
   "peerDependencies": {
+    "firebase": "catalog:peer-firebase",
     "react": "catalog:peer-react",
     "react-dom": "catalog:peer-react"
   },

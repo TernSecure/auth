@@ -1,8 +1,10 @@
 import type { PropsWithChildren } from 'react';
 import React from 'react';
 
+import { cn } from '../../lib/utils';
+import type { OTPInputProps } from '../elements';
 import {
-  Alert, 
+  Alert,
   AlertDescription,
   Button,
   Card,
@@ -10,12 +12,12 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  Label,
+  Field as FieldCn,
   OTPCodeControl,
   OTPResendButton,
   OTPRoot,
   useCardState,
-  useFieldOTP
+  useFieldOTP,
 } from '../elements';
 
 export type VerificationCodeCardProps = {
@@ -39,45 +41,48 @@ export const VerificationCodeCard = (props: PropsWithChildren<VerificationCodeCa
       props.onCodeEntryFinishedAction(code, resolve, reject);
     },
     onResendCodeClicked: props.onResendCodeClicked,
-  })
+  });
 
   return (
-    <Card className='w-full max-w-md'>
-      <CardHeader>
-        <CardTitle>{props.cardTitle}</CardTitle>
-        <CardDescription>{props.cardDescription}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <OTPRoot
-          isLoading={otp.isLoading}
-          otpControl={otp.otpControl}
-          onResendCode={otp.onResendCode}
-        >
-          <div className='space-y-4'>
+    <div className='relative flex justify-center p-6 md:p-10'>
+      <div className='w-full max-w-sm'>
+        <Card className={cn('mt-8 w-full max-w-md')}>
+          <CardHeader className='space-y-1 text-center'>
+            <CardTitle>{props.cardTitle}</CardTitle>
+            <CardDescription>{props.cardDescription}</CardDescription>
+          </CardHeader>
+          <CardContent className='space-y-4'>
             {card.error && (
               <Alert variant='destructive'>
                 <AlertDescription>{card.error.message}</AlertDescription>
               </Alert>
             )}
-            <div className='space-y-2 flex flex-col items-center'>
-              <Label htmlFor='code'>{props.inputLabel}</Label>
-              <OTPCodeControl />
-            </div>
-          </div>
-          <div className='flex flex-col space-y-2 mt-4'>
-            <OTPResendButton />
-            {props.onBackLinkClicked && (
-              <Button
-                variant='ghost'
-                onClick={props.onBackLinkClicked}
-                disabled={otp.isLoading}
-              >
-                Back
-              </Button>
-            )}
-          </div>
-        </OTPRoot>
-      </CardContent>
-    </Card>
+            <TernOTPInput
+              {...otp}
+              label={props.inputLabel}
+              onResendCode={otp.onResendCode}
+            />
+            <Button
+              disabled={otp.isLoading}
+              onClick={otp.onFakeContinue}
+            >
+              {props.submitButtonText}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+const TernOTPInput = (props: OTPInputProps) => {
+  const { ref, ...restInputProps } = props.otpControl.otpInputProps;
+  return (
+    <FieldCn {...restInputProps}>
+      <OTPRoot {...props}>
+        <OTPCodeControl ref={ref} />
+        <OTPResendButton />
+      </OTPRoot>
+    </FieldCn>
   );
 };

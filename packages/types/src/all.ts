@@ -198,4 +198,5 @@ export interface AppCheckConfig {
   provider: 'reCaptchaV3' | 'reCaptchaEnterprise';
   siteKey: string;
   isTokenAutoRefreshEnabled?: boolean;
+  debugToken?: string | boolean;
 }

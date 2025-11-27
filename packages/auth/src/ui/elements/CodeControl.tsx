@@ -4,7 +4,7 @@ import React, { useCallback } from 'react';
 
 import { cn } from '../../lib/utils';
 import { Input } from '../elements';
-import { useLoadingStatus } from '../hooks'; 
+import { useLoadingStatus } from '../hooks';
 import { sleep } from '../utils';
 import { useCardState } from './ctx';
 import { TimerButton } from './TimerButton';
@@ -57,16 +57,16 @@ export const useFieldOTP: UseFieldOTP = params => {
     onResendCodeClicked: paramsOnResendCodeClicked,
     onResolve: paramsOnResolve,
   } = params;
-  
+
   const codeControl = useCodeControl({ length: 6 });
   const status = useLoadingStatus();
 
   const resolve = async (param: any) => {
     await sleep(750);
     await paramsOnResolve?.(param);
-  }
+  };
 
-    const reject = async (err: any) => {
+  const reject = async (err: any) => {
     const message = (err as any)?.message || (err instanceof Error ? err.message : 'Invalid code');
     card.setError({
       status: 'error',
@@ -98,7 +98,7 @@ export const useFieldOTP: UseFieldOTP = params => {
     [codeControl, paramsOnResendCodeClicked],
   );
 
-    return {
+  return {
     isLoading: status.isLoading,
     otpControl: codeControl,
     onResendCode: paramsOnResendCodeClicked ? onResendCode : undefined,
@@ -108,9 +108,11 @@ export const useFieldOTP: UseFieldOTP = params => {
 
 const useCodeControl = (options?: UseCodeInputOptions) => {
   const otpControlRef = React.useRef<any>(null);
-  const userOnCodeEnteredCallback = React.useRef<onCodeEntryFinishedCallback | undefined>(undefined);
+  const userOnCodeEnteredCallback = React.useRef<onCodeEntryFinishedCallback | undefined>(
+    undefined,
+  );
   const { length = 6 } = options || {};
-  
+
   const [values, setValues] = React.useState<string[]>(Array(length).fill(''));
   const [feedback, setFeedback] = React.useState<string | null>(null);
   const [feedbackType, setFeedbackType] = React.useState<'error' | 'success' | null>(null);
@@ -137,8 +139,21 @@ const useCodeControl = (options?: UseCodeInputOptions) => {
     }
   }, [values, length]);
 
-  const otpInputProps = { length, values, setValues, feedback, feedbackType, clearFeedback, ref: otpControlRef };
-  return { otpInputProps, onCodeEntryFinished, reset: () => otpControlRef.current?.reset(), setError };
+  const otpInputProps = {
+    length,
+    values,
+    setValues,
+    feedback,
+    feedbackType,
+    clearFeedback,
+    ref: otpControlRef,
+  };
+  return {
+    otpInputProps,
+    onCodeEntryFinished,
+    reset: () => otpControlRef.current?.reset(),
+    setError,
+  };
 };
 
 export type OTPInputProps = {
@@ -172,12 +187,10 @@ export const OTPResendButton = () => {
       startDisabled
       disabled={otpControl.otpInputProps.feedbackType === 'success' || isLoading}
       showCounter={otpControl.otpInputProps.feedbackType !== 'success'}
+      throttleTimeInSec={60}
     />
   );
 };
-
-
-
 
 export const OTPCodeControl = React.forwardRef<{ reset: any }>((_, ref) => {
   const [disabled, setDisabled] = React.useState(false);
@@ -205,7 +218,13 @@ export const OTPCodeControl = React.forwardRef<{ reset: any }>((_, ref) => {
     }
   }, [feedback]);
 
-  const handleMultipleCharValue = ({ eventValue, inputPosition }: { eventValue: string; inputPosition: number }) => {
+  const handleMultipleCharValue = ({
+    eventValue,
+    inputPosition,
+  }: {
+    eventValue: string;
+    inputPosition: number;
+  }) => {
     const eventValues = (eventValue || '').split('');
 
     if (eventValues.length === 0 || !eventValues.every(c => isValidInput(c))) {
@@ -272,7 +291,10 @@ export const OTPCodeControl = React.forwardRef<{ reset: any }>((_, ref) => {
 
   const handleOnPaste = (index: number) => (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    handleMultipleCharValue({ eventValue: e.clipboardData.getData('text/plain') || '', inputPosition: index });
+    handleMultipleCharValue({
+      eventValue: e.clipboardData.getData('text/plain') || '',
+      inputPosition: index,
+    });
   };
 
   const handleOnKeyDown = (index: number) => (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -301,10 +323,10 @@ export const OTPCodeControl = React.forwardRef<{ reset: any }>((_, ref) => {
   return (
     <div
       className={cn(
-        "flex gap-2 direction-ltr p-1 -ml-1",
+        'direction-ltr -ml-1 flex gap-2 p-1',
         centerClass,
-        isLoading && "opacity-50 pointer-events-none",
-        feedbackType === 'error' && "text-red-500"
+        isLoading && 'pointer-events-none opacity-50',
+        feedbackType === 'error' && 'text-red-500',
       )}
     >
       {values.map((value, index: number) => (
@@ -317,7 +339,9 @@ export const OTPCodeControl = React.forwardRef<{ reset: any }>((_, ref) => {
           onInput={handleOnInput(index)}
           onPaste={handleOnPaste(index)}
           id={`digit-${index}-field`}
-          ref={node => { refs.current[index] = node; }}
+          ref={node => {
+            refs.current[index] = node;
+          }}
           autoFocus={index === 0 || undefined}
           autoComplete='one-time-code'
           aria-label={`${index === 0 ? 'Enter verification code. ' : ''}Digit ${index + 1}`}
@@ -343,15 +367,14 @@ const SingleCharInput = React.forwardRef<
       ref={ref}
       type='text'
       className={cn(
-        "text-center p-0.5 h-10 w-10 rounded-md bg-transparent sm:h-8 sm:w-8",
-        isSuccessfullyFilled ? "border-green-500" : "",
-        hasError ? "border-red-500" : "",
-        className
+        'h-10 w-10 rounded-md bg-transparent p-0.5 text-center sm:h-8 sm:w-8',
+        isSuccessfullyFilled ? 'border-green-500' : '',
+        hasError ? 'border-red-500' : '',
+        className,
       )}
       {...rest}
     />
   );
 });
-
 
 const isValidInput = (char: string) => char != undefined && Number.isInteger(+char);

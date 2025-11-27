@@ -128,9 +128,19 @@ export function createRequest(options: CreateRequestOptions) {
 
       const isJSONResponse =
         res?.headers &&
-        res.headers?.get(constants.Headers.ContentType) ===
-          constants.ContentTypes.Json;
-      const responseBody = await (isJSONResponse ? res.json() : res.text());
+        res.headers?.get(constants.Headers.ContentType)?.includes(constants.ContentTypes.Json);
+      
+      let responseBody;
+      try {
+        const text = await res.text();
+        try {
+          responseBody = JSON.parse(text);
+        } catch {
+          responseBody = text;
+        }
+      } catch (e) {
+        responseBody = null;
+      }
 
 
       if (!res.ok) {

@@ -7,7 +7,7 @@ import { initializeServerApp } from "firebase/app";
 import type { Auth } from "firebase/auth";
 import { getAuth } from "firebase/auth";
 
-import { getAuthKeyFromRequest } from '../../server/headers-utils';
+import { getAuthKeyFromRequest, getHeader } from '../../server/headers-utils';
 import type { RequestLike } from '../../server/types';
 import {
   FIREBASE_API_KEY,
@@ -95,6 +95,7 @@ export async function getTernSecureAuthData(
 export async function getAuthDataFromRequest(req: RequestLike): Promise<AuthObject & Aobj> {
   const authStatus = getAuthKeyFromRequest(req, "AuthStatus");
   const authToken = getAuthKeyFromRequest(req, "AuthToken");
+  const appCheckToken = getHeader(req, "X-Firebase-AppCheck");
 
   if (!authStatus || authStatus !== AuthStatus.SignedIn) {
     return {
@@ -104,7 +105,11 @@ export async function getAuthDataFromRequest(req: RequestLike): Promise<AuthObje
     }
   }
 
-  const firebaseUser = await authenticateRequest(authToken as string, req as any);
+  const firebaseUser = await authenticateRequest(
+    authToken as string, 
+    req as any, 
+    appCheckToken as string | undefined
+  );
   if (!firebaseUser || !firebaseUser.claims) {
     return {
       ...signedOutAuthObject(),
@@ -122,9 +127,11 @@ export async function getAuthDataFromRequest(req: RequestLike): Promise<AuthObje
 
 const authenticateRequest = async (
   token: string,
-  request: Request
+  request: Request,
+  appCheckToken?: string
 ): Promise<{ user: SerializableTernSecureUser; claims: ParsedToken } | null> => {
   try {
+    //console.log("[getAuthDataFromRequest] App Check Token:", appCheckToken);
     const origin = new URL(request.url).origin;
 
     const requestHeaders = new Headers(request.headers);
@@ -149,6 +156,7 @@ const authenticateRequest = async (
       config,
       {
         authIdToken: token,
+        appCheckToken: appCheckToken,
         releaseOnDeref: mockRequest,
       }
     );

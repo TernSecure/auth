@@ -58,7 +58,7 @@ export class Session extends TernSecureBase implements SessionResource {
    * This calls the backend API to create a custom token from the current ID token
    */
   private createSession = (idToken: string, csrfToken: string) => {
-    return this._post({
+    return this._basePost({
       path: this.pathRoot,
       body: {
         idToken,

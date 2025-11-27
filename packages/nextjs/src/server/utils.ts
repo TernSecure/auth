@@ -149,6 +149,7 @@ export function decorateRequest(
   req: TernSecureRequest,
   res: Response,
   requestState: RequestState,
+  appCheckToken?: string,
 ): Response {
   const { reason, token, status } = requestState;
   // pass-through case, convert to next()
@@ -186,6 +187,7 @@ export function decorateRequest(
     setRequestHeadersOnNextResponse(res, req, {
       [constants.Headers.AuthStatus]: status,
       [constants.Headers.AuthToken]: token || '',
+      [constants.Headers.AppCheckToken]: appCheckToken || req.headers.get(constants.Headers.AppCheckToken) || '',
       [constants.Headers.AuthReason]: reason || '',
       [constants.Headers.TernSecureUrl]: req.ternUrl.toString(),
     });

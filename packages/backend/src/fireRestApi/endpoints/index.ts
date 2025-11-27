@@ -1,3 +1,4 @@
+export * from './AppCheckApi';
 export * from './EmailApi';
 export * from './PasswordApi';
 export * from './SignInApi';

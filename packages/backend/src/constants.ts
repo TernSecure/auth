@@ -45,6 +45,7 @@ const QueryParameters = {
 
 const Headers = {
   Accept: 'accept',
+  AppCheckToken: 'x-firebase-appcheck',
   AuthMessage: 'x-ternsecure-auth-message',
   Authorization: 'authorization',
   AuthReason: 'x-ternsecure-auth-reason',

@@ -19,6 +19,7 @@ interface RequestProcessorContext extends AuthenticateRequestOptions {
   userAgent: string | undefined;
   secFetchDest: string | undefined;
   accept: string | undefined;
+  appCheckToken: string | undefined;
 
   // cookie-based values
   idTokenInCookie: string | undefined;
@@ -74,6 +75,7 @@ class RequestProcessorContext implements RequestProcessorContext {
     this.userAgent = this.getHeader(constants.Headers.UserAgent);
     this.secFetchDest = this.getHeader(constants.Headers.SecFetchDest);
     this.accept = this.getHeader(constants.Headers.Accept);
+    this.appCheckToken = this.getHeader(constants.Headers.AppCheckToken);
   }
 
   private initCookieValues() {

@@ -264,6 +264,12 @@ export interface TernSecureAuth {
   /** The current status of the TernSecureAuth instance */
   status: TernSecureAuthStatus;
 
+  /** The Firebase App instance */
+  firebaseApp?: any;
+
+  /** The Firebase App Check instance */
+  appCheck?: any;
+
   /** TernSecure API URL */
   apiUrl: string;
 

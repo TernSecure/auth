@@ -20,5 +20,5 @@
     "strict": true,
     "target": "ES2022"
   },
-  "include": ["src", "src/server/node"]
+  "include": ["src", "src/server/node", "../react/src/hooks/appcheck", "../react/src/hooks/index.ts"]
 }

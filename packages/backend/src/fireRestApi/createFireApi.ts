@@ -1,4 +1,4 @@
-import { EmailApi, PasswordApi, SignInApi, SignInTokenApi, SignUpApi, TokenApi, UserData } from './endpoints';
+import { AppCheckApi, EmailApi, PasswordApi, SignInApi, SignInTokenApi, SignUpApi, TokenApi, UserData } from './endpoints';
 import { createRequest } from './request';
 
 export type CreateFireApiOptions = Parameters<typeof createRequest>[0];
@@ -7,6 +7,7 @@ export type ApiClient = ReturnType<typeof createFireApi>;
 export function createFireApi(options: CreateFireApiOptions) {
   const request = createRequest(options);
   return {
+    appCheck: new AppCheckApi(request),
     email: new EmailApi(request),
     password: new PasswordApi(request),
     signIn: new SignInApi(request),

@@ -34,12 +34,14 @@ export default async function RootLayout({
         <TernSecureProvider
           appName='TernSecure'
           appCheck={{
-            provider: 'reCaptchaEnterprise',
+            provider: 'reCaptchaV3',
             siteKey: '6LfzGRgsAAAAAGEvbwbcLgT4IHWmuWv4kEDRA5hi',
+            //siteKey: '6LcSGxgsAAAAACeeo12X2kYaO_VcsWZb8gzmfLRq',
             isTokenAutoRefreshEnabled: true,
+            debugToken: process.env.FIREBASE_APPCHECK_DEBUG_TOKEN || false,
           }}
           requiresVerification={false}
-          persistence='local'
+          persistence='browserCookie'
           ternUIUrl='http://localhost:4000/ternsecure.browser.js'
           apiUrl='localhost:3000'
         >
@@ -57,3 +59,12 @@ export default async function RootLayout({
     </html>
   );
 }
+
+
+// appverifier seems not need if we use appcheck provider v3
+
+// sms recapther returns an error apikey not found when firebase initiliaze appcheck with an enteprise provider
+// key. the same enterpise provider key is used in the firebase reCaptcha (Configured platform site keys). 
+// if appcheck is removed, the sms recaptcha works fine. 
+// error: Invalid site key or not loaded in api.js: Recaptchar_enterprise_SiteKey
+// as long as appcheck is using reCaptcha enterprise provider, the sms recaptcha will not work.

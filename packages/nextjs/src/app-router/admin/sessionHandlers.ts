@@ -88,13 +88,15 @@ const sessionEndpointHandler = async (
       idToken: string,
     ): Promise<Response> => {
       try {
-        await refreshCookieWithIdToken(idToken, cookieStore, config, referrer);
+        await refreshCookieWithIdToken(idToken, cookieStore, config, referrer, context.appCheckToken);
         return SessionResponseHelper.createSessionCreationResponse({
           success: true,
           message: 'Session created successfully',
         });
       } catch (error) {
-        return createApiErrorResponse('SESSION_CREATION_FAILED', 'Session creation failed', 500);
+        console.error('[SessionHandler - createsession] Error:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Session creation failed';
+        return createApiErrorResponse('SESSION_CREATION_FAILED', errorMessage, 500);
       }
     };
 
@@ -108,10 +110,17 @@ const sessionEndpointHandler = async (
           return createApiErrorResponse('INVALID_SESSION', 'Invalid session for refresh', 401);
         }
 
-        const refreshRes = await refreshCookieWithIdToken(idToken, cookieStore, config);
+        const refreshRes = await refreshCookieWithIdToken(
+          idToken,
+          cookieStore,
+          config,
+          undefined,
+          context.appCheckToken,
+        );
         return SessionResponseHelper.createRefreshResponse(refreshRes);
       } catch (error) {
-        return createApiErrorResponse('REFRESH_FAILED', 'Session refresh failed', 500);
+        const errorMessage = error instanceof Error ? error.message : 'Session refresh failed';
+        return createApiErrorResponse('REFRESH_FAILED', errorMessage, 500);
       }
     };
 
@@ -122,7 +131,8 @@ const sessionEndpointHandler = async (
 
     switch (subEndpoint) {
       case 'createsession': {
-        validateIdToken(idToken);
+        const idTokenError = validateIdToken(idToken);
+        if (idTokenError) return idTokenError;
         //eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         return handleCreateSession(cookieStore, idToken!);
       }

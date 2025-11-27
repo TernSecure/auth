@@ -20,6 +20,6 @@
     "target": "ES2022"
 
   },
-  "include": ["src", "src/lib", "src/components"],
+  "include": ["src", "src/lib", "src/components", "../nextjs/src/useAppCheck.ts"],
   "exclude": ["node_modules"]
 }
