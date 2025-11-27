@@ -2,6 +2,7 @@ import { isValidBrowserOnline } from '@tern-secure/shared/browser';
 import type { TernSecureApiErrorJSON, TernSecureResourceJSON } from '@tern-secure/types';
 
 import type { ApiRequestInit, ApiResponse, ApiResponseJSON } from '../instance/coreApiClient';
+import { FraudProtection } from '../instance/fraudProtection';
 //import { coreApiClient} from '../instance/coreApiClient';
 import { TernSecureAPIResponseError, TernSecureRuntimeError } from './Error';
 import type { AuthCookieManager, TernSecureAuth } from './internal';
@@ -54,11 +55,24 @@ export abstract class TernSecureBase {
     return !this.id;
   }
 
+  static async _fetch<J extends TernSecureResourceJSON | null>(
+    requestInit: ApiRequestInit,
+  ): Promise<ApiResponseJSON<J> | null> {
+    return FraudProtection.getInstance().execute(this.ternsecure, token => {
+      const newRequestInit = { ...requestInit };
+      if (token) {
+        newRequestInit.headers = new Headers(newRequestInit.headers);
+        newRequestInit.headers.set('X-Firebase-AppCheck', token);
+      }
+      return this._baseFetch<J>(newRequestInit);
+    });
+  }
+
   /**
    * Core method to fetch data from API endpoints using coreApiClient
    * This method handles the complete request lifecycle including error handling
    */
-  protected static async _baseFetchFromCoreApi<J extends TernSecureResourceJSON | null>(
+  protected static async _baseFetch<J extends TernSecureResourceJSON | null>(
     requestInit: ApiRequestInit,
   ): Promise<ApiResponseJSON<J> | null> {
     let apiResponse: ApiResponse<J>;
@@ -134,16 +148,16 @@ export abstract class TernSecureBase {
    * Convenience method for making POST requests
    */
   static async basePost(params: PostMutateParams): Promise<ApiResponseJSON<any> | null> {
-    return this._baseFetchFromCoreApi({ ...params, method: 'POST' });
+    return this._fetch({ ...params, method: 'POST' });
   }
 
   /**
    * Instance method to fetch data from API endpoints
    */
-  protected async _fetchFromCoreApi<J extends TernSecureResourceJSON>(
+  protected async _fetch<J extends TernSecureResourceJSON>(
     requestInit: ApiRequestInit,
   ): Promise<ApiResponseJSON<any> | null> {
-    return TernSecureBase._baseFetchFromCoreApi<J>(requestInit);
+    return TernSecureBase._fetch(requestInit);
   }
 
   /**
@@ -155,7 +169,7 @@ export abstract class TernSecureBase {
 
   protected async _baseMutate<J extends TernSecureResourceJSON>(params: BaseMutateParams = {}): Promise<this> {
     const { action, body, method, path } = params;
-    const json = await TernSecureBase._baseFetchFromCoreApi<J>({ method, path: path || this.path(action), body });
+    const json = await TernSecureBase._fetch<J>({ method, path: path || this.path(action), body });
     return this.fromJSON((json?.response || json) as J);
   }
 
@@ -164,7 +178,7 @@ export abstract class TernSecureBase {
    * This is a convenience method that sets the HTTP method to GET
    */
   protected async baseGet(params: Omit<PostMutateParams, 'method'>): Promise<ApiResponseJSON<any> | null> {
-    return this._fetchFromCoreApi({ ...params, method: 'GET' });
+    return this._fetch({ ...params, method: 'GET' });
   }
 
   /**
@@ -183,13 +197,13 @@ export abstract class TernSecureBase {
   }
 
   static async makeApiRequest(requestInit: ApiRequestInit): Promise<ApiResponseJSON<any> | null> {
-    return this._baseFetchFromCoreApi(requestInit);
+    return this._fetch(requestInit);
   }
 
   protected async makeApiRequest(
     requestInit: ApiRequestInit,
   ): Promise<ApiResponseJSON<any> | null> {
-    return this._fetchFromCoreApi(requestInit);
+    return this._fetch(requestInit);
   }
 
   private static shouldRethrowofflineNetworkError(): boolean {

@@ -1,4 +1,4 @@
-import type { DecodedIdToken, TernSecureConfig, TernSecureUserData } from '@tern-secure/types';
+import type { DecodedIdToken, TernSecureAdminConfig, TernSecureConfig, TernSecureUserData} from '@tern-secure/types';
 
 import type { JwtReturnType } from '../jwt/types';
 import { ternDecodeJwt, verifyJwt, type VerifyJwtOptions } from '../jwt/verifyJwt';
@@ -10,7 +10,7 @@ export type VerifyTokenVOptions = Omit<VerifyJwtOptions, 'key'> & Omit<LoadJWKFr
   jwtKey?: string;
 };
 
-export { TernSecureConfig, TernSecureUserData };
+export { TernSecureConfig, TernSecureAdminConfig, TernSecureUserData };
 
 export async function verifyToken(
   token: string,

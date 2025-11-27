@@ -12,7 +12,7 @@ export default function LoginPage() {
           socialButtonsPlacement: 'top',
         },
       }}
-      initialValues={{ phoneNumber: '' }}
+      //initialValues={{ phoneNumber: '' }}
     />
   );
 }

@@ -1,4 +1,5 @@
 import admin from 'firebase-admin';
+import { getAppCheck } from "firebase-admin/app-check";
 
 import { initializeAdminConfig } from './config';
 
@@ -19,6 +20,7 @@ if (!admin.apps.length) {
 export const adminTernSecureAuth: admin.auth.Auth = admin.auth();
 export const adminTernSecureDb: admin.firestore.Firestore = admin.firestore();
 export const TernSecureTenantManager: admin.auth.TenantManager = admin.auth().tenantManager();
+export const appCheckAdmin: admin.appCheck.AppCheck = getAppCheck();
 
 /**
  * Gets the appropriate Firebase Auth instance.

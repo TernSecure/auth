@@ -1,6 +1,7 @@
 import { createCustomToken } from '../jwt/customJwt';
 import type { AuthenticateRequestOptions, TernSecureUserData } from '../tokens/types';
 import { verifyToken } from '../tokens/verify';
+import { ServiceAccountTokenManager } from './credential';
 
 export interface IdAndRefreshTokens {
   idToken: string;
@@ -28,14 +29,6 @@ interface FirebaseRefreshTokenResponse {
   isNewUser: boolean;
 }
 
-interface FirebaseCustomTokenResponse {
-  kind: string;
-  idToken: string;
-  refreshToken: string;
-  expiresIn: string;
-  isNewUser: boolean;
-}
-
 type AuthResult<T = any> = { data: T; error: null } | { data: null; error: any };
 
 const API_KEY_ERROR = 'API Key is required';
@@ -53,9 +46,22 @@ function parseFirebaseResponse<T>(data: unknown): T {
 }
 
 export function getAuth(options: AuthenticateRequestOptions) {
-  const { apiKey } = options;
+  const { apiKey, firebaseAdminConfig } = options;
   const firebaseApiKey = options.firebaseConfig?.apiKey;
   const effectiveApiKey = apiKey || firebaseApiKey;
+
+  let credential: ServiceAccountTokenManager | null = null;
+  if (
+    firebaseAdminConfig?.projectId &&
+    firebaseAdminConfig?.privateKey &&
+    firebaseAdminConfig?.clientEmail
+  ) {
+    credential = new ServiceAccountTokenManager({
+      projectId: firebaseAdminConfig.projectId,
+      privateKey: firebaseAdminConfig.privateKey,
+      clientEmail: firebaseAdminConfig.clientEmail,
+    });
+  }
 
   async function getUserData(idToken?: string, localId?: string): Promise<TernSecureUserData> {
     if (!effectiveApiKey) {
@@ -111,7 +117,7 @@ export function getAuth(options: AuthenticateRequestOptions) {
     if (!effectiveApiKey) {
       throw new Error('API Key is required to create custom token');
     }
-    const response = await options.apiClient?.tokens.exchangeCustomForIdAndRefreshTokens(
+    const data = await options.apiClient?.tokens.exchangeCustomForIdAndRefreshTokens(
       effectiveApiKey,
       {
         token: customToken,
@@ -119,18 +125,17 @@ export function getAuth(options: AuthenticateRequestOptions) {
       },
       {
         referer: opts.referer,
+        appCheckToken: opts.appCheckToken,
       },
     );
 
-    if (!response?.data) {
+    if (!data) {
       throw new Error('No data received from Firebase token exchange');
     }
 
-    const parsedData = parseFirebaseResponse<FirebaseCustomTokenResponse>(response.data);
-
     return {
-      idToken: parsedData.idToken,
-      refreshToken: parsedData.refreshToken,
+      idToken: data.idToken,
+      refreshToken: data.refreshToken,
     };
   }
 
@@ -159,6 +164,7 @@ export function getAuth(options: AuthenticateRequestOptions) {
 
     const idAndRefreshTokens = await customForIdAndRefreshToken(customToken, {
       referer: opts.referer,
+      appCheckToken: opts.appCheckToken,
     });
 
     const decodedCustomIdToken = await verifyToken(idAndRefreshTokens.idToken, options);
@@ -173,10 +179,68 @@ export function getAuth(options: AuthenticateRequestOptions) {
     };
   }
 
+  async function exchangeAppCheckToken(idToken: string): Promise<AuthResult> {
+    if (!credential) {
+      return {
+        data: null,
+        error: new Error(
+          'Firebase Admin config must be provided to exchange App Check tokens.',
+        ),
+      };
+    }
+    if (!effectiveApiKey) {
+      return { data: null, error: new Error(API_KEY_ERROR) };
+    }
+
+    try {
+      const decoded = await verifyToken(idToken, options);
+      if (decoded.errors) {
+        return { data: null, error: decoded.errors[0] };
+      }
+
+      const customToken = await createCustomToken(decoded.data.uid, {
+        emailVerified: decoded.data.email_verified,
+        source_sign_in_provider: decoded.data.firebase.sign_in_provider,
+      });
+
+      const projectId = options.firebaseConfig?.projectId;
+      const appId = options.firebaseConfig?.appId;
+
+      if (!projectId || !appId) {
+        return { data: null, error: new Error('Project ID and App ID are required for App Check') };
+      }
+
+      const { accessToken } = await credential.getAccessToken();
+
+      const appCheckResponse = await options.apiClient?.appCheck.exchangeCustomToken({
+        accessToken,
+        projectId,
+        appId,
+        customToken,
+        limitedUse: false,
+      });
+
+      if (!appCheckResponse?.token) {
+        return { data: null, error: new Error('Failed to exchange for App Check token') };
+      }
+
+      return {
+        data: {
+          token: appCheckResponse.token,
+          ttl: appCheckResponse.ttl
+        },
+        error: null,
+      };
+    } catch (error) {
+      return { data: null, error };
+    }
+  }
+
   return {
     getUserData,
     customForIdAndRefreshToken,
     createCustomIdAndRefreshToken,
     refreshExpiredIdToken,
+    exchangeAppCheckToken,
   };
 }

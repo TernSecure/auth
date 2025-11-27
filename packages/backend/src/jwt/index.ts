@@ -6,4 +6,5 @@ export { ternDecodeJwt as ternDecodeJwtUnguarded } from './verifyJwt';
 
 export * from './jwt';
 export * from './customJwt';
+export * from './signJwt';
 export type { JwtReturnType } from './types';

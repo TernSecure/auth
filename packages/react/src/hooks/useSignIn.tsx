@@ -33,7 +33,7 @@ export const useSignIn = (): UseSignInReturn => {
 };
 
 export const signIn = {
-  authenticateWithPasswordd: async (params: SignInPasswordParams): Promise<SignInResponse> => {
+  authenticateWithPassword: async (params: SignInPasswordParams): Promise<SignInResponse> => {
     const auth = useAuthSignInCtx();
     if (!auth) {
       throw new Error('SignIn methods not available - auth not initialized');

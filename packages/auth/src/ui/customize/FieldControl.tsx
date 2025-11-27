@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React from 'react';
 
 import { Field as FieldCn, FieldError, FieldLabel, Input } from '../elements';
 import { Eye, EyeOff } from '../icons';
@@ -14,6 +14,12 @@ export interface FieldProps {
 
 export interface PasswordFieldProps extends FieldProps {
   onForgotPassword?: () => void;
+}
+
+export interface OTPFieldProps extends FieldProps {
+  length?: number;
+  onResendCode?: React.MouseEventHandler;
+  isLoading?: boolean;
 }
 
 const TernFieldErrors = () => {
@@ -57,7 +63,7 @@ const TernPasswordField = ({
   onForgotPassword,
 }: PasswordFieldProps) => {
   const field = useFieldContext<string>();
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = React.useState(false);
 
   return (
     <FieldCn>

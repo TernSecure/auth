@@ -1,7 +1,7 @@
 import { useTernSecure } from '@tern-secure/shared/react';
 import type { EmailCodeFactor, PhoneCodeFactor } from '@tern-secure/types';
 import type { ApplicationVerifier } from 'firebase/auth';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import React from 'react';
 
 import type { VerificationCodeCardProps } from '../../common/VerificationCodeCard';
 import { VerificationCodeCard } from '../../common/VerificationCodeCard';
@@ -21,71 +21,78 @@ export const SignInFactorOneCodeForm = (props: SignInFactorOneCodeFormProps) => 
   const { navigate } = useRouter();
   const { afterSignInUrl } = useSignInContext();
   const ternSecure = useTernSecure();
-  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
-  const [verifier, setVerifier] = useState<ApplicationVerifier | null>(null);
-  const [isInitializing, setIsInitializing] = useState(false);
+  const recaptchaContainerRef = React.useRef<HTMLDivElement>(null);
+  const [verifier, setVerifier] = React.useState<ApplicationVerifier | null>(null);
+  const [isInitializing, setIsInitializing] = React.useState(false);
+  const initializationAttempted = React.useRef(false);
 
-  const sendSmsCode = useCallback(async (appVerifier: ApplicationVerifier) => {
-    if (!signIn?.identifier) return;
-    const res = await signIn.authenticateWithPhoneNumber({
-      phoneNumber: signIn.identifier,
-      appVerifier,
-    });
-    if (res.status === 'error') {
-      card.setError({
-        status: 'error',
-        message: res.message,
-        error: res.error,
+  const sendSmsCode = React.useCallback(
+    async (appVerifier: ApplicationVerifier) => {
+      if (!signIn?.identifier) return;
+      const res = await signIn.authenticateWithPhoneNumber({
+        phoneNumber: signIn.identifier,
+        appVerifier,
       });
-    }
-  }, [signIn, card]);
 
-  useEffect(() => {
-    const initializeRecaptcha = async () => {
-      if (
-        props.factor.strategy === 'phone_code' &&
-        signIn &&
-        recaptchaContainerRef.current &&
-        !verifier &&
-        !isInitializing
-      ) {
-        setIsInitializing(true);
-        try {
-          const container = recaptchaContainerRef.current;
-          
-          // Ensure container has proper structure and styling
-          if (!container.id) {
-            container.id = 'recaptcha-container';
-          }
-          
-          const appVerifier = signIn.createRecaptchaVerifier(container, {
-            size: 'invisible',
-            callback: (_response: any) => {
-              // reCAPTCHA solved
-            },
-            'expired-callback': () => {
-              // Response expired - reset verifier
-              setVerifier(null);
-              setIsInitializing(false);
-            },
-          });
-          
-          setVerifier(appVerifier);
-          await sendSmsCode(appVerifier);
-        } catch (e) {
-          console.error('Failed to initialize Recaptcha', e);
-          card.setError({
-            status: 'error',
-            message: 'Failed to initialize security verification',
-            error: e,
-          });
-          setIsInitializing(false);
-        }
+      if (res.status === 'error') {
+        card.setError({
+          status: 'error',
+          message: res.message,
+          error: res.error,
+        });
       }
-    };
-    
-    void initializeRecaptcha();
+    },
+    [signIn, card],
+  );
+
+  const initializeRecaptcha = React.useCallback(async () => {
+    if (
+      props.factor.strategy === 'phone_code' &&
+      signIn &&
+      recaptchaContainerRef.current &&
+      !verifier &&
+      !isInitializing &&
+      !initializationAttempted.current
+    ) {
+      initializationAttempted.current = true;
+      setIsInitializing(true);
+      try {
+        const container = recaptchaContainerRef.current;
+
+        if (!container.id) {
+          container.id = 'recaptcha-container';
+        }
+
+        const appVerifier = signIn.createRecaptchaVerifier(container, {
+          size: 'invisible',
+          callback: (_response: any) => {
+            // reCAPTCHA solved
+          },
+          'expired-callback': () => {
+            // Response expired - reset verifier
+            setVerifier(null);
+            setIsInitializing(false);
+            initializationAttempted.current = false;
+          },
+        });
+
+        setVerifier(appVerifier);
+        await sendSmsCode(appVerifier);
+      } catch (e) {
+        card.setError({
+          status: 'error',
+          message: 'Failed to initialize security verification',
+          error: e,
+        });
+        setIsInitializing(false);
+        initializationAttempted.current = false;
+      }
+    }
   }, [props.factor.strategy, signIn, verifier, isInitializing, sendSmsCode, card]);
+
+  React.useEffect(() => {
+    void initializeRecaptcha();
+  }, [initializeRecaptcha]);
 
   const action = (
     code: string,
@@ -96,13 +103,7 @@ export const SignInFactorOneCodeForm = (props: SignInFactorOneCodeFormProps) => 
       try {
         let res;
         if (props.factor.strategy === 'phone_code') {
-          // @ts-ignore: attemptPhoneNumberVerification exists on SignIn class but not in SignInResource interface
           res = await signIn?.attemptPhoneNumberVerification({ code });
-        } else {
-          res = await signIn?.attemptFirstFactor({
-            strategy: props.factor.strategy,
-            code,
-          });
         }
 
         if (res?.status === 'success') {
@@ -158,6 +159,8 @@ export const SignInFactorOneCodeForm = (props: SignInFactorOneCodeFormProps) => 
         onCodeEntryFinishedAction={action}
         onResendCodeClicked={handleResend}
         onBackLinkClicked={goBack}
+        inputLabel='SignIn PhoneCode'
+        submitButtonText='Continue'
       />
     </>
   );

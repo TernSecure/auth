@@ -11,7 +11,7 @@ type UserDataOptions = {
 };
 
 export class UserData extends AbstractAPI {
-    public async getUserData(apiKey: string, params: UserDataParams, options?: UserDataOptions) {
+  public async getUserData(apiKey: string, params: UserDataParams, options?: UserDataOptions) {
     this.requireApiKey(apiKey);
     const { ...restParams } = params;
 

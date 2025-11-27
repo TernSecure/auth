@@ -1,4 +1,4 @@
-import { handleFirebaseAuthError, TernSecureError } from '@tern-secure/shared/errors';
+import { handleFirebaseAuthError } from '@tern-secure/shared/errors';
 import type {
   AttemptFirstFactorParams,
   ResendEmailVerification,
@@ -101,9 +101,13 @@ export class SignIn extends TernSecureBase implements SignInResource {
     });
   };
 
-  attemptPhoneNumberVerification = async (params: { code: string }): Promise<SignInResource> => {
+  attemptPhoneNumberVerification = async (params: { code: string }): Promise<SignInResponse> => {
     if (!this._confirmationResult) {
-      throw new TernSecureError('UNKNOWN_ERROR', 'No confirmation result found');
+      return {
+        status: 'error',
+        message: 'No confirmation result found',
+        error: 'UNKNOWN_ERROR',
+      };
     }
 
     try {
@@ -111,12 +115,20 @@ export class SignIn extends TernSecureBase implements SignInResource {
       this._currentUser = result.user as TernSecureUser;
       this.status = 'success';
       this._confirmationResult = null;
-      return this;
+
+      return {
+        status: 'success',
+        user: this._currentUser,
+        message: 'Phone number verified',
+      };
     } catch (error) {
       const authError = handleFirebaseAuthError(error);
       this.status = 'error';
-      console.error(authError);
-      throw new TernSecureError(authError.code, authError.message);
+      return {
+        status: 'error',
+        message: authError.message,
+        error: authError.code,
+      };
     }
   };
 
@@ -167,14 +179,6 @@ export class SignIn extends TernSecureBase implements SignInResource {
   authenticateWithPhoneNumber = async (params: SignInPhoneParams): Promise<SignInResponse> => {
     try {
       const { phoneNumber, appVerifier } = params as SignInPhoneParams & { appVerifier?: ApplicationVerifier };
-
-      //if (!appVerifier) {
-      //  return {
-      //    status: 'error',
-      //    message: 'ApplicationVerifier is missing',
-      //    error: 'missing_app_verifier',
-      //  };
-      //}
 
       this._confirmationResult = await signInWithPhoneNumber(this.auth, phoneNumber, appVerifier);
 

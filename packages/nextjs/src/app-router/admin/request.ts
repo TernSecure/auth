@@ -21,6 +21,7 @@ export async function refreshCookieWithIdToken(
   cookieStore: NextCookieStore,
   config?: TernSecureHandlerOptions,
   referrer?: string,
+  appCheckToken?: string,
 ): Promise<void> {
   const backendClient = await ternSecureBackendClient();
 
@@ -41,7 +42,12 @@ export async function refreshCookieWithIdToken(
 
   const { createCustomIdAndRefreshToken } = getAuth(authOptions);
 
-  const customTokens = await createCustomIdAndRefreshToken(idToken, { referer: referrer });
+
+  const customTokens = await createCustomIdAndRefreshToken(idToken, {
+    referer: referrer,
+    appCheckToken,
+  });
+
 
   const cookiePrefix = getCookiePrefix();
 

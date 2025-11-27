@@ -1,7 +1,7 @@
 import { ternSecureProxy, createRouteMatcher } from '@tern-secure/nextjs/server';
 
 const publicPaths = createRouteMatcher([
-  '/sign-in(.*)', 
+  '/sign-in(.*)',
   '/sign-up(.*)',
   '/unauthorized',
   '/api/auth/(.*)',
@@ -23,5 +23,12 @@ export default ternSecureProxy(
         return require({ role: 'admin' });
       });
     }
-  }, { session: { maxAge: '1 hour' } },
+  }, {
+  firebaseAdminConfig: {
+    projectId: process.env.FIREBASE_PROJECT_ID || '',
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
+    privateKey: process.env.FIREBASE_PRIVATE_KEY || '',
+  },
+  session: { maxAge: '1 hour' }
+},
 );

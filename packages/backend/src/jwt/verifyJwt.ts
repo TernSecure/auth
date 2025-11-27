@@ -51,37 +51,48 @@ export async function verifySignature(
 }
 
 export function ternDecodeJwt(token: string): JwtReturnType<Jwt, TokenVerificationError> {
-  const header = decodeProtectedHeader(token);
-  const payload = decodeJwt(token);
+  try {
+    const header = decodeProtectedHeader(token);
+    const payload = decodeJwt(token);
 
-  const tokenParts = (token || '').toString().split('.');
-  if (tokenParts.length !== 3) {
+    const tokenParts = (token || '').toString().split('.');
+    if (tokenParts.length !== 3) {
+      return {
+        errors: [
+          new TokenVerificationError({
+            reason: TokenVerificationErrorReason.TokenInvalid,
+            message: 'Invalid JWT format',
+          }),
+        ],
+      };
+    }
+
+    const [rawHeader, rawPayload, rawSignature] = tokenParts;
+    const signature = base64url.parse(rawSignature, { loose: true });
+
+    const data = {
+      header,
+      payload,
+      signature,
+      raw: {
+        header: rawHeader,
+        payload: rawPayload,
+        signature: rawSignature,
+        text: token,
+      },
+    } satisfies Jwt;
+
+    return { data };
+  } catch (error) {
     return {
       errors: [
         new TokenVerificationError({
           reason: TokenVerificationErrorReason.TokenInvalid,
-          message: 'Invalid JWT format',
+          message: `${(error as Error).message || 'Invalid Token or Protected Header formatting'} (Token length: ${token?.length}, First 10 chars: ${token?.substring(0, 10)}...)`,
         }),
       ],
     };
   }
-
-  const [rawHeader, rawPayload, rawSignature] = tokenParts;
-  const signature = base64url.parse(rawSignature, { loose: true });
-
-  const data = {
-    header,
-    payload,
-    signature,
-    raw: {
-      header: rawHeader,
-      payload: rawPayload,
-      signature: rawSignature,
-      text: token,
-    },
-  } satisfies Jwt;
-
-  return { data };
 }
 
 export async function verifyJwt(

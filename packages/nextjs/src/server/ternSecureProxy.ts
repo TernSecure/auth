@@ -12,7 +12,7 @@ import { NextResponse } from 'next/server';
 
 import { isRedirect, setHeader } from '../utils/response';
 import { serverRedirectWithAuth } from '../utils/serverRedirectAuth';
-import { FIREBASE_API_KEY, SIGN_IN_URL, SIGN_UP_URL } from './constant';
+import { FIREBASE_API_KEY, FIREBASE_APP_ID, FIREBASE_PROJECT_ID,SIGN_IN_URL, SIGN_UP_URL } from './constant';
 import {
   isNextjsNotFoundError,
   isNextjsRedirectError,
@@ -93,11 +93,21 @@ export const ternSecureProxy = ((
       const signInUrl = resolvedParams.signInUrl || SIGN_IN_URL;
       const signUpUrl = resolvedParams.signUpUrl || SIGN_UP_URL;
       const apiKey = resolvedParams.apiKey || FIREBASE_API_KEY;
+      const appId = FIREBASE_APP_ID;
+      const projectId = FIREBASE_PROJECT_ID;
+      const firebaseConfig = resolvedParams.firebaseConfig || {
+        apiKey,
+        appId,
+        projectId,
+      }
+      const firebaseAdminConfig = resolvedParams.firebaseAdminConfig;
 
       const options = {
         signInUrl,
         signUpUrl,
         apiKey,
+        firebaseConfig,
+        firebaseAdminConfig,
         ...resolvedParams,
       };
 
@@ -111,6 +121,8 @@ export const ternSecureProxy = ((
       );
 
       const locationHeader = requestStateClient.headers.get(constants.Headers.Location);
+      const appCheckToken = requestStateClient.headers.get(constants.Headers.AppCheckToken);
+      console.log("[ternSecureProxy] App Check Token in Proxy:", appCheckToken);
       if (locationHeader) {
         return new Response(null, {
           status: 307,
@@ -157,7 +169,7 @@ export const ternSecureProxy = ((
         return serverRedirectWithAuth(ternSecureRequest, handlerResult);
       }
 
-      decorateRequest(ternSecureRequest, handlerResult, requestStateClient);
+      decorateRequest(ternSecureRequest, handlerResult, requestStateClient, appCheckToken || undefined);
       return handlerResult;
     };
 

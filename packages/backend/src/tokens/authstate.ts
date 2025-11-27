@@ -154,6 +154,7 @@ export function signedIn(
   token: string,
 ): SignedInState {
   const authObject = signedInAuthObject(token, sessionClaims);
+  
   return {
     status: AuthStatus.SignedIn,
     message: null,

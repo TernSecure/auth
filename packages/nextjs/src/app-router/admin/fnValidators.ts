@@ -233,6 +233,13 @@ export function createValidators(context: RequestProcessorContext) {
         400,
       );
     }
+    if (idToken.split('.').length !== 3) {
+      return createApiErrorResponse(
+        'INVALID_TOKEN_FORMAT',
+        'ID token must be a valid JWT',
+        400,
+      );
+    }
     return null;
   }
 
