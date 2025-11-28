@@ -131,7 +131,6 @@ const authenticateRequest = async (
   appCheckToken?: string
 ): Promise<{ user: SerializableTernSecureUser; claims: ParsedToken } | null> => {
   try {
-    //console.log("[getAuthDataFromRequest] App Check Token:", appCheckToken);
     const origin = new URL(request.url).origin;
 
     const requestHeaders = new Headers(request.headers);

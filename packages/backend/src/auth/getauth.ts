@@ -188,20 +188,12 @@ export function getAuth(options: AuthenticateRequestOptions) {
         ),
       };
     }
-    if (!effectiveApiKey) {
-      return { data: null, error: new Error(API_KEY_ERROR) };
-    }
 
     try {
       const decoded = await verifyToken(idToken, options);
       if (decoded.errors) {
         return { data: null, error: decoded.errors[0] };
       }
-
-      const customToken = await createCustomToken(decoded.data.uid, {
-        emailVerified: decoded.data.email_verified,
-        source_sign_in_provider: decoded.data.firebase.sign_in_provider,
-      });
 
       const projectId = options.firebaseConfig?.projectId;
       const appId = options.firebaseConfig?.appId;

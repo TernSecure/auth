@@ -1,14 +1,14 @@
 import type { JWTPayload } from '@tern-secure/types';
 
-import { ternSignJwt } from '../jwt';
 import {
     GOOGLE_AUTH_TOKEN_HOST,
     GOOGLE_AUTH_TOKEN_PATH,
     GOOGLE_TOKEN_AUDIENCE,
     ONE_HOUR_IN_SECONDS,
     TOKEN_EXPIRY_THRESHOLD_MILLIS
-} from './constants'
-import { fetchJson } from './utils';
+} from '../constants'
+import { ternSignJwt } from '../jwt';
+import { fetchJson } from '../utils/fetcher';
 
 
 export interface GoogleOAuthAccessToken {

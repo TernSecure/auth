@@ -1,18 +1,5 @@
-import { AbstractAPI } from './AbstractApi';
+import type { AppCheckParams, AppCheckToken } from './types'
 
-
-export interface AppCheckTokenResponse {
-    token: string;
-    ttl: string;
-}
-
-type AppCheckParams = {
-    accessToken: string;
-    projectId: string;
-    appId: string;
-    customToken: string;
-    limitedUse?: boolean;
-}
 
 export function getSdkVersion(): string {
     return '12.7.0';
@@ -26,8 +13,8 @@ const FIREBASE_APP_CHECK_CONFIG_HEADERS = {
  * App Check API for managing Firebase App Check tokens via REST
  * Firebase REST API endpoint: https://firebaseappcheck.googleapis.com/v1beta/projects/{projectId}/apps/{appId}:exchangeCustomToken
  */
-export class AppCheckApi extends AbstractAPI {
-    public async exchangeCustomToken(params: AppCheckParams): Promise<AppCheckTokenResponse> {
+export class AppCheckApi {
+    public async exchangeToken(params: AppCheckParams): Promise<AppCheckToken> {
         const { projectId, appId, customToken, accessToken, limitedUse = false } = params;
         if (!projectId || !appId) {
             throw new Error('Project ID and App ID are required for App Check token exchange');
@@ -44,7 +31,7 @@ export class AppCheckApi extends AbstractAPI {
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers,
-                body: JSON.stringify({customToken, limitedUse}),
+                body: JSON.stringify({ customToken, limitedUse }),
             });
 
             if (!response.ok) {
@@ -62,7 +49,7 @@ export class AppCheckApi extends AbstractAPI {
             throw error;
         }
     }
-    public async exchangeDebugToken(params: AppCheckParams): Promise<AppCheckTokenResponse> {
+    public async exchangeDebugToken(params: AppCheckParams): Promise<AppCheckToken> {
         const { projectId, appId, customToken, accessToken, limitedUse = false } = params;
         if (!projectId || !appId) {
             throw new Error('Project ID and App ID are required for App Check token exchange');

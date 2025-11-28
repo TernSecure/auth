@@ -7,4 +7,5 @@ export { ternDecodeJwt as ternDecodeJwtUnguarded } from './verifyJwt';
 export * from './jwt';
 export * from './customJwt';
 export * from './signJwt';
-export type { JwtReturnType } from './types';
+export { ServiceAccountSigner, IAMSigner } from './crypto-signer';
+export type { JwtReturnType, CryptoSigner } from './types';
