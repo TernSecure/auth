@@ -6,13 +6,22 @@ type ResetPasswordEmailParams = {
     requestType: 'PASSWORD_RESET';
 };
 
+type opts = {
+    appCheckToken?: string;
+}
+
 export class SignInApi extends AbstractAPI {
     public async resetPasswordEmail(
         apiKey: string,
-        params: ResetPasswordEmailParams
+        params: ResetPasswordEmailParams,
+        options?: opts,
     ): Promise<ResetPasswordEmail> {
         try {
             this.requireApiKey(apiKey);
+            const headers: Record<string, string> = {};
+            if (options?.appCheckToken) {
+                headers['X-Firebase-AppCheck'] = options.appCheckToken;
+            }
             const { ...restParams } = params;
 
             const response = await this.request<ResetPasswordEmail>({
@@ -20,6 +29,7 @@ export class SignInApi extends AbstractAPI {
                 method: 'POST',
                 apiKey,
                 bodyParams: restParams,
+                headerParams: headers,
             });
 
             if (response.errors) {
