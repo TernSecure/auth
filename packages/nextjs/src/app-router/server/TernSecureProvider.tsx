@@ -1,4 +1,5 @@
 import type { TernSecureInitialState } from '@tern-secure/types';
+import { headers } from 'next/headers';
 import type { ReactNode } from 'react';
 import React from 'react';
 
@@ -8,12 +9,21 @@ import { isNext13 } from '../../server/sdk-versions';
 import type { TernSecureNextProps } from '../../types';
 import { allNextProviderPropsWithEnv } from '../../utils/allNextProviderProps';
 import { ClientTernSecureProvider } from '../client/TernSecureProvider';
-import { buildRequestLike } from './utils';
+import { buildRequestLike, getScriptNonceFromHeader } from './utils';
 
 const getTernSecureState = React.cache(async function getTernSecureState() {
   const request = await buildRequestLike();
   const data = getTernSecureAuthData(request);
+
   return data;
+});
+
+const getNonceHeaders = React.cache(async function getNonceHeaders() {
+  const headersList = await headers();
+  const nonce = headersList.get('X-Nonce');
+  return nonce 
+    ? nonce
+    : getScriptNonceFromHeader(headersList.get('Content-Security-Policy') || '') || '';
 });
 
 export async function TernSecureProvider(props: TernSecureNextProps) {
@@ -32,6 +42,16 @@ export async function TernSecureProvider(props: TernSecureNextProps) {
     return getTernSecureState();
   }
 
+  async function generateNonce() {
+    if (!browserCookiePersistence) {
+      return Promise.resolve('');
+    }
+    if (isNext13) {
+      return Promise.resolve(await getNonceHeaders());
+    }
+    return getNonceHeaders();
+  }
+
   const providerProps = allNextProviderPropsWithEnv({ ...rest });
 
   let output: ReactNode;
@@ -43,6 +63,7 @@ export async function TernSecureProvider(props: TernSecureNextProps) {
       >
         <ClientTernSecureProvider
           {...providerProps}
+          nonce={await generateNonce()}
           initialState={await generateStatePromise()}
         >
           {children}
@@ -53,6 +74,8 @@ export async function TernSecureProvider(props: TernSecureNextProps) {
     output = (
       <ClientTernSecureProvider
         {...providerProps}
+        nonce={await generateNonce()}
+        initialState={await getTernSecureState()}
       >
         {children}
       </ClientTernSecureProvider>

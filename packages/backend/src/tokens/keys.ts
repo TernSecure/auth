@@ -60,16 +60,17 @@ async function fetchPublicKeys(keyUrl: string): Promise<PublicKeysResponse> {
 }
 
 export async function loadJWKFromRemote({
-  keyURL = GOOGLE_PUBLIC_KEYS_URL,
+  keyURL,
   skipJwksCache,
   kid,
 }: LoadJWKFromRemoteOptions): Promise<string> {
+  const finalKeyURL = keyURL || GOOGLE_PUBLIC_KEYS_URL;
   if (skipJwksCache || isCacheExpired() || !getFromCache(kid)) {
-    const { keys, expiresAt } = await fetchPublicKeys(keyURL);
+    const { keys, expiresAt } = await fetchPublicKeys(finalKeyURL);
 
     if (!keys || Object.keys(keys).length === 0) {
       throw new TokenVerificationError({
-        message: `The JWKS endpoint ${keyURL} returned no keys`,
+        message: `The JWKS endpoint ${finalKeyURL} returned no keys`,
         reason: TokenVerificationErrorReason.RemoteJWKFailedToLoad,
       });
     }

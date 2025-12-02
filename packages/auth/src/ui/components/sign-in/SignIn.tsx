@@ -22,29 +22,31 @@ function RedirectToSignIn() {
 
 function SignInRoutes(): React.JSX.Element {
   return (
-    <Switch>
-      <Route path='reset-password'>
-        <PasswordReset />
-      </Route>
-      <Route path='reset-password-success'>
-        <PasswordResetSuccess />
-      </Route>
-      <Route path='factor-one'>
-        <SignInFactorOne />
-      </Route>
-      <Route
-        path='verify-email-address'
-        canActivate={ternsecure => !!ternsecure.signIn?.identifier}
-      >
-        <SignInVerifyEmail />
-      </Route>
-      <Route index>
-        <SignInStart />
-      </Route>
-      <Route>
-        <RedirectToSignIn />
-      </Route>
-    </Switch>
+    <div className="tern-secure-auth">
+      <Switch>
+        <Route path='reset-password'>
+          <PasswordReset />
+        </Route>
+        <Route path='reset-password-success'>
+          <PasswordResetSuccess />
+        </Route>
+        <Route path='factor-one'>
+          <SignInFactorOne />
+        </Route>
+        <Route
+          path='verify-email-address'
+          canActivate={ternsecure => !!ternsecure.signIn?.identifier}
+        >
+          <SignInVerifyEmail />
+        </Route>
+        <Route index>
+          <SignInStart />
+        </Route>
+        <Route>
+          <RedirectToSignIn />
+        </Route>
+      </Switch>
+    </div>
   );
 }
 

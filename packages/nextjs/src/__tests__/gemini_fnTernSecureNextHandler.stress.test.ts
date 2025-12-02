@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeAll } from 'vitest';
 import { NextRequest, NextResponse } from 'next/server';
 import { geminiCreateTernSecureNextJsHandlerFn } from '../../examples/gemini_fnTernSecureNextHandler';
-import { SessionEndpointHandler } from '../app-router/admin/sessionHandlers';
+import { SessionEndpointHandler } from '../app-router/admin/handlers';
 
 vi.mock('../sessionHandlers', () => ({
   SessionEndpointHandler: {

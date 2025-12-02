@@ -26,7 +26,7 @@ export function getHeader(req: RequestLike, name: string): string | null | undef
   return req.headers[name] || req.headers[name.toLowerCase()] || (req.socket as any)?._httpMessage?.getHeader(name);
 }
 
-export function detectClerkMiddleware(req: RequestLike): boolean {
+export function detectTernSecureMiddleware(req: RequestLike): boolean {
   return Boolean(getAuthKeyFromRequest(req, 'AuthStatus'));
 }
 

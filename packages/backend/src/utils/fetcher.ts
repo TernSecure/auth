@@ -17,6 +17,10 @@ async function getDetailFromResponse(response: Response): Promise<string> {
     return detail;
 }
 
+export async function fetchText(url: string, init: RequestInit) {
+  return (await fetchAny(url, init)).text();
+}
+
 export async function fetchJson(url: string, init: RequestInit) {
     return (await fetchAny(url, init)).json();
 }

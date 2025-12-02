@@ -1,8 +1,8 @@
 import type { StringValue } from '@tern-secure/shared/ms';
 
-import type { CheckRevokedOptions } from '../adapters';
+import type { AppCheckOptions, CheckRevokedOptions } from '../adapters';
 import type { ApiClient } from '../fireRestApi';
-import type { TernSecureAdminConfig, TernSecureConfig, TernSecureUserData, VerifyTokenVOptions } from './verify';
+import type { TernSecureConfig, TernSecureUserData, VerifyTokenVOptions } from './verify';
 
 export type SessionCookieAttributes = {
   path?: string;
@@ -35,7 +35,6 @@ export type AuthenticateFireRequestOptions = {
   firebaseConfig?: TernSecureConfig
 } & VerifyTokenVOptions;
 
-
 export type AuthenticateRequestOptions = {
   tenantId?: string;
   signInUrl?: string;
@@ -46,8 +45,10 @@ export type AuthenticateRequestOptions = {
   apiUrl?: string;
   apiVersion?: string;
   session?: { maxAge?: StringValue };
-  firebaseConfig?: TernSecureConfig;
-  firebaseAdminConfig?: TernSecureAdminConfig;
+  debug?: boolean;
+  enableCustomToken?: boolean;
+  revokeRefreshTokensOnSignOut?: boolean;
+  appCheck?: AppCheckOptions;
 } & VerifyTokenVOptions;
 
 export type { TernSecureUserData };

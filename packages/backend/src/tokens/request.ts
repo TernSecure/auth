@@ -45,9 +45,10 @@ export async function authenticateRequest(
   options: AuthenticateRequestOptions,
 ): Promise<RequestState> {
   const context = createRequestProcessor(createTernSecureRequest(request), options);
-  const { refreshTokenInCookie, appCheckToken } = context;
+  const { refreshTokenInCookie } = context;
 
   const { refreshExpiredIdToken } = getAuth(options);
+
 
   function checkSessionTimeout(authTimeValue: number): SignedOutState | null {
     const defaultMaxAgeSeconds = convertToSeconds('5 days');
@@ -57,7 +58,7 @@ export async function authenticateRequest(
 
     const currentTime = Math.floor(Date.now() / 1000);
     const authAge = currentTime - authTimeValue;
-    
+
 
     if (authTimeValue > 0 && authAge > REAUTH_PERIOD_SECONDS) {
       return signedOut(context, AuthErrorReason.AuthTimeout, 'Authentication expired');
@@ -78,7 +79,6 @@ export async function authenticateRequest(
     }
     return await refreshExpiredIdToken(refreshTokenInCookie, {
       referer: context.ternUrl.origin,
-      appCheckToken: appCheckToken,
     });
   }
 
@@ -142,7 +142,7 @@ export async function authenticateRequest(
 
 
     if (reason === AuthErrorReason.SessionTokenWithoutTernAUT ||
-        reason === AuthErrorReason.SessionTokenIATBeforeTernAUT) {
+      reason === AuthErrorReason.SessionTokenIATBeforeTernAUT) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const { data, errors } = ternDecodeJwt(context.idTokenInCookie!);
 
@@ -227,29 +227,8 @@ export async function authenticateRequest(
         throw errors[0];
       }
 
-      // Exchange for App Check token
-      const { exchangeAppCheckToken } = getAuth(options);
-      let appCheckTokenValue: string | undefined;
-      try {
-        const idToken = context.idTokenInCookie || '';
-        const appCheckResult = await exchangeAppCheckToken(idToken);
-        console.log("[authenticateRequest] App Check exchange result:", appCheckResult);
-        if (appCheckResult.data?.token) {
-          appCheckTokenValue = appCheckResult.data.token;
-        }
-      } catch (error) {
-        // Log but don't fail the request if App Check exchange fails
-        console.warn('App Check token exchange failed:', error);
-      }
-
-      const headers = new Headers();
-      headers.set(
-        constants.Headers.AppCheckToken,
-        appCheckTokenValue || '',
-      );
-
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const signedInRequestState = signedIn(context, data, headers, context.idTokenInCookie!);
+      const signedInRequestState = signedIn(context, data, undefined, context.idTokenInCookie!);
 
       return signedInRequestState;
     } catch (err) {
@@ -269,28 +248,8 @@ export async function authenticateRequest(
         throw errors[0];
       }
 
-      // Exchange for App Check token
-      const { exchangeAppCheckToken } = getAuth(options);
-      let appCheckTokenValue: string | undefined;
-      try {
-        const token = sessionTokenInHeader || '';
-        const appCheckResult = await exchangeAppCheckToken(token);
-        if (appCheckResult.data?.token) {
-          appCheckTokenValue = appCheckResult.data.token;
-        }
-      } catch (error) {
-        // Log but don't fail the request if App Check exchange fails
-        console.warn('App Check token exchange failed:', error);
-      }
-
-      const headers = new Headers();
-      headers.set(
-        constants.Headers.AppCheckToken,
-        appCheckTokenValue || '',
-      );
-
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      const signedInRequestState = signedIn(context, data, headers, sessionTokenInHeader!);
+      const signedInRequestState = signedIn(context, data, undefined, sessionTokenInHeader!);
       return signedInRequestState;
     } catch (err) {
       return handleError(err, 'header');
@@ -309,19 +268,9 @@ export async function authenticateRequest(
     if (isRequestForRefresh(err, context, request)) {
       const { data, error } = await handleRefresh();
       if (data) {
-        // Exchange for App Check token after refresh
-        const { exchangeAppCheckToken } = getAuth(options);
-        let appCheckTokenValue: string | undefined;
-        try {
-          const appCheckResult = await exchangeAppCheckToken(data.token);
-          if (appCheckResult.data?.token) {
-            appCheckTokenValue = appCheckResult.data.token;
-          }
-        } catch (error) {
-          console.warn('App Check token exchange failed in error handler:', error);
-        }
 
-        return signedIn(context, data.decoded, data.headers, data.token);
+        const signedInState = signedIn(context, data.decoded, data.headers, data.token);
+        return signedInState;
       }
 
       if (error?.cause?.reason) {

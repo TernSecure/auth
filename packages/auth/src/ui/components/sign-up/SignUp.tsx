@@ -18,20 +18,22 @@ function RedirectToSignUp() {
 
 function SignUpRoutes(): React.JSX.Element {
   return (
-    <Switch>
-      <Route
-        path='verify-email-address'
-        canActivate={ternsecure => !!ternsecure.signUp?.user?.email}
-      >
-        <SignUpVerifyEmail />
-      </Route>
-      <Route index>
-        <SignUpStart />
-      </Route>
-      <Route>
-        <RedirectToSignUp />
-      </Route>
-    </Switch>
+    <div className="tern-secure-auth">
+      <Switch>
+        <Route
+          path='verify-email-address'
+          canActivate={ternsecure => !!ternsecure.signUp?.user?.email}
+        >
+          <SignUpVerifyEmail />
+        </Route>
+        <Route index>
+          <SignUpStart />
+        </Route>
+        <Route>
+          <RedirectToSignUp />
+        </Route>
+      </Switch>
+    </div>
   );
 }
 

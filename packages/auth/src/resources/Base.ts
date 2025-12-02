@@ -62,8 +62,9 @@ export abstract class TernSecureBase {
       const newRequestInit = { ...requestInit };
       if (token) {
         newRequestInit.headers = new Headers(newRequestInit.headers);
-        newRequestInit.headers.set('X-Firebase-AppCheck', token);
+        newRequestInit.headers.set('x-ternsecure-appcheck', token);
       }
+      
       return this._baseFetch<J>(newRequestInit);
     });
   }

@@ -3,9 +3,22 @@ export const GOOGLE_PUBLIC_KEYS_URL =
 export const SESSION_COOKIE_PUBLIC_KEYS_URL =
   'https://www.googleapis.com/identitytoolkit/v3/relyingparty/publicKeys';
 
+export const FIREBASE_APP_CHECK_AUDIENCE =
+  'https://firebaseappcheck.googleapis.com/google.firebase.appcheck.v1.TokenExchangeService';
+
 export const MAX_CACHE_LAST_UPDATED_AT_SECONDS = 5 * 60;
 export const DEFAULT_CACHE_DURATION = 3600 * 1000; // 1 hour in milliseconds
 export const CACHE_CONTROL_REGEX = /max-age=(\d+)/;
+
+export const TOKEN_EXPIRY_THRESHOLD_MILLIS = 5 * 60 * 1000;
+export const GOOGLE_TOKEN_AUDIENCE = 'https://accounts.google.com/o/oauth2/token';
+export const GOOGLE_AUTH_TOKEN_HOST = 'accounts.google.com';
+export const GOOGLE_AUTH_TOKEN_PATH = '/o/oauth2/token';
+export const ONE_HOUR_IN_SECONDS = 60 * 60;
+
+export const ONE_MINUTE_IN_SECONDS = 60;
+export const ONE_MINUTE_IN_MILLIS = ONE_MINUTE_IN_SECONDS * 1000;
+export const ONE_DAY_IN_MILLIS = 24 * 60 * 60 * 1000;
 
 const Attributes = {
   AuthToken: '__ternsecureAuthToken',
@@ -45,7 +58,7 @@ const QueryParameters = {
 
 const Headers = {
   Accept: 'accept',
-  AppCheckToken: 'x-firebase-appcheck',
+  AppCheckToken: 'x-ternsecure-appcheck',
   AuthMessage: 'x-ternsecure-auth-message',
   Authorization: 'authorization',
   AuthReason: 'x-ternsecure-auth-reason',

@@ -1,4 +1,4 @@
-import type { AuthEndpoint, SessionSubEndpoint } from '@tern-secure/types';
+import type { AuthEndpoint, AuthSubEndpoint } from '@tern-secure/types';
 
 import { constants } from '../constants';
 import type { TernSecureRequest } from './ternSecureRequest';
@@ -35,7 +35,7 @@ interface RequestProcessorContext extends AuthenticateRequestOptions {
   method: string;
   pathSegments: string[];
   endpoint?: AuthEndpoint;
-  subEndpoint?: SessionSubEndpoint;
+  subEndpoint?: AuthSubEndpoint;
 
   ternUrl: URL;
   instanceType: string;
@@ -100,7 +100,7 @@ class RequestProcessorContext implements RequestProcessorContext {
     this.method = this.ternSecureRequest.method;
     this.pathSegments = this.ternSecureRequest.ternUrl.pathname.split('/').filter(Boolean);
     this.endpoint = this.pathSegments[2] as AuthEndpoint;
-    this.subEndpoint = this.pathSegments[3] as SessionSubEndpoint;
+    this.subEndpoint = this.pathSegments[3] as AuthSubEndpoint;
   }
 
   private getQueryParam(name: string) {

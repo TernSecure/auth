@@ -40,4 +40,5 @@ export type {
   AdapterType,
   AdapterConfiguration,
   CheckRevokedOptions,
+  AppCheckOptions,
 } from './types';

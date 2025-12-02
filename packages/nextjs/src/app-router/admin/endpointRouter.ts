@@ -1,11 +1,12 @@
-import type { RequestProcessorContext } from './c-authenticateRequestProcessor';
+import type { AuthenticateRequestOptions, RequestProcessorContext } from '@tern-secure/backend';
+import type { AuthEndpoint } from '@tern-secure/types';
+
+import { sessionEndpointHandler, signInEndpointHandler } from './handlers';
 import { createApiErrorResponse } from './responses';
-import { cookieEndpointHandler, sessionEndpointHandler, signInEndpointHandler } from './sessionHandlers';
-import type { AuthEndpoint, TernSecureHandlerOptions } from './types';
 
 export interface EndpointHandler {
   canHandle(endpoint: AuthEndpoint): boolean;
-  handle(context: RequestProcessorContext, config: TernSecureHandlerOptions): Promise<Response>;
+  handle(context: RequestProcessorContext, config: AuthenticateRequestOptions): Promise<Response>;
 }
 
 class SessionsHandler implements EndpointHandler {
@@ -15,7 +16,7 @@ class SessionsHandler implements EndpointHandler {
 
   async handle(
     context: RequestProcessorContext,
-    config: TernSecureHandlerOptions,
+    config: AuthenticateRequestOptions,
   ): Promise<Response> {
     return await sessionEndpointHandler(context, config);
   }
@@ -26,33 +27,21 @@ class UsersHandler implements EndpointHandler {
     return endpoint === 'users';
   }
 
-  handle(_context: RequestProcessorContext, _config: TernSecureHandlerOptions): Promise<Response> {
+  handle(_context: RequestProcessorContext, _config: AuthenticateRequestOptions): Promise<Response> {
     return Promise.resolve(
       createApiErrorResponse('ENDPOINT_NOT_IMPLEMENTED', 'Users endpoint not implemented', 501),
     );
   }
 }
 
-class CookieHandler implements EndpointHandler {
-  canHandle(endpoint: AuthEndpoint): boolean {
-    return endpoint === 'cookies';
-  }
-
-  async handle(
-    context: RequestProcessorContext,
-    config: TernSecureHandlerOptions,
-  ): Promise<Response> {
-    return await cookieEndpointHandler(context, config);
-  }
-}
 
 class SignInsHandler implements EndpointHandler {
   canHandle(endpoint: AuthEndpoint): boolean {
     return endpoint === 'sign_ins';
   }
 
-  async handle(context: RequestProcessorContext, config: TernSecureHandlerOptions): Promise<Response> {
-    return await signInEndpointHandler(context, config);
+  async handle(context: RequestProcessorContext): Promise<Response> {
+    return await signInEndpointHandler(context);
   }
 }
 
@@ -60,13 +49,12 @@ export class EndpointRouter {
   private static readonly handlers: EndpointHandler[] = [
     new SessionsHandler(),
     new UsersHandler(),
-    new CookieHandler(),
     new SignInsHandler(),
   ];
 
   static async route(
     context: RequestProcessorContext,
-    config: TernSecureHandlerOptions,
+    config: AuthenticateRequestOptions,
   ): Promise<Response> {
     const { endpoint } = context;
 

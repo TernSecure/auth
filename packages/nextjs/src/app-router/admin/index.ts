@@ -11,4 +11,4 @@ export {
 
 export { EndpointRouter } from './endpointRouter'
 
-export type { TernSecureHandlerOptions } from './types'
+export type { ApiHandlerOptions, TernSecureHandlerOptions } from './types'

@@ -1,6 +1,7 @@
 import type {
+  AuthenticateRequestOptions,
   RequestState,
-  TernSecureRequest,
+  TernSecureRequest
 } from "@tern-secure/backend";
 import { constants } from "@tern-secure/backend";
 import { NextRequest,NextResponse } from 'next/server';
@@ -145,13 +146,29 @@ export const setRequestHeadersOnNextResponse = (
   });
 };
 
+/**
+ * Sanitize requestData by removing sensitive fields before storing in headers
+ * Headers with x-middleware-request- prefix are internal to Next.js SSR and not exposed to browser
+ * However, we still filter sensitive data as a security best practice
+ */
+const sanitizeRequestData = (requestData: AuthenticateRequestOptions): Partial<AuthenticateRequestOptions> => {
+  const { 
+    apiClient, // Internal client instance - not serializable
+    checkRevoked, // Function/config - not needed in SSR
+    ...safeData 
+  } = requestData;
+
+  return safeData;
+};
+
 export function decorateRequest(
   req: TernSecureRequest,
   res: Response,
   requestState: RequestState,
+  requestData: AuthenticateRequestOptions,
   appCheckToken?: string,
 ): Response {
-  const { reason, token, status } = requestState;
+  const { reason, token, status, headers} = requestState;
   // pass-through case, convert to next()
   if (!res) {
     res = NextResponse.next();
@@ -184,12 +201,15 @@ export function decorateRequest(
   }
 
   if (rewriteURL) {
+    const ternsecureRequestData = sanitizeRequestData(requestData);
+    
     setRequestHeadersOnNextResponse(res, req, {
       [constants.Headers.AuthStatus]: status,
       [constants.Headers.AuthToken]: token || '',
-      [constants.Headers.AppCheckToken]: appCheckToken || req.headers.get(constants.Headers.AppCheckToken) || '',
+      [constants.Headers.AppCheckToken]: appCheckToken || headers.get(constants.Headers.AppCheckToken) || '',
       [constants.Headers.AuthReason]: reason || '',
       [constants.Headers.TernSecureUrl]: req.ternUrl.toString(),
+      ...(ternsecureRequestData ? { [constants.Headers.TernSecureRequestData]: JSON.stringify(ternsecureRequestData) } : {})
     });
     res.headers.set(nextConstants.Headers.NextRewrite, rewriteURL.href);
   }

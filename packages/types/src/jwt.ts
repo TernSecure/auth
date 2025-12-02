@@ -25,9 +25,24 @@ export interface DecodedIdToken {
   [key: string]: any;
 }
 
+export interface DecodedAppCheckToken {
+    iss: string;
+    sub: string;
+    aud: string[];
+    exp: number;
+    iat: number;
+    app_id: string;
+    [key: string]: unknown;
+}
+
 export interface VerifiedTokens {
   IdToken: string;
   DecodedIdToken: DecodedIdToken;
+}
+
+export interface VerifyAppCheckTokenResponse {
+    appId: string;
+    token: DecodedAppCheckToken;
 }
 
 export interface JWTProtectedHeader {

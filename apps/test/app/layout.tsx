@@ -34,9 +34,10 @@ export default async function RootLayout({
         <TernSecureProvider
           appName='TernSecure'
           appCheck={{
-            provider: 'reCaptchaV3',
-            siteKey: '6LfzGRgsAAAAAGEvbwbcLgT4IHWmuWv4kEDRA5hi',
+            provider: 'reCaptchaEnterprise',
+            //siteKey: '6LfzGRgsAAAAAGEvbwbcLgT4IHWmuWv4kEDRA5hi',
             //siteKey: '6LcSGxgsAAAAACeeo12X2kYaO_VcsWZb8gzmfLRq',
+            siteKey: '6LfophwsAAAAAMvW43vd87iiuBCWDRYQZGS0rsRH',
             isTokenAutoRefreshEnabled: true,
             debugToken: process.env.FIREBASE_APPCHECK_DEBUG_TOKEN || false,
           }}

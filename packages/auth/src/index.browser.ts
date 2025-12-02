@@ -1,8 +1,6 @@
 import { TernSecureAuth } from './instance/ternsecure';
 import { mountComponentRenderer } from './ui/Renderer';
 
-//console.log('[Tern-UI index.browser.ts] Script loaded and executing.');
-
 TernSecureAuth.mountComponentRenderer = mountComponentRenderer;
 
 

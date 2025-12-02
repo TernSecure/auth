@@ -4,6 +4,7 @@ export type AuthEndpoint = 'cookies' | 'sessions' | 'users' | 'sign_ins';
 export type CookieSubEndpoint = 'get' | 'set' | 'delete' | 'clear' | 'list';
 export type SessionSubEndpoint = 'verify' | 'createsession' | 'refresh' | 'revoke';
 export type SignInSubEndpoint = 'create' | 'resetPasswordEmail';
+export type AuthSubEndpoint = SessionSubEndpoint | SignInSubEndpoint;
 export interface CorsOptions {
   allowedOrigins: string[] | '*';
   allowedMethods?: string[];
