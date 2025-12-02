@@ -1,6 +1,8 @@
 {
   "name": "@tern-secure/auth-ts",
+  "version": "0.0.0",
   "private": true,
+  "license": "MIT",
   "scripts": {
     "build": "turbo build --concurrency=${TURBO_CONCURRENCY:-80%}",
     "build:add": "turbo build:add --concurrency=${TURBO_CONCURRENCY:-80%}",
