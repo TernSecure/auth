@@ -263,8 +263,15 @@ export class SignIn extends TernSecureBase implements SignInResource {
       };
     }
 
+    let url = options?.url || '/';
+    if (typeof window !== 'undefined') {
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        url = new URL(url, window.location.origin).href;
+      }
+    }
+
     const actionCodeSettings = {
-      url: options?.url || '/sign-in',
+      url,
       handleCodeInApp: options?.handleCodeInApp ?? true,
     };
 
