@@ -41,7 +41,7 @@ export default async function RootLayout({
             isTokenAutoRefreshEnabled: true,
             debugToken: process.env.FIREBASE_APPCHECK_DEBUG_TOKEN || false,
           }}
-          requiresVerification={false}
+          //requiresVerification={false}
           persistence='browserCookie'
           ternUIUrl='http://localhost:4000/ternsecure.browser.js'
           apiUrl='localhost:3000'
