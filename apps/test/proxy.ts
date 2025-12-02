@@ -24,11 +24,14 @@ export default ternSecureProxy(
       });
     }
   }, {
-  firebaseAdminConfig: {
-    projectId: process.env.FIREBASE_PROJECT_ID || '',
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
-    privateKey: process.env.FIREBASE_PRIVATE_KEY || '',
+  appCheck: {
+    strategy: 'redis',
+    skipInMemoryFirst: false,
+    redis: {
+      url: process.env.KV_REST_API_URL!,
+      token: process.env.KV_REST_API_TOKEN!,
+    }
   },
-  session: { maxAge: '1 hour' }
+  session: { maxAge: '90 minutes' }
 },
 );

@@ -69,6 +69,7 @@
     "jose": "^5.10.0",
     "postcss": "^8.5.4",
     "postcss-loader": "^8.1.1",
+    "postcss-prefix-selector": "^2.1.1",
     "rimraf": "^5.0.10",
     "tailwindcss": "^4.1.8",
     "webpack-merge": "^5.10.0"

@@ -14,7 +14,7 @@ import {
 import { NextCookieStore } from '../../utils/NextCookieAdapter';
 import { TENANT_ID } from './constants';
 import { getDeleteOptions } from './cookieOptionsHelper';
-import type { TernSecureHandlerOptions } from './types';
+import type { ApiHandlerOptions } from './types';
 
 export async function createSessionCookieServer(idToken: string) {
   const cookieStore = new NextCookieStore();
@@ -27,7 +27,7 @@ export async function clearSessionCookieServer() {
 }
 
 export async function clearNextSessionCookie(options?: {
-  cookies?: TernSecureHandlerOptions['cookies'];
+  cookies?: ApiHandlerOptions['cookies'];
   revokeRefreshTokensOnSignOut?: boolean;
 }) {
   const deleteOptions = getDeleteOptions(options);

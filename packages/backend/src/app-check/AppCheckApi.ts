@@ -1,5 +1,5 @@
+import type { Credential } from '../auth'
 import type { AppCheckParams, AppCheckToken } from './types'
-
 
 export function getSdkVersion(): string {
     return '12.7.0';
@@ -14,17 +14,20 @@ const FIREBASE_APP_CHECK_CONFIG_HEADERS = {
  * Firebase REST API endpoint: https://firebaseappcheck.googleapis.com/v1beta/projects/{projectId}/apps/{appId}:exchangeCustomToken
  */
 export class AppCheckApi {
+    constructor(private credential: Credential) { }
+
     public async exchangeToken(params: AppCheckParams): Promise<AppCheckToken> {
-        const { projectId, appId, customToken, accessToken, limitedUse = false } = params;
+        const { projectId, appId, customToken, limitedUse = false } = params;
+        const token = await this.credential.getAccessToken(false);
         if (!projectId || !appId) {
             throw new Error('Project ID and App ID are required for App Check token exchange');
         }
 
-        const endpoint = `https://firebaseappcheck.googleapis.com/v1beta/projects/${projectId}/apps/${appId}:exchangeCustomToken`;
+        const endpoint = `https://firebaseappcheck.googleapis.com/v1/projects/${projectId}/apps/${appId}:exchangeCustomToken`;
 
         const headers: Record<string, string> = {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`,
+            'Authorization': `Bearer ${token.accessToken}`,
         };
 
         try {

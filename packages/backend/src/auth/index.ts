@@ -1,4 +1,4 @@
 export * from './getauth';
-export { ServiceAccountTokenManager } from './credential';
+export { ServiceAccountManager } from './credential';
 
-export type { ServiceAccount, ServiceAccountCredential } from './credential';
+export type { ServiceAccount, Credential } from './credential';

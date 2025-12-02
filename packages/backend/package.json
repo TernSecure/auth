@@ -49,6 +49,16 @@
         "default": "./dist/admin/index.js"
       }
     },
+    "./app-check": {
+      "import": {
+        "types": "./dist/app-check/index.d.ts",
+        "default": "./dist/app-check/index.mjs"
+      },
+      "require": {
+        "types": "./dist/app-check/index.d.ts",
+        "default": "./dist/app-check/index.js"
+      }
+    },
     "./auth": {
       "import": {
         "types": "./dist/auth/index.d.ts",

@@ -5,7 +5,10 @@ export type { RedirectFun } from './createRedirect';
 export type { TernSecureRequest } from './tokens/ternSecureRequest';
 export { createTernSecureRequest } from './tokens/ternSecureRequest';
 
-export type { AuthenticateRequestOptions, AuthenticateFireRequestOptions } from './tokens/types';
+export type { AuthenticateRequestOptions } from './tokens/types';
+
+export type { RequestProcessorContext } from './tokens/c-authenticateRequestProcessor';
+export { createRequestProcessor } from './tokens/c-authenticateRequestProcessor';
 
 export type {
   AuthObject,
@@ -14,6 +17,7 @@ export type {
   SignedOutAuthObject,
 } from './tokens/authstate';
 export { signedIn, signedInAuthObject, signedOutAuthObject, AuthStatus } from './tokens/authstate';
+export { verifyToken } from './tokens/verify';
 
 export { createBackendInstanceClient } from './instance/backendInstanceEdge';
 

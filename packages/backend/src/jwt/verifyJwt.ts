@@ -1,12 +1,13 @@
-import type { DecodedIdToken, Jwt, JWTPayload } from '@tern-secure/types';
+import type { DecodedAppCheckToken, DecodedIdToken, Jwt, JWTPayload } from '@tern-secure/types';
 import {
   decodeJwt,
   decodeProtectedHeader,
   jwtVerify,
+  type KeyLike,
 } from 'jose';
 
 import { TokenVerificationError, TokenVerificationErrorReason } from '../utils/errors';
-import { mapJwtPayloadToDecodedIdToken } from '../utils/mapDecode';
+import { mapJwtPayloadToDecodedAppCheckToken, mapJwtPayloadToDecodedIdToken } from '../utils/mapDecode';
 import { base64url } from '../utils/rfc4648';
 import { importKey } from './cryptoKeys';
 import type { JwtReturnType } from './types';
@@ -133,4 +134,77 @@ export async function verifyJwt(
   const decodedIdToken = mapJwtPayloadToDecodedIdToken(verifiedPayload);
 
   return { data: decodedIdToken };
+}
+
+export type VerifyAppCheckJwtOptions = Omit<VerifyJwtOptions, 'key'> & {
+  key: () => Promise<KeyLike>;
+};
+
+export async function verifyAppCheckSignature(
+  jwt: Jwt,
+  getPublicKey: () => Promise<KeyLike>,
+): Promise<JwtReturnType<JWTPayload, Error>> {
+  const { header, raw } = jwt;
+  const joseAlgorithm = header.alg || 'RS256';
+
+  try {
+    const key = await getPublicKey();
+
+    const { payload } = await jwtVerify(raw.text, key);
+
+    return { data: payload };
+  } catch (error) {
+    return {
+      errors: [
+        new TokenVerificationError({
+          reason: TokenVerificationErrorReason.TokenInvalidSignature,
+          message: (error as Error).message,
+        }),
+      ],
+    };
+  }
+}
+
+
+export async function verifyAppCheckJwt(
+  token: string,
+  options: VerifyAppCheckJwtOptions,
+): Promise<JwtReturnType<DecodedAppCheckToken, TokenVerificationError>> {
+  const { key: getPublicKey } = options;
+  const clockSkew = options.clockSkewInMs || DEFAULT_CLOCK_SKEW_IN_MS;
+
+  const { data: decoded, errors } = ternDecodeJwt(token);
+  if (errors) {
+    return { errors };
+  }
+
+  const { header, payload } = decoded;
+
+  try {
+    verifyHeaderKid(header.kid);
+    verifySubClaim(payload.sub);
+    verifyExpirationClaim(payload.exp, clockSkew);
+    verifyIssuedAtClaim(payload.iat, clockSkew);
+  } catch (error) {
+    return { errors: [error as TokenVerificationError] };
+  }
+
+  const { data: verifiedPayload, errors: signatureErrors } = await verifyAppCheckSignature(
+    decoded,
+    getPublicKey,
+  );
+  if (signatureErrors) {
+    return {
+      errors: [
+        new TokenVerificationError({
+          reason: TokenVerificationErrorReason.TokenInvalidSignature,
+          message: 'Token signature verification failed.',
+        }),
+      ],
+    };
+  }
+
+  const decodedAppCheckToken = mapJwtPayloadToDecodedAppCheckToken(verifiedPayload);
+
+  return { data: decodedAppCheckToken };
 }

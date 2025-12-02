@@ -1,0 +1,5 @@
+{
+  "main": "../dist/app-check/index.js",
+  "module": "../dist/app-check/index.mjs",
+  "types": "../dist/app-check/index.d.ts"
+}

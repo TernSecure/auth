@@ -5,7 +5,7 @@ import { runAfterLast } from '../../scripts/utils';
 import { name, version } from "./package.json";
 
 const config: Options = {
-  entry: ['src/index.ts', 'src/admin/index.ts', 'src/auth/index.ts', 'src/jwt/index.ts'],
+  entry: ['src/index.ts', 'src/admin/index.ts', 'src/auth/index.ts', 'src/jwt/index.ts', 'src/app-check/index.ts'],
   onSuccess: `cpy 'src/runtime/**/*.{mjs,js,cjs}' dist/runtime`,
   bundle: true,
   sourcemap: true,

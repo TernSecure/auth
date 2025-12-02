@@ -58,6 +58,7 @@ export type SignedInState = {
   isSignedIn: true;
   auth: () => SignedInAuthObject;
   token: string;
+  appCheckToken?: string;
   headers: Headers;
 };
 
@@ -70,6 +71,7 @@ export type SignedOutState = {
   signUpUrl: string;
   auth: () => SignedOutAuthObject;
   token: null;
+  appCheckToken?: string;
   headers: Headers;
 };
 
@@ -183,6 +185,7 @@ export function signedOut(
     isSignedIn: false,
     auth: () => signedOutAuthObject(),
     token: null,
+    appCheckToken: authCtx.appCheckToken,
     headers,
   });
 }
@@ -228,6 +231,14 @@ const decorateHeaders = <T extends RequestState>(requestState: T): T => {
   if (requestState.status) {
     try {
       headers.set(constants.Headers.AuthStatus, requestState.status);
+    } catch {
+      // Ignore errors
+    }
+  }
+
+  if (requestState.appCheckToken) {
+    try {
+      headers.set(constants.Headers.AppCheckToken, requestState.appCheckToken);
     } catch {
       // Ignore errors
     }

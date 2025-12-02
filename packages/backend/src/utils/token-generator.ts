@@ -1,13 +1,14 @@
-import { ServiceAccountTokenManager } from '../auth'
+import type { Credential } from '../auth'
+import { ServiceAccountManager } from '../auth'
 import type { CryptoSigner } from '../jwt'
 import { IAMSigner, ServiceAccountSigner } from '../jwt'
 
 export function cryptoSignerFromCredential(
-    credential: ServiceAccountTokenManager,
+    credential: Credential,
     tenantId?: string,
     serviceAccountId?: string
 ): CryptoSigner {
-    if (credential instanceof ServiceAccountTokenManager) {
+    if (credential instanceof ServiceAccountManager) {
         return new ServiceAccountSigner(credential, tenantId);
     }
 

@@ -19,6 +19,7 @@ interface Window {
       promisesBuffer: Array<() => void> | undefined;
     }
   >;
+  __tern_internal_invalidateCachePromise: () => void | undefined;
 
   next?: {
     version: string;

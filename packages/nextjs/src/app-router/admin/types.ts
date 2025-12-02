@@ -1,5 +1,7 @@
+import type { AuthenticateRequestOptions } from '@tern-secure/backend';
 import type {
   AuthEndpoint,
+  AuthSubEndpoint,
   CookieEndpointConfig,
   CookieOpts as CookieOptions,
   CorsOptions,
@@ -13,6 +15,8 @@ import type {
   TokenCookieConfig
 } from '@tern-secure/types';
 import { type NextResponse } from 'next/server';
+
+
 
 export const DEFAULT_CORS_OPTIONS: CorsOptions = {
   allowedOrigins: [],
@@ -253,8 +257,38 @@ export class CookieUtils {
   }
 }
 
+/**
+ * API Handler Options - Unified with Middleware
+ * 
+ * Since API routes are protected by middleware, they use the same
+ * AuthenticateRequestOptions type. No separate config needed.
+ * 
+ * Key fields used by API handlers:
+ * - tenantId: Multi-tenant support
+ * - enableCustomToken: Whether to create custom token cookie
+ * - debug: Debug logging
+ * - revokeRefreshTokensOnSignOut: Token revocation behavior
+ * 
+ * Fields handled by middleware (not needed in API):
+ * - firebaseConfig: Used for authentication
+ * - firebaseAdminConfig: Server-side Firebase admin
+ * - checkRevoked: Token revocation checking
+ */
+export type ApiHandlerOptions = AuthenticateRequestOptions & {
+  cookies?: CookieOptions;
+};
+
+export const DEFAULT_API_HANDLER_OPTIONS: Partial<ApiHandlerOptions> = {
+    tenantId: undefined,
+    cookies: DEFAULT_SESSION_COOKIE_OPTIONS,
+    enableCustomToken: false,
+    debug: false,
+    revokeRefreshTokensOnSignOut: true,
+};
+
 export {
   AuthEndpoint,
+  AuthSubEndpoint,
   CookieOptions,
   CorsOptions,
   SecurityOptions,

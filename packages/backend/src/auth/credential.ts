@@ -29,7 +29,7 @@ export interface FirebaseAccessToken {
 
 const accessTokenCache: Map<string, FirebaseAccessToken> = new Map();
 
-export interface ServiceAccountCredential {
+export interface Credential {
     getAccessToken: (refresh?: boolean) => Promise<FirebaseAccessToken>;
 }
 
@@ -46,10 +46,10 @@ async function requestAccessToken(urlString: string, init: RequestInit): Promise
     }
 }
 
-export class ServiceAccountTokenManager implements ServiceAccountCredential {
-    private readonly projectId: string;
-    private readonly privateKey: string;
-    private readonly clientEmail: string;
+export class ServiceAccountManager implements Credential {
+    public readonly projectId: string;
+    public readonly privateKey: string;
+    public readonly clientEmail: string;
 
     constructor(serviceAccount: ServiceAccount) {
         this.projectId = serviceAccount.projectId;

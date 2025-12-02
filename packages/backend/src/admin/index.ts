@@ -6,6 +6,7 @@ export {
 export { 
     adminTernSecureAuth, 
     adminTernSecureDb, 
+    appCheckAdmin,
     TernSecureTenantManager 
 } from '../utils/admin-init'
 export { initializeAdminConfig } from '../utils/config'

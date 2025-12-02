@@ -1,13 +1,10 @@
-import { constants } from '@tern-secure/backend';
+import type { AuthenticateRequestOptions, RequestProcessorContext } from '@tern-secure/backend';
 import { clearSessionCookie } from '@tern-secure/backend/admin';
 import { ternDecodeJwtUnguarded } from '@tern-secure/backend/jwt';
-import type { CookieSubEndpoint } from '@tern-secure/types';
 
 import { ternSecureBackendClient } from '../../server/ternsecureClient';
 import { NextCookieStore } from '../../utils/NextCookieAdapter';
-import { type RequestProcessorContext } from './c-authenticateRequestProcessor';
 import { FIREBASE_API_KEY } from './constants';
-import { createValidators } from './fnValidators';
 import { refreshCookieWithIdToken } from './request';
 import {
   createApiErrorResponse,
@@ -16,36 +13,24 @@ import {
   SessionResponseHelper,
 } from './responses';
 import { processSignInCreate } from './signInCreateHandler';
-import type { SessionSubEndpoint, SignInSubEndpoint, TernSecureHandlerOptions } from './types';
+import type { SessionSubEndpoint, SignInSubEndpoint,  } from './types';
+import {
+  extractSessionRequestData,
+  validateCsrfToken,
+  validateEmail,
+  validateIdToken,
+  validateSubEndpointPresent,
+} from './validators';
 
 const sessionEndpointHandler = async (
   context: RequestProcessorContext,
-  config: TernSecureHandlerOptions,
+  config: AuthenticateRequestOptions,
 ): Promise<Response> => {
   const { subEndpoint, method, referrer } = context;
 
-  const validators = createValidators(context);
-
-  const {
-    validateSubEndpoint,
-    validateSecurity,
-    validateSessionRequest,
-    validateCsrfToken,
-    validateIdToken,
-  } = validators;
-
-  if (!subEndpoint) {
-    return createApiErrorResponse('SUB_ENDPOINT_REQUIRED', 'Session sub-endpoint required', 400);
-  }
-
-  const sessionsConfig = config.endpoints?.sessions;
-  const subEndpointConfig = sessionsConfig?.subEndpoints?.[subEndpoint];
-
-  validateSubEndpoint(subEndpoint, subEndpointConfig);
-
-  if (subEndpointConfig?.security) {
-    await validateSecurity(subEndpointConfig.security);
-  }
+  // Validate sub-endpoint exists
+  const subEndpointError = validateSubEndpointPresent(context, 'Session');
+  if (subEndpointError) return subEndpointError;
 
   const SessionGetHandler = async (subEndpoint: SessionSubEndpoint): Promise<Response> => {
     const handleSessionVerify = async (): Promise<Response> => {
@@ -77,11 +62,11 @@ const sessionEndpointHandler = async (
   const SessionPostHandler = async (subEndpoint: SessionSubEndpoint): Promise<Response> => {
     const cookieStore = new NextCookieStore();
 
-    const { idToken, csrfToken, error } = await validateSessionRequest();
+    const { idToken, csrfToken, error } = await extractSessionRequestData(context.request);
     if (error) return error;
 
-    const csrfCookieValue = await cookieStore.get(constants.Cookies.CsrfToken);
-    validateCsrfToken(csrfToken || '', csrfCookieValue.value);
+    const csrfError = await validateCsrfToken(csrfToken);
+    if (csrfError) return csrfError;
 
     const handleCreateSession = async (
       cookieStore: NextCookieStore,
@@ -151,126 +136,25 @@ const sessionEndpointHandler = async (
 
   switch (method) {
     case 'GET':
-      return SessionGetHandler(subEndpoint);
+      return SessionGetHandler(subEndpoint as SessionSubEndpoint);
 
     case 'POST':
-      return SessionPostHandler(subEndpoint);
+      return SessionPostHandler(subEndpoint as SessionSubEndpoint);
 
     default:
       return HttpResponseHelper.createMethodNotAllowedResponse();
   }
 }
 
-const cookieEndpointHandler = async (
-  context: RequestProcessorContext,
-  config: TernSecureHandlerOptions,
-): Promise<Response> => {
-  const { subEndpoint, method } = context;
-
-  const validators = createValidators(context);
-  const { validateSecurity } = validators;
-
-  if (!subEndpoint) {
-    return createApiErrorResponse('SUB_ENDPOINT_REQUIRED', 'Cookie sub-endpoint required', 400);
-  }
-
-  const cookiesConfig = config.endpoints?.cookies;
-  const subEndpointConfig = cookiesConfig?.subEndpoints?.[subEndpoint as CookieSubEndpoint];
-
-  if (!subEndpointConfig || !subEndpointConfig.enabled) {
-    return createApiErrorResponse('ENDPOINT_NOT_FOUND', 'Cookie endpoint not found or disabled', 404);
-  }
-
-  if (subEndpointConfig?.security) {
-    await validateSecurity(subEndpointConfig.security);
-  }
-
-  const CookieGetHandler = async (subEndpoint: CookieSubEndpoint): Promise<Response> => {
-    const handleGetCookie = async (): Promise<Response> => {
-      try {
-        const url = new URL(context.ternUrl);
-        const tokenName = url.searchParams.get('tokenName');
-
-        if (!tokenName) {
-          return createApiErrorResponse('TOKEN_NAME_REQUIRED', 'tokenName query parameter is required', 400);
-        }
-
-        let cookieValue: string | undefined;
-
-        switch (tokenName) {
-          case 'idToken':
-            cookieValue = context.idTokenInCookie;
-            break;
-          case 'sessionToken':
-            cookieValue = context.sessionTokenInCookie;
-            break;
-          case 'refreshToken':
-            cookieValue = context.refreshTokenInCookie;
-            break;
-          case 'customToken':
-            cookieValue = context.customTokenInCookie;
-            break;
-          default:
-            return createApiErrorResponse('INVALID_TOKEN_NAME', 'Invalid token name. Must be one of: idToken, sessionToken, refreshToken, customToken', 400);
-        }
-
-        if (!cookieValue) {
-          return createApiErrorResponse(
-            'TOKEN_NOT_FOUND',
-            `${tokenName} not found in httpOnly cookies`,
-            404
-          );
-        }
-
-        return createApiSuccessResponse({
-          token: cookieValue,
-        });
-      } catch (error) {
-        return createApiErrorResponse('COOKIE_RETRIEVAL_FAILED', 'Failed to retrieve cookie', 500);
-      }
-    };
-
-    switch (subEndpoint) {
-      case 'get':
-        return handleGetCookie();
-      default:
-        return HttpResponseHelper.createNotFoundResponse();
-    }
-  };
-
-  switch (method) {
-    case 'GET':
-      return CookieGetHandler(subEndpoint as CookieSubEndpoint);
-    default:
-      return HttpResponseHelper.createMethodNotAllowedResponse();
-  }
-}
 
 const signInEndpointHandler = async (
   context: RequestProcessorContext,
-  config: TernSecureHandlerOptions
 ): Promise<Response> => {
   const { subEndpoint, method } = context;
 
-  const validators = createValidators(context);
-
-  const {
-    validateSubEndpoint,
-    validateSecurity,
-  } = validators;
-
-  if (!subEndpoint) {
-    return createApiErrorResponse('SUB_ENDPOINT_REQUIRED', 'Sign_ins sub-endpoint required', 400);
-  }
-
-  const signInsConfig = config.endpoints?.signIns;
-  const subEndpointConfig = signInsConfig?.subEndpoints?.[subEndpoint as SignInSubEndpoint];
-
-  validateSubEndpoint(subEndpoint, subEndpointConfig);
-
-  if (subEndpointConfig?.security) {
-    await validateSecurity(subEndpointConfig.security);
-  }
+  // Validate sub-endpoint exists
+  const subEndpointError = validateSubEndpointPresent(context, 'Sign_ins');
+  if (subEndpointError) return subEndpointError;
 
   const PostHandler = async (subEndpoint: SignInSubEndpoint): Promise<Response> => {
     const create = async (): Promise<Response> => {
@@ -282,9 +166,8 @@ const signInEndpointHandler = async (
         const body = await context.request.json();
         const { email } = body;
 
-        if (!email || typeof email !== 'string') {
-          return createApiErrorResponse('EMAIL_REQUIRED', 'Email is required', 400);
-        }
+        const emailError = validateEmail(email);
+        if (emailError) return emailError;
 
         const backendClient = await ternSecureBackendClient();
 
@@ -335,4 +218,4 @@ const signInEndpointHandler = async (
 
 }
 
-export { cookieEndpointHandler, sessionEndpointHandler, signInEndpointHandler };
+export { sessionEndpointHandler, signInEndpointHandler };

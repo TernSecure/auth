@@ -1,6 +1,6 @@
 import type { JWTPayload } from '@tern-secure/types';
 
-import type { ServiceAccountTokenManager } from '../auth';
+import type { Credential, ServiceAccountManager } from '../auth';
 import { fetchText } from '../utils/fetcher'
 import { ternSignBlob, ternSignJwt } from './signJwt';
 import { ALGORITHM_RS256, type CryptoSigner } from './types';
@@ -9,7 +9,7 @@ import { ALGORITHM_RS256, type CryptoSigner } from './types';
 class ServiceAccountSigner implements CryptoSigner {
 
     constructor(
-        private readonly credential: ServiceAccountTokenManager,
+        private readonly credential: ServiceAccountManager,
         private tenantId?: string
     ) { }
 
@@ -29,12 +29,12 @@ class ServiceAccountSigner implements CryptoSigner {
 class IAMSigner implements CryptoSigner {
     algorithm = ALGORITHM_RS256;
 
-    private credential: ServiceAccountTokenManager;
+    private credential: Credential;
     private tenantId?: string;
     private serviceAccountId?: string;
 
     constructor(
-        credential: ServiceAccountTokenManager,
+        credential: Credential,
         tenantId?: string,
         serviceAccountId?: string
     ) {

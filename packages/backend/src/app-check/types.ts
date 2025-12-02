@@ -9,9 +9,17 @@ export interface AppCheckToken {
 }
 
 export type AppCheckParams = {
-    accessToken: string;
+    accessToken?: string;
     projectId: string;
     appId: string;
     customToken: string;
     limitedUse?: boolean;
+}
+
+
+export interface VerifyOptions {
+    currentDate?: Date;
+    checkRevoked?: boolean;
+    referer?: string;
+    experimental_enableTokenRefreshOnExpiredKidHeader?: boolean;
 }

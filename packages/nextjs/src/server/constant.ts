@@ -6,6 +6,9 @@ export const FIREBASE_MESSAGING_SENDER_ID = process.env.NEXT_PUBLIC_FIREBASE_MES
 export const FIREBASE_APP_ID = process.env.NEXT_PUBLIC_FIREBASE_APP_ID || '';
 export const FIREBASE_MEASUREMENT_ID = process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || '';
 
+export const FIREBASE_CLIENT_EMAIL = process.env.FIREBASE_CLIENT_EMAIL || '';
+export const FIREBASE_PRIVATE_KEY = process.env.FIREBASE_PRIVATE_KEY
+
 export const API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || '';
 export const API_URL = process.env.TERNSECURE_API_URL || '';
 export const API_VERSION = process.env.TERNSECURE_API_VERSION || 'v1';
