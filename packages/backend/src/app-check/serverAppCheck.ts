@@ -1,7 +1,7 @@
 import { Redis } from "@upstash/redis";
 
 import type { AppCheckOptions } from '../adapters/types';
-import { appCheckAdmin } from '../utils/admin-init';
+import { appCheckAdmin } from '../admin';
 
 interface CachedToken {
   token: string;
