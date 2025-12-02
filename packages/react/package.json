@@ -6,6 +6,7 @@
     "url": "git+https://github.com/TernSecure/auth.git",
     "directory": "packages/react"
   },
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/TernSecure/auth/issues"
   },

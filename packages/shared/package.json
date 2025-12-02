@@ -19,7 +19,7 @@
     "format": "prettier --write \"src/**/*.{ts,tsx}\""
   },
   "author": "Pacifique Kamugisha",
-  "license": "ISC",
+  "license": "MIT",
   "description": "Shared types and utilities for TernSecure projects",
   "files": [
     "dist",

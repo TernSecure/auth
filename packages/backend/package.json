@@ -6,6 +6,7 @@
     "url": "git+https://github.com/TernSecure/auth.git",
     "directory": "packages/backend"
   },
+  "license": "MIT",
   "publishConfig": {
     "access": "public"
   },
@@ -13,6 +14,7 @@
     "dist",
     "admin",
     "auth",
+    "app-check",
     "internal",
     "jwt"
   ],

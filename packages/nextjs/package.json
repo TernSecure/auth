@@ -32,7 +32,7 @@
     "typescript"
   ],
   "author": "Pacifique Kamugisha",
-  "license": "ISC",
+  "license": "MIT",
   "description": "Firebase authentication solution for Next.js applications",
   "types": "./dist/types/index.d.ts",
   "files": [
