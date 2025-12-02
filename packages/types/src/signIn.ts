@@ -153,7 +153,7 @@ export interface SignInResource {
 
   completeMfaSignIn: (mfaToken: string, mfaContext?: any) => Promise<SignInResponse>;
 
-  sendPasswordResetEmail: (email: string) => Promise<{ response: { email: string } } | null>;
+  sendPasswordResetEmail: (email: string) => Promise<SignInResource>;
 
   attemptEmailVerification: (options?: {
     url?: string;

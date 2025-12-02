@@ -1,7 +1,8 @@
 import { Redis } from "@upstash/redis";
 
 import type { AppCheckOptions } from '../adapters/types';
-import { appCheckAdmin } from '../admin';
+import { initializeAdminConfig } from '../utils/config';
+import { getAppCheck } from "./index";
 
 interface CachedToken {
   token: string;
@@ -55,10 +56,9 @@ export class ServerAppCheckManager {
         token: config.token,
       });
 
-      console.info('[AppCheck] Redis client initialized for token caching');
     } catch (error) {
       console.error('[AppCheck] Failed to initialize Redis client:', error);
-      throw new Error('[AppCheck] Redis initialization failed. Install "@upstash/redis" package.');
+      throw new Error('[AppCheck] Redis initialization failed.');
     }
   }
 
@@ -176,8 +176,10 @@ export class ServerAppCheckManager {
   private generateAndCacheToken = async (appId: string): Promise<string | null> => {
     try {
       const now = Date.now();
+      const config = initializeAdminConfig();
+      const appCheck = getAppCheck(config);
 
-      const appCheckToken = await appCheckAdmin.createToken(appId, {
+      const appCheckToken = await appCheck.createToken(config.projectId, appId, {
         ttlMillis: this.options.ttlMillis,
       });
 
