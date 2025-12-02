@@ -13,7 +13,7 @@ import {
   SessionResponseHelper,
 } from './responses';
 import { processSignInCreate } from './signInCreateHandler';
-import type { SessionSubEndpoint, SignInSubEndpoint,  } from './types';
+import type { SessionSubEndpoint, SignInSubEndpoint, } from './types';
 import {
   extractSessionRequestData,
   validateCsrfToken,
@@ -174,6 +174,8 @@ const signInEndpointHandler = async (
         const response = await backendClient.signIn.resetPasswordEmail(FIREBASE_API_KEY, {
           email,
           requestType: 'PASSWORD_RESET',
+        }, {
+          appCheckToken: context.appCheckToken,
         });
 
         if (!response) {
