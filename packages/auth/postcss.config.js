@@ -13,6 +13,12 @@ export default {
         if (selector === 'body' || selector === 'html') {
           return prefix;
         }
+        if (selector === '.dark') {
+          return `.dark ${prefix}, ${prefix}.dark`;
+        }
+        if (selector.startsWith('.dark ')) {
+          return `.dark ${prefix} ${selector.substring(6)}, ${prefix} ${selector}`;
+        }
         return prefixedSelector;
       },
     }),
