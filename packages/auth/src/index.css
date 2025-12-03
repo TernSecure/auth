@@ -3,6 +3,22 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* CSS Isolation and Reset for .tern-secure-auth */
+.tern-secure-auth {
+  all: initial;
+  display: block;
+  box-sizing: border-box;
+  
+  /* Re-apply our styles */
+  font-family: inherit;
+  line-height: inherit;
+  
+  /* Ensure all children also get box-sizing */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+}
+
 :root {
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
@@ -119,6 +135,5 @@
   }
   body {
     @apply bg-background text-foreground;
-    isolation: isolate;
   }
 }

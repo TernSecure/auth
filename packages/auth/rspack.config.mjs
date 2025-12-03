@@ -127,7 +127,16 @@ const svgLoader = () => {
 const cssLoader = () => {
   return {
     test: /\.css$/,
-    use: ['postcss-loader'],
+    use: [
+      {
+        loader: 'postcss-loader',
+        options: {
+          postcssOptions: {
+            config: path.resolve(__dirname, 'postcss.config.js'),
+          },
+        },
+      },
+    ],
     type: 'css',
   };
 };
