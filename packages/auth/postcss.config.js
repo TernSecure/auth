@@ -3,7 +3,9 @@ import prefixSelector from 'postcss-prefix-selector';
 
 export default {
   plugins: [
-    tailwindcss(),
+    tailwindcss({
+      important: '.tern-secure-auth',
+    }),
     prefixSelector({
       prefix: '.tern-secure-auth',
       transform(prefix, selector, prefixedSelector, filePath, rule) {
