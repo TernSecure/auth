@@ -76,10 +76,24 @@ export const VerificationCodeCard = (props: PropsWithChildren<VerificationCodeCa
 };
 
 const TernOTPInput = (props: OTPInputProps) => {
-  const { ref, ...restInputProps } = props.otpControl.otpInputProps;
+  const { otpControl, label, resendButton, description, isLoading, isDisabled, onResendCode, centerAlign } = props;
+  const { ref, ...restInputProps } = otpControl.otpInputProps;
+  
+  // Filter out non-DOM props
+  const { values, setValues, clearFeedback, feedback, feedbackType, ...domSafeProps } = restInputProps;
+  
   return (
-    <FieldCn {...restInputProps}>
-      <OTPRoot {...props}>
+    <FieldCn {...domSafeProps}>
+      <OTPRoot 
+        label={label}
+        resendButton={resendButton}
+        description={description}
+        isLoading={isLoading}
+        isDisabled={isDisabled}
+        onResendCode={onResendCode}
+        otpControl={otpControl}
+        centerAlign={centerAlign}
+      >
         <OTPCodeControl ref={ref} />
         <OTPResendButton />
       </OTPRoot>
