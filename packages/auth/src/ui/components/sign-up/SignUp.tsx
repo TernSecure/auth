@@ -18,7 +18,7 @@ function RedirectToSignUp() {
 
 function SignUpRoutes(): React.JSX.Element {
   return (
-    <div className="tern-secure-auth">
+    <div className="tern">
       <Switch>
         <Route
           path='verify-email-address'

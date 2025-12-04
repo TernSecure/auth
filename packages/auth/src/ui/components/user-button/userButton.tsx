@@ -34,7 +34,7 @@ export function UserButton() {
     }
     
     return (
-        <div className="tern-secure-auth" style={{ display: 'contents' }}>
+        <div className="tern" style={{ display: 'contents' }}>
         {user ? (
             <Button 
                onClick={handleSignOut} 
