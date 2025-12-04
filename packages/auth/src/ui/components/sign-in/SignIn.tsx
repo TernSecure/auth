@@ -22,7 +22,7 @@ function RedirectToSignIn() {
 
 function SignInRoutes(): React.JSX.Element {
   return (
-    <div className="tern-secure-auth">
+    <div className="tern">
       <Switch>
         <Route path='reset-password'>
           <PasswordReset />
