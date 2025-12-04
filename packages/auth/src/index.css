@@ -1,23 +1,7 @@
-@import "tailwindcss";
+@import "tailwindcss" prefix(tern);
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
-
-/* CSS Isolation and Reset for .tern-secure-auth */
-.tern-secure-auth {
-  all: initial;
-  display: block;
-  box-sizing: border-box;
-  
-  /* Re-apply our styles */
-  font-family: inherit;
-  line-height: inherit;
-  
-  /* Ensure all children also get box-sizing */
-  *, *::before, *::after {
-    box-sizing: border-box;
-  }
-}
 
 :root {
   --background: oklch(1 0 0);
@@ -131,9 +115,9 @@
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply tern:border-border tern:outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply tern:bg-background tern:text-foreground;
   }
 }
