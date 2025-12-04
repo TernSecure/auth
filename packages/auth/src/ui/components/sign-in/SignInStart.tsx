@@ -196,7 +196,7 @@ function SignInStartInternal(): React.JSX.Element {
   };
 
   return (
-    <div className='relative flex justify-center p-6 md:p-10'>
+    <div className='tern relative flex justify-center p-6 md:p-10'>
       <div className='w-full max-w-sm'>
         {logoPlacement === 'outside' && logoImageUrl && (
           <Logo
