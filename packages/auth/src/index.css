@@ -115,9 +115,9 @@
 
 @layer base {
   * {
-    @apply tern:border-border tern:outline-ring/50;
+    @apply border-border outline-ring/50;
   }
   body {
-    @apply tern:bg-background tern:text-foreground;
+    @apply bg-background text-foreground;
   }
 }
