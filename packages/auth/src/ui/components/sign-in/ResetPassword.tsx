@@ -55,7 +55,7 @@ function PasswordResetInternal() {
   };
 
   return (
-    <div className='relative flex justify-center p-6 md:p-10'>
+    <div className='tern relative flex justify-center p-6 md:p-10'>
       <Card className={cn('mt-8 w-full max-w-md')}>
         <CardHeader className='space-y-1'>
           <CardTitle>Reset Password</CardTitle>

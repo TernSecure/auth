@@ -15,7 +15,7 @@ export function PasswordResetSuccess() {
   const onBackToSignIn = () => navigate('../');
 
   return (
-    <div className="relative flex items-center justify-center">
+    <div className="tern relative flex items-center justify-center">
       <Card className={cn('w-full max-w-md mx-auto mt-8')}>
         <CardHeader className="space-y-1 text-center">
           <div className="w-12 h-12 mx-auto bg-green-500 rounded-full flex items-center justify-center text-white text-2xl">
