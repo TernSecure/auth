@@ -1,5 +1,6 @@
 import { useTernSecure } from '@tern-secure/shared/react';
 import type { SocialProvider } from '@tern-secure/types';
+import React from 'react'
 
 import { useAuthSignIn, useSignInContext, useTernSecureOptions } from '../../ctx';
 import { SocialButtons, useCardState } from '../../elements';
@@ -8,10 +9,15 @@ export const SignInSocialButtons = () => {
   const signIn = useAuthSignIn();
   const ternSecure = useTernSecure();
   const card = useCardState();
-  const { afterSignInUrl, socialProviders: signInSocialProviders } = useSignInContext();
+  const { afterSignInUrl, checkRedirectResult, socialProviders: signInSocialProviders } = useSignInContext();
   const ternSecureOptions = useTernSecureOptions();
 
   const socialProviders = signInSocialProviders || ternSecureOptions.socialProviders || [];
+
+    // Check for redirect result on mount
+  React.useEffect(() => {
+    void checkRedirectResult();
+  }, []);
 
   const signInWithSocialLogin = async (
     provider: SocialProvider,
