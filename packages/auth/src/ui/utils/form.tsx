@@ -20,7 +20,7 @@ export function FormErrors({ errors }: FormErrorsProps) {
   return (
     <Alert
       variant='destructive'
-      className='animate-in fade-in-50'
+      className='tern:animate-in tern:fade-in-50'
     >
       <AlertDescription>
         {errorMessages.map((error, i) => (
@@ -50,11 +50,11 @@ export function FormButton({
     <Button
       type='submit'
       disabled={!canSubmit || isSubmitting}
-      className={cn("backgroundColor: 'var(--tern-primary, #2563EB)' w-full", className)}
+      className={cn('tern:w-full', className)}
     >
       {isSubmitting ? (
         <>
-          <LoaderCircle className='mr-2 h-4 w-4 animate-spin' />
+          <LoaderCircle className='tern:mr-2 tern:h-4 tern:w-4 tern:animate-spin' />
           {submittingText}
         </>
       ) : (

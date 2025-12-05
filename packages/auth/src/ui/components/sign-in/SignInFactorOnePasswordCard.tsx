@@ -35,51 +35,58 @@ export const SignInFactorOnePasswordCard = (props: SignInFactorOnePasswordProps)
   });
 
   return (
-    <div className='tern relative flex justify-center p-6 md:p-10'>
-      <div className='w-full max-w-sm'>
-        <Card className={cn('mt-8 w-full max-w-md')}>
-          <CardHeader className='space-y-1 text-center'>
-            <CardTitle className={cn('font-bold')}>Enter your password</CardTitle>
-            <CardDescription className={cn('text-muted-foreground')}>
+    <div className='tern:relative tern:flex tern:justify-center tern:p-6 tern:md:p-10'>
+      <div className='tern:w-full tern:max-w-sm'>
+        <Card className={cn('tern:mt-8 tern:w-full tern:max-w-md')}>
+          <CardHeader className='tern:space-y-1 tern:text-center'>
+            <CardTitle className={cn('tern:font-bold')}>Enter your password</CardTitle>
+            <CardDescription className={cn('tern:text-muted-foreground')}>
               Enter the password for your account to continue
             </CardDescription>
           </CardHeader>
-          <CardContent className='space-y-4'>
+          <CardContent className='tern:space-y-4'>
             {card.error && (
               <Alert
                 variant='destructive'
-                className='animate-in fade-in-50'
+                className='tern:animate-in tern:fade-in-50'
               >
                 <AlertDescription>{card.error.message}</AlertDescription>
               </Alert>
             )}
-            <form
-              onSubmit={e => {
-                e.preventDefault();
-                e.stopPropagation();
-                void form.handleSubmit();
-              }}
-            >
-              <FieldGroup>
-                <form.AppField name='password'>
-                  {field => (
-                    <field.TernPasswordField
-                      label='Password'
-                      placeholder='Enter your password'
-                      disabled={form.state.isSubmitting || card.isLoading}
-                      required
-                      onForgotPassword={onForgotPassword}
-                    />
+            <FieldGroup>
+              <form
+                onSubmit={e => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  void form.handleSubmit();
+                }}
+                className='tern:flex tern:flex-col tern:gap-4'
+              >
+                <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
+                  {([canSubmit, isSubmitting]) => (
+                    <>
+                      <form.AppField name='password'>
+                        {field => (
+                          <field.TernPasswordField
+                            label='Password'
+                            placeholder='Enter your password'
+                            disabled={isSubmitting || card.isLoading}
+                            required
+                            onForgotPassword={onForgotPassword}
+                          />
+                        )}
+                      </form.AppField>
+                      <FormButton
+                        canSubmit={canSubmit}
+                        isSubmitting={isSubmitting}
+                        submitText='Continue'
+                        submittingText='Signing in...'
+                      />
+                    </>
                   )}
-                </form.AppField>
-                <FormButton
-                  canSubmit={form.state.canSubmit}
-                  isSubmitting={form.state.isSubmitting}
-                  submitText='Continue'
-                  submittingText='Signing in...'
-                />
-              </FieldGroup>
-            </form>
+                </form.Subscribe>
+              </form>
+            </FieldGroup>
           </CardContent>
         </Card>
       </div>

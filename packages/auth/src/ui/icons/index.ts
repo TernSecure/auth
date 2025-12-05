@@ -12,3 +12,4 @@ export { default as RefreshCw } from './refresh-cw.svg';
 export { default as AlertCircle } from './alert-circle.svg';
 export { default as Eye } from './eye.svg';
 export { default as EyeOff } from './eye-off.svg';
+export { default as Check } from './check.svg';

@@ -2,21 +2,20 @@ import * as React from "react"
 
 import { cn } from "../../lib/utils"
 
-const Input = React.forwardRef<HTMLInputElement, React.ComponentProps<"input">>(
-  ({ className, type, ...props }, ref) => {
-    return (
-      <input
-        type={type}
-        className={cn(
-          "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm transition-colors file:border-0 file:bg-transparent file:text-sm file:font-medium file:text-foreground placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
-          className
-        )}
-        ref={ref}
-        {...props}
-      />
-    )
-  }
-)
-Input.displayName = "Input"
+function Input({ className, type, ...props }: React.ComponentProps<"input">) {
+  return (
+    <input
+      type={type}
+      data-slot="input"
+      className={cn(
+        "tern:file:text-foreground tern:placeholder:text-muted-foreground tern:selection:bg-primary tern:selection:text-primary-foreground tern:dark:bg-input/30 tern:border-input tern:h-9 tern:w-full tern:min-w-0 tern:rounded-md tern:border tern:bg-transparent tern:px-3 tern:py-1 tern:text-base tern:shadow-xs tern:transition-[color,box-shadow] tern:outline-none tern:file:inline-flex tern:file:h-7 tern:file:border-0 tern:file:bg-transparent tern:file:text-sm tern:file:font-medium tern:disabled:pointer-events-none tern:disabled:cursor-not-allowed tern:disabled:opacity-50 tern:md:text-sm",
+        "tern:focus-visible:border-ring tern:focus-visible:ring-ring/50 tern:focus-visible:ring-[3px]",
+        "tern:aria-invalid:ring-destructive/20 tern:dark:aria-invalid:ring-destructive/40 tern:aria-invalid:border-destructive",
+        className
+      )}
+      {...props}
+    />
+  )
+}
 
 export { Input }
