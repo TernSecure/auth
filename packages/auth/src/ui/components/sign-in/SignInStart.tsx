@@ -100,11 +100,6 @@ function SignInStartInternal(): React.JSX.Element {
     [identifierAttribute],
   );
 
-  // Check for redirect result on mount
-  React.useEffect(() => {
-    void ctx.checkRedirectResult();
-  }, []);
-
   const socialProviders = ctx.socialProviders || ternSecureOptions.socialProviders || [];
   const hasSocialProviders = socialProviders.length > 0;
 
