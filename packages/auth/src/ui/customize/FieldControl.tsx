@@ -68,21 +68,21 @@ const TernPasswordField = ({
   return (
     <FieldCn>
       {label && (
-        <div className='flex items-center'>
+        <div className='tern:flex tern:items-center'>
           <FieldLabel htmlFor={field.name}>{label}</FieldLabel>
           {onForgotPassword && (
             <button
               type='button'
               onClick={onForgotPassword}
               disabled={disabled}
-              className='ml-auto inline-block text-sm underline-offset-4 hover:underline'
+              className='tern:ml-auto tern:inline-block tern:text-sm tern:underline-offset-4 hover:tern:underline'
             >
               Forgot your password?
             </button>
           )}
         </div>
       )}
-      <div className='relative'>
+      <div className='tern:relative'>
         <Input
           id={field.name}
           name={field.name}
@@ -93,20 +93,20 @@ const TernPasswordField = ({
           placeholder={placeholder}
           disabled={disabled}
           required={required}
-          className='pr-10'
+          className='tern:pr-10'
         />
         <button
           type='button'
-          className='absolute right-2 top-1/2 h-8 w-8 -translate-y-1/2 hover:bg-transparent'
+          className='tern:absolute tern:right-2 tern:top-1/2 tern:h-8 tern:w-8 tern:-translate-y-1/2 hover:tern:bg-transparent'
           onClick={() => setShowPassword(!showPassword)}
           disabled={disabled}
         >
           {showPassword ? (
-            <EyeOff className='text-muted-foreground hover:text-foreground h-4 w-4' />
+            <EyeOff className='tern:text-muted-foreground hover:tern:text-foreground tern:h-4 tern:w-4' />
           ) : (
-            <Eye className='text-muted-foreground hover:text-foreground h-4 w-4' />
+            <Eye className='tern:text-muted-foreground hover:tern:text-foreground tern:h-4 tern:w-4' />
           )}
-          <span className='sr-only'>{showPassword ? 'Hide password' : 'Show password'}</span>
+          <span className='tern:sr-only'>{showPassword ? 'Hide password' : 'Show password'}</span>
         </button>
       </div>
       <TernFieldErrors />

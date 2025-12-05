@@ -44,11 +44,11 @@ export interface SessionError {
 }
 
 const Logo = ({ src, alt }: { src: string; alt: string }) => (
-  <div className='mb-4 flex justify-center'>
+  <div className='tern:mb-4 tern:flex tern:justify-center'>
     <img
       src={src}
       alt={alt}
-      className='h-10 w-auto'
+      className='tern:h-10 tern:w-auto'
     />
   </div>
 );
@@ -196,34 +196,34 @@ function SignInStartInternal(): React.JSX.Element {
   };
 
   return (
-    <div className='tern relative flex justify-center p-6 md:p-10'>
-      <div className='w-full max-w-sm'>
+    <div className='tern:relative tern:flex tern:justify-center tern:p-6 tern:md:p-10'>
+      <div className='tern:w-full tern:max-w-sm'>
         {logoPlacement === 'outside' && logoImageUrl && (
           <Logo
             src={logoImageUrl}
             alt={appName || 'App Logo'}
           />
         )}
-        <Card className={cn('mt-8 w-full max-w-md')}>
-          <CardHeader className='space-y-1 text-center'>
+        <Card className={cn('tern:mt-8 tern:w-full tern:max-w-md')}>
+          <CardHeader className='tern:space-y-1 tern:text-center'>
             {logoPlacement === 'inside' && logoImageUrl && (
               <Logo
                 src={logoImageUrl}
                 alt={appName || 'App Logo'}
               />
             )}
-            <CardTitle className={cn('font-bold')}>
+            <CardTitle className={cn('tern:font-bold')}>
               {appName ? `Sign in to ${appName}` : 'Sign in'}
             </CardTitle>
-            <CardDescription className={cn('text-muted-foreground')}>
+            <CardDescription className={cn('tern:text-muted-foreground')}>
               Please sign in to continue
             </CardDescription>
           </CardHeader>
-          <CardContent className='space-y-4'>
+          <CardContent className='tern:space-y-4'>
             {card.error && (
               <Alert
                 variant='destructive'
-                className='animate-in fade-in-50'
+                className='tern:animate-in tern:fade-in-50'
               >
                 <AlertDescription>{card.error.message}</AlertDescription>
               </Alert>
@@ -244,7 +244,7 @@ function SignInStartInternal(): React.JSX.Element {
                       e.stopPropagation();
                       void form.handleSubmit();
                     }}
-                    className='flex flex-col gap-7'
+                    className='tern:flex tern:flex-col tern:gap-7'
                   >
                     <form.Subscribe selector={state => [state.canSubmit, state.isSubmitting]}>
                       {([canSubmit, isSubmitting]) => (
@@ -296,7 +296,7 @@ function SignInStartInternal(): React.JSX.Element {
             )}
 
             {signUpMode === 'public' && (
-              <FieldDescription className='text-center'>
+              <FieldDescription className='tern:text-center'>
                 Don&apos;t have an account? <RouterLink to={signUpUrl}>Sign up</RouterLink>
               </FieldDescription>
             )}

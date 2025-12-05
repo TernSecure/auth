@@ -13,14 +13,14 @@ export const SocialButtons = ({ onProviderClick, disabled }: SocialButtonsProps)
   const providers = ['google', 'github', 'facebook', 'microsoft', 'twitter'];
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className="tern:grid tern:gap-4 tern:sm:grid-cols-2">
       {providers.map((provider, index) => (
         <Button
           key={provider}
           variant="outline"
           className={cn(
-            'w-full gap-2',
-            providers.length % 2 !== 0 && index === providers.length - 1 && 'sm:col-span-2',
+            'tern:w-full tern:gap-2',
+            providers.length % 2 !== 0 && index === providers.length - 1 && 'tern:sm:col-span-2',
           )}
           onClick={() => onProviderClick(provider)}
           disabled={disabled}

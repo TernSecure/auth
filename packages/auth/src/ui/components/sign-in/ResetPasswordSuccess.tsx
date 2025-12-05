@@ -7,6 +7,7 @@ import {
   CardHeader,
   CardTitle,
 } from '../../elements';
+import { Check } from '../../icons';
 import { useRouter } from '../../router';
 
 
@@ -15,21 +16,21 @@ export function PasswordResetSuccess() {
   const onBackToSignIn = () => navigate('../');
 
   return (
-    <div className="tern relative flex items-center justify-center">
-      <Card className={cn('w-full max-w-md mx-auto mt-8')}>
-        <CardHeader className="space-y-1 text-center">
-          <div className="w-12 h-12 mx-auto bg-green-500 rounded-full flex items-center justify-center text-white text-2xl">
-            ✓
+    <div className="tern:relative tern:flex tern:items-center tern:justify-center">
+      <Card className={cn('tern:w-full tern:max-w-md tern:mx-auto tern:mt-8')}>
+        <CardHeader className="tern:space-y-1 tern:text-center">
+          <div className="tern:w-12 tern:h-12 tern:mx-auto tern:bg-green-500 tern:rounded-full tern:flex tern:items-center tern:justify-center tern:text-white">
+            <Check className="tern:w-6 tern:h-6" />
           </div>
-          <CardTitle className="font-bold">Check your email</CardTitle>
-          <CardDescription className="text-muted-foreground">
+          <CardTitle className="tern:font-bold">Check your email</CardTitle>
+          <CardDescription className="tern:text-muted-foreground">
             Password reset instructions sent
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="tern:space-y-4">
           <Button
             onClick={onBackToSignIn}
-            className="w-full"
+            className="tern:w-full"
           >
             Back to sign in
           </Button>

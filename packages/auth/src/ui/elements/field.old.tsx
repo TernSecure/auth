@@ -1,3 +1,5 @@
+"use client"
+
 import { cva, type VariantProps } from "class-variance-authority"
 import { useMemo } from "react"
 
@@ -10,8 +12,8 @@ function FieldSet({ className, ...props }: React.ComponentProps<"fieldset">) {
     <fieldset
       data-slot="field-set"
       className={cn(
-        "tern:flex tern:flex-col tern:gap-6",
-        "tern:has-[>[data-slot=checkbox-group]]:gap-3 tern:has-[>[data-slot=radio-group]]:gap-3",
+        "flex flex-col gap-6",
+        "has-[>[data-slot=checkbox-group]]:gap-3 has-[>[data-slot=radio-group]]:gap-3",
         className
       )}
       {...props}
@@ -29,9 +31,9 @@ function FieldLegend({
       data-slot="field-legend"
       data-variant={variant}
       className={cn(
-        "tern:mb-3 tern:font-medium",
-        "tern:data-[variant=legend]:text-base",
-        "tern:data-[variant=label]:text-sm",
+        "mb-3 font-medium",
+        "data-[variant=legend]:text-base",
+        "data-[variant=label]:text-sm",
         className
       )}
       {...props}
@@ -44,7 +46,7 @@ function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="field-group"
       className={cn(
-        "tern:group/field-group tern:@container/field-group tern:flex tern:w-full tern:flex-col tern:gap-7 tern:data-[slot=checkbox-group]:gap-3 tern:[&>[data-slot=field-group]]:gap-4",
+        "group/field-group @container/field-group flex w-full flex-col gap-7 data-[slot=checkbox-group]:gap-3 [&>[data-slot=field-group]]:gap-4",
         className
       )}
       {...props}
@@ -53,7 +55,7 @@ function FieldGroup({ className, ...props }: React.ComponentProps<"div">) {
 }
 
 const fieldVariants = cva(
-  "tern:group/field tern:flex tern:w-full tern:gap-3 tern:data-[invalid=true]:text-destructive",
+  "group/field flex w-full gap-3 data-[invalid=true]:text-destructive",
   {
     variants: {
       orientation: {
@@ -97,7 +99,7 @@ function FieldContent({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="field-content"
       className={cn(
-        "tern:group/field-content tern:flex tern:flex-1 tern:flex-col tern:gap-1.5 tern:leading-snug",
+        "group/field-content flex flex-1 flex-col gap-1.5 leading-snug",
         className
       )}
       {...props}
@@ -113,9 +115,9 @@ function FieldLabel({
     <Label
       data-slot="field-label"
       className={cn(
-        "tern:group/field-label tern:peer/field-label tern:flex tern:w-fit tern:gap-2 tern:leading-snug tern:group-data-[disabled=true]/field:opacity-50",
-        "tern:has-[>[data-slot=field]]:w-full tern:has-[>[data-slot=field]]:flex-col tern:has-[>[data-slot=field]]:rounded-md tern:has-[>[data-slot=field]]:border tern:[&>*]:data-[slot=field]:p-4",
-        "tern:has-data-[state=checked]:bg-primary/5 tern:has-data-[state=checked]:border-primary tern:dark:has-data-[state=checked]:bg-primary/10",
+        "group/field-label peer/field-label flex w-fit gap-2 leading-snug group-data-[disabled=true]/field:opacity-50",
+        "has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col has-[>[data-slot=field]]:rounded-md has-[>[data-slot=field]]:border [&>*]:data-[slot=field]:p-4",
+        "has-data-[state=checked]:bg-primary/5 has-data-[state=checked]:border-primary dark:has-data-[state=checked]:bg-primary/10",
         className
       )}
       {...props}
@@ -128,7 +130,7 @@ function FieldTitle({ className, ...props }: React.ComponentProps<"div">) {
     <div
       data-slot="field-label"
       className={cn(
-        "tern:flex tern:w-fit tern:items-center tern:gap-2 tern:text-sm tern:leading-snug tern:font-medium tern:group-data-[disabled=true]/field:opacity-50",
+        "flex w-fit items-center gap-2 text-sm leading-snug font-medium group-data-[disabled=true]/field:opacity-50",
         className
       )}
       {...props}
@@ -141,9 +143,9 @@ function FieldDescription({ className, ...props }: React.ComponentProps<"p">) {
     <p
       data-slot="field-description"
       className={cn(
-        "tern:text-muted-foreground tern:text-sm tern:leading-normal tern:font-normal tern:group-has-[[data-orientation=horizontal]]/field:text-balance",
-        "tern:last:mt-0 tern:nth-last-2:-mt-1 tern:[[data-variant=legend]+&]:-mt-1.5",
-        "tern:[&>a:hover]:text-primary tern:[&>a]:underline tern:[&>a]:underline-offset-4",
+        "text-muted-foreground text-sm leading-normal font-normal group-has-[[data-orientation=horizontal]]/field:text-balance",
+        "last:mt-0 nth-last-2:-mt-1 [[data-variant=legend]+&]:-mt-1.5",
+        "[&>a:hover]:text-primary [&>a]:underline [&>a]:underline-offset-4",
         className
       )}
       {...props}
@@ -163,15 +165,15 @@ function FieldSeparator({
       data-slot="field-separator"
       data-content={!!children}
       className={cn(
-        "tern:relative tern:-my-2 tern:h-5 tern:text-sm tern:group-data-[variant=outline]/field-group:-mb-2",
+        "relative -my-2 h-5 text-sm group-data-[variant=outline]/field-group:-mb-2",
         className
       )}
       {...props}
     >
-      <Separator className="tern:absolute tern:inset-0 tern:top-1/2" />
+      <Separator className="absolute inset-0 top-1/2" />
       {children && (
         <span
-          className="tern:bg-background tern:text-muted-foreground tern:relative tern:mx-auto tern:block tern:w-fit tern:px-2"
+          className="bg-background text-muted-foreground relative mx-auto block w-fit px-2"
           data-slot="field-separator-content"
         >
           {children}
@@ -207,7 +209,7 @@ function FieldError({
     }
 
     return (
-      <ul className="tern:ml-4 tern:flex tern:list-disc tern:flex-col tern:gap-1">
+      <ul className="ml-4 flex list-disc flex-col gap-1">
         {uniqueErrors.map(
           (error, index) =>
             error?.message && <li key={index}>{error.message}</li>
@@ -224,7 +226,7 @@ function FieldError({
     <div
       role="alert"
       data-slot="field-error"
-      className={cn("tern:text-destructive tern:text-sm tern:font-normal", className)}
+      className={cn("text-destructive text-sm font-normal", className)}
       {...props}
     >
       {content}

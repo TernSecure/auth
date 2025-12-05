@@ -28,7 +28,7 @@ export const VerificationLinkCard = (props: VerificationLinkCardProps) => {
   };
 
   return (
-    <div className='tern relative flex justify-center p-6 md:p-10'>
+    <div className='relative flex justify-center p-6 md:p-10'>
       <div className='w-full max-w-sm'>
         <Card className={cn('mt-8 w-full max-w-md')}>
           <CardHeader className='space-y-1 text-center'>

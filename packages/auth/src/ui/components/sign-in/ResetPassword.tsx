@@ -55,9 +55,9 @@ function PasswordResetInternal() {
   };
 
   return (
-    <div className='tern relative flex justify-center p-6 md:p-10'>
-      <Card className={cn('mt-8 w-full max-w-md')}>
-        <CardHeader className='space-y-1'>
+    <div className='tern:relative tern:flex tern:justify-center tern:p-6 tern:md:p-10'>
+      <Card className={cn('tern:mt-8 tern:w-full tern:max-w-md')}>
+        <CardHeader className='tern:space-y-1'>
           <CardTitle>Reset Password</CardTitle>
           <CardDescription>
             Enter your email address and we&apos;ll send you a link to reset your password
@@ -67,7 +67,7 @@ function PasswordResetInternal() {
           {cardState.error && (
             <Alert
               variant='destructive'
-              className='animate-in fade-in-50 mb-4'
+              className='tern:animate-in tern:fade-in-50 tern:mb-4'
             >
               <AlertDescription>{cardState.error.message}</AlertDescription>
             </Alert>
@@ -91,11 +91,11 @@ function PasswordResetInternal() {
                 )}
               </form.AppField>
 
-              <div className='flex gap-3'>
+              <div className='tern:flex tern:gap-3'>
                 <Button
                   type='submit'
                   disabled={!form.state.canSubmit || form.state.isSubmitting}
-                  className='flex-1'
+                  className='tern:flex-1'
                 >
                   {form.state.isSubmitting ? 'Sending...' : 'Send Reset Link'}
                 </Button>
@@ -104,7 +104,7 @@ function PasswordResetInternal() {
                   variant='outline'
                   onClick={handleCancel}
                   disabled={form.state.isSubmitting}
-                  className='flex-1'
+                  className='tern:flex-1'
                 >
                   Cancel
                 </Button>
