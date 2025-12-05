@@ -13,6 +13,9 @@ export default {
         if (selector === 'body' || selector === 'html') {
           return prefix;
         }
+        if (selector === '.dark') {
+          return `${prefix} ${selector}, ${prefix}${selector}, .dark ${prefix}`;
+        }
         if (selector.startsWith('.')) {
           return `${prefix} ${selector}, ${prefix}${selector}`;
         }

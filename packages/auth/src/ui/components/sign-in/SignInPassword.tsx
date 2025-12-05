@@ -42,7 +42,7 @@ export const SignInPassword = (props: SignInPasswordProps) => {
           e.stopPropagation();
           void form.handleSubmit();
         }}
-        className="flex flex-col gap-7"
+        className="tern:flex tern:flex-col tern:gap-7"
       >
         <form.Subscribe
           selector={state => [state.canSubmit, state.isSubmitting]}

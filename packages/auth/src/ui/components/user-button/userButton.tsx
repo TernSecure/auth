@@ -1,3 +1,5 @@
+import '../../../index.css'
+
 import { useTernSecure } from '@tern-secure/shared/react'
 
 import { useAuthUser } from '../../ctx'
@@ -39,7 +41,7 @@ export function UserButton() {
             <Button 
                onClick={handleSignOut} 
                variant="outline" 
-               style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+               className="tern:flex tern:items-center tern:gap-2"
             >
                 <Avatar>
                     <AvatarImage src={user?.photoURL || undefined} alt={avatarAltText}/>
@@ -51,7 +53,7 @@ export function UserButton() {
             <Button 
                onClick={handleSignIn} 
                variant="outline" 
-               style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
+               className="tern:flex tern:items-center tern:gap-2"
             >
                 <Avatar>
                     <AvatarImage src={undefined} alt={avatarAltText}/>
