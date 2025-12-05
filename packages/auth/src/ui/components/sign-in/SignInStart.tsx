@@ -1,6 +1,6 @@
 import { useTernSecure } from '@tern-secure/shared/react';
 import type { AuthErrorTree, SignInCreateParams } from '@tern-secure/types';
-import { useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 
 import { cn } from '../../../lib/utils';
 import { TernSecureAPIResponseError } from '../../../resources/Error';
@@ -99,6 +99,11 @@ function SignInStartInternal(): React.JSX.Element {
     () => getIdentifiers(identifierAttribute),
     [identifierAttribute],
   );
+
+  // Check for redirect result on mount
+  React.useEffect(() => {
+    void ctx.checkRedirectResult();
+  }, []);
 
   const socialProviders = ctx.socialProviders || ternSecureOptions.socialProviders || [];
   const hasSocialProviders = socialProviders.length > 0;

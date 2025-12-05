@@ -206,12 +206,6 @@ export class SignIn extends TernSecureBase implements SignInResource {
     try {
       const { mode = 'popup' } = options;
       if (mode === 'redirect') {
-        const redirectResult = await this.authRedirectResult();
-
-        if (redirectResult) {
-          return redirectResult;
-        }
-
         return await this._signInWithRedirect(provider, options);
       } else {
         return await this._signInWithPopUp(provider, options);
