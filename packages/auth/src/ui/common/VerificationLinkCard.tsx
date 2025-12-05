@@ -28,28 +28,28 @@ export const VerificationLinkCard = (props: VerificationLinkCardProps) => {
   };
 
   return (
-    <div className='relative flex justify-center p-6 md:p-10'>
-      <div className='w-full max-w-sm'>
-        <Card className={cn('mt-8 w-full max-w-md')}>
-          <CardHeader className='space-y-1 text-center'>
+    <div className='tern:relative tern:flex tern:justify-center tern:p-6 tern:md:p-10'>
+      <div className='tern:w-full tern:max-w-sm'>
+        <Card className={cn('tern:mt-8 tern:w-full tern:max-w-md')}>
+          <CardHeader className='tern:space-y-1 tern:text-center'>
             <CardTitle>Verify your email</CardTitle>
-            <CardDescription className={cn('text-muted-foreground')}>
+            <CardDescription className={cn('tern:text-muted-foreground')}>
               {props.emailSent
                 ? "We've sent a verification link to your email address. Please check your inbox and click the link to continue."
                 : 'Sending verification email...'}
             </CardDescription>
           </CardHeader>
-          <CardContent className='space-y-4'>
+          <CardContent className='tern:space-y-4'>
             {card.error && (
               <Alert
                 variant='destructive'
-                className='animate-in fade-in-50'
+                className='tern:animate-in tern:fade-in-50'
               >
                 <AlertDescription>{card.error.message}</AlertDescription>
               </Alert>
             )}
             {props.emailSent && props.onResend && (
-              <div className='space-y-2'>
+              <div className='tern:space-y-2'>
                 <Alert>
                   <AlertDescription>
                     Didn&apos;t receive the email? Check your spam folder or click the button below
@@ -60,7 +60,7 @@ export const VerificationLinkCard = (props: VerificationLinkCardProps) => {
                   onClick={() => void props.onResend?.()}
                   disabled={props.isLoading}
                   variant='outline'
-                  className='w-full'
+                  className='tern:w-full'
                   startDisabled
                   throttleTimeInSec={60}
                 >
@@ -69,7 +69,7 @@ export const VerificationLinkCard = (props: VerificationLinkCardProps) => {
               </div>
             )}
           </CardContent>
-          <FieldDescription className='text-center'>
+          <FieldDescription className='tern:text-center'>
             <a onClick={() => void goBack()}>Go back</a>
           </FieldDescription>
         </Card>

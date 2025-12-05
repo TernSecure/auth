@@ -72,22 +72,22 @@ function SignUpStartInternal(): React.JSX.Element {
   };
 
   return (
-    <div className='relative flex justify-center p-6 md:p-10'>
-      <div className='w-full max-w-sm'>
-        <Card className={cn('mt-8 w-full max-w-md')}>
-          <CardHeader className='space-y-1 text-center'>
+    <div className='tern:relative tern:flex tern:justify-center tern:p-6 tern:md:p-10'>
+      <div className='tern:w-full tern:max-w-sm'>
+        <Card className={cn('tern:mt-8 tern:w-full tern:max-w-md')}>
+          <CardHeader className='tern:space-y-1 tern:text-center'>
             <CardTitle>{appName ? `Create your ${appName} account` : 'Create your account'}</CardTitle>
-            <CardDescription className={cn('text-muted-foreground')}>
+            <CardDescription className={cn('tern:text-muted-foreground')}>
               {shouldShowForm
                 ? 'Welcome! Please fill in the details to get started.'
                 : 'Welcome! Please sign up to continue.'}
             </CardDescription>
           </CardHeader>
-          <CardContent className='space-y-4'>
+          <CardContent className='tern:space-y-4'>
             {card.error && (
               <Alert
                 variant='destructive'
-                className='animate-in fade-in-50'
+                className='tern:animate-in tern:fade-in-50'
               >
                 <AlertDescription>{card.error.message}</AlertDescription>
               </Alert>
@@ -101,7 +101,7 @@ function SignUpStartInternal(): React.JSX.Element {
                     e.stopPropagation();
                     void form.handleSubmit();
                   }}
-                  className="flex flex-col gap-7"
+                  className="tern:flex tern:flex-col tern:gap-7"
                 >
                   <form.Subscribe
                     selector={state => [state.canSubmit, state.isSubmitting]}
@@ -144,7 +144,7 @@ function SignUpStartInternal(): React.JSX.Element {
               <SignUpSocialButtons />
             </FieldGroup>
           </CardContent>
-          <FieldDescription className='text-center'>
+          <FieldDescription className='tern:text-center'>
             Already have an account? <a href={signInUrl}>Sign In</a>
           </FieldDescription>
         </Card>

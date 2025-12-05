@@ -44,14 +44,14 @@ export const VerificationCodeCard = (props: PropsWithChildren<VerificationCodeCa
   });
 
   return (
-    <div className='relative flex justify-center p-6 md:p-10'>
-      <div className='w-full max-w-sm'>
-        <Card className={cn('mt-8 w-full max-w-md')}>
-          <CardHeader className='space-y-1 text-center'>
+    <div className='tern:relative tern:flex tern:justify-center tern:p-6 tern:md:p-10'>
+      <div className='tern:w-full tern:max-w-sm'>
+        <Card className={cn('tern:mt-8 tern:w-full tern:max-w-md')}>
+          <CardHeader className='tern:space-y-1 tern:text-center'>
             <CardTitle>{props.cardTitle}</CardTitle>
             <CardDescription>{props.cardDescription}</CardDescription>
           </CardHeader>
-          <CardContent className='space-y-4'>
+          <CardContent className='tern:space-y-4'>
             {card.error && (
               <Alert variant='destructive'>
                 <AlertDescription>{card.error.message}</AlertDescription>
