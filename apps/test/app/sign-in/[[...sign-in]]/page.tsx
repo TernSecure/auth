@@ -12,6 +12,11 @@ export default function LoginPage() {
           socialButtonsPlacement: 'top',
         },
       }}
+      socialProviders={[
+        {name: 'google', options: {mode: 'redirect'}},
+        {name: 'github'},
+        {name: 'facebook'}
+      ]}
       //initialValues={{ phoneNumber: '' }}
     />
   );

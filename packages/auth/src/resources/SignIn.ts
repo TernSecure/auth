@@ -12,6 +12,7 @@ import type {
   SignInStatus,
   SignInVerificationResponse,
   SocialProviderOptions,
+  SupportedProvider,
   TernSecureUser
 } from '@tern-secure/types';
 import type { ApplicationVerifier, Auth, ConfirmationResult, UserCredential } from 'firebase/auth';
@@ -50,17 +51,6 @@ type AuthMethodFunction = (
   provider: GoogleAuthProvider | OAuthProvider,
 ) => Promise<FirebaseAuthResult>;
 
-/**
- * Supported OAuth providers
- */
-export type SupportedProvider =
-  | 'google'
-  | 'apple'
-  | 'microsoft'
-  | 'github'
-  | 'twitter'
-  | 'facebook'
-  | string; // Allow custom providers like 'custom.provider.com'
 
 export class SignIn extends TernSecureBase implements SignInResource {
   pathRoot = '/sign_ins/create';

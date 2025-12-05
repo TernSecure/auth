@@ -1,10 +1,6 @@
 import type { ApiHandlerOptions } from '@tern-secure/nextjs/admin';
 
 const authHandlerOptions: ApiHandlerOptions = {
-  appCheck: {
-    provider: 'reCaptchaV3',
-    siteKey: process.env.NEXT_PUBLIC_APPCHECK_RECAPTCHA_SITE_KEY || '',
-  }, 
   cookies: {
     httpOnly: true,
     sameSite: 'strict',

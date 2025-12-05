@@ -210,3 +210,20 @@ export interface SignInJson extends TernSecureResourceJSON {
   secondFactorVerification?: SignInSecondFactor;
   identifier: string | null;
 }
+
+/**
+ * Supported OAuth providers
+ */
+export type SupportedProvider =
+  | 'google'
+  | 'apple'
+  | 'microsoft'
+  | 'github'
+  | 'twitter'
+  | 'facebook'
+  | string; // Allow custom providers like 'custom.provider.com'
+
+export interface SocialProvider {
+  name: SupportedProvider;
+  options?: SocialProviderOptions;
+}

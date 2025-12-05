@@ -31,7 +31,11 @@ function SignUpStartInternal(): React.JSX.Element {
   const ctx = useSignUpContext();
   const { afterSignUpUrl, signInUrl, shouldShowForm = true } = ctx;
   const { createActiveSession } = useTernSecure();
-  const { appName } = useTernSecureOptions();
+  const ternSecureOptions = useTernSecureOptions();
+  const { appName } = ternSecureOptions;
+
+  const socialProviders = ctx.socialProviders || ternSecureOptions.socialProviders || [];
+  const hasSocialProviders = socialProviders.length > 0;
 
   const defaultValues: SignUpFormValues = {
     email: '',
@@ -135,13 +139,13 @@ function SignUpStartInternal(): React.JSX.Element {
                           submitText='Continue'
                           submittingText='Creating Account...'
                         />
-                        <FieldSeparator>Or continue with</FieldSeparator>
+                        {hasSocialProviders && <FieldSeparator>Or continue with</FieldSeparator>}
                       </>
                     )}
                   </form.Subscribe>
                 </form>
               )}
-              <SignUpSocialButtons />
+              {hasSocialProviders && <SignUpSocialButtons />}
             </FieldGroup>
           </CardContent>
           <FieldDescription className='tern:text-center'>
