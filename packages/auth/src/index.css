@@ -118,6 +118,6 @@
     @apply tern:border-border tern:outline-ring/50;
   }
   body {
-    @apply tern:bg-background tern:text-foreground;
+    @apply tern:text-foreground;
   }
 }
