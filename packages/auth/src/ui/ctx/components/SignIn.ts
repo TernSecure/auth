@@ -172,9 +172,9 @@ export const useSignInContext = (): SignInContextType => {
   const checkRedirectResult = useCallback(async (): Promise<void> => {
     try {
       const result = await ternSecure.getRedirectResult();
-      if (result && result.success) {
+      if (result && result.status === 'success') {
         await onSignInSuccess(result.user);
-      } else if (result && !result.success) {
+      } else if (result && result.status === 'error') {
         const authError = createAuthError(
           result.message || 'Redirect sign-in failed',
           result.error || 'REDIRECT_FAILED',
