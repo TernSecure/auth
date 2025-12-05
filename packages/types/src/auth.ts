@@ -11,7 +11,7 @@ import type {
   SignUpFallbackRedirectUrl,
   SignUpForceRedirectUrl,
 } from './redirect';
-import type { AuthErrorResponse, SignInResource } from './signIn';
+import type { AuthErrorResponse, SignInResource, SocialProvider } from './signIn';
 import type { SignInTheme, SignUpTheme } from './theme';
 
 /**
@@ -199,6 +199,11 @@ export type TernSecureAuthOptions = TernSecureOptionsNavigation &
      * ReCaptcha V3 Site Key for Firebase App Check
      */
     appCheck?: AppCheckConfig;
+
+    /**
+     * Social providers configuration
+     */
+    socialProviders?: SocialProvider[];
   };
 
 /**
@@ -476,6 +481,11 @@ export type SignInProps = RoutingOptions & {
    * @default true
    */
   showCombinedForm?: boolean;
+
+  /**
+   * Social providers configuration
+   */
+  socialProviders?: SocialProvider[];
 } & SignUpForceRedirectUrl &
   SignUpFallbackRedirectUrl &
   AfterSignOutUrl;
@@ -511,6 +521,11 @@ export type SignUpProps = RoutingOptions & {
   shouldShowForm?: boolean;
   /** Initial form values */
   initialValues?: SignUpInitialValues ;
+
+  /**
+   * Social providers configuration
+   */
+  socialProviders?: SocialProvider[];
 } & SignInFallbackRedirectUrl &
   SignInForceRedirectUrl &
   AfterSignOutUrl;

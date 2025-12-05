@@ -100,6 +100,9 @@ function SignInStartInternal(): React.JSX.Element {
     [identifierAttribute],
   );
 
+  const socialProviders = ctx.socialProviders || ternSecureOptions.socialProviders || [];
+  const hasSocialProviders = socialProviders.length > 0;
+
   const fieldComponentType = useMemo(() => {
     return identifierAttribute === 'phone_number' ? 'tel' : 'email';
   }, [identifierAttribute]);
@@ -231,7 +234,7 @@ function SignInStartInternal(): React.JSX.Element {
 
             {showCombinedForm ? (
               <FieldGroup>
-                {socialButtonsPlacement === 'top' && (
+                {socialButtonsPlacement === 'top' && hasSocialProviders && (
                   <>
                     <SignInSocialButtons />
                     {passwordAuthentication && <FieldSeparator>Or continue with</FieldSeparator>}
@@ -274,7 +277,7 @@ function SignInStartInternal(): React.JSX.Element {
                             submitText='Continue'
                             submittingText='Continuing...'
                           />
-                          {socialButtonsPlacement === 'bottom' && (
+                          {socialButtonsPlacement === 'bottom' && hasSocialProviders && (
                             <FieldSeparator>Or continue with</FieldSeparator>
                           )}
                         </>
@@ -282,7 +285,7 @@ function SignInStartInternal(): React.JSX.Element {
                     </form.Subscribe>
                   </form>
                 )}
-                {socialButtonsPlacement === 'bottom' && <SignInSocialButtons />}
+                {socialButtonsPlacement === 'bottom' && hasSocialProviders && <SignInSocialButtons />}
               </FieldGroup>
             ) : (
               passwordAuthentication && (

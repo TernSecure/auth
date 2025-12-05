@@ -1,20 +1,23 @@
 import { useTernSecure } from '@tern-secure/shared/react';
-import type { SocialProviderOptions } from '@tern-secure/types';
+import type { SocialProvider } from '@tern-secure/types';
 
-import { useAuthSignIn, useSignInContext } from '../../ctx';
+import { useAuthSignIn, useSignInContext, useTernSecureOptions } from '../../ctx';
 import { SocialButtons, useCardState } from '../../elements';
 
 export const SignInSocialButtons = () => {
   const signIn = useAuthSignIn();
   const ternSecure = useTernSecure();
   const card = useCardState();
-  const { afterSignInUrl } = useSignInContext();
+  const { afterSignInUrl, socialProviders: signInSocialProviders } = useSignInContext();
+  const ternSecureOptions = useTernSecureOptions();
+
+  const socialProviders = signInSocialProviders || ternSecureOptions.socialProviders || [];
 
   const signInWithSocialLogin = async (
-    provider: string,
-    customOptions: SocialProviderOptions = { mode: 'popup' },
+    provider: SocialProvider,
   ) => {
-    const res = await signIn?.authenticateWithSocialProvider(provider, {
+    const customOptions = provider.options || { mode: 'popup' };
+    const res = await signIn?.authenticateWithSocialProvider(provider.name, {
       mode: customOptions.mode || 'popup',
       customParameters: customOptions.customParameters,
       scopes: customOptions.scopes,
@@ -33,10 +36,15 @@ export const SignInSocialButtons = () => {
     }
   };
 
+  if (socialProviders.length === 0) {
+    return null;
+  }
+
   return (
     <SocialButtons
       onProviderClick={provider => void signInWithSocialLogin(provider)}
       disabled={card.isLoading}
+      providers={socialProviders}
     />
   );
 };
