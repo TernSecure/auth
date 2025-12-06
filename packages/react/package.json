@@ -10,9 +10,6 @@
   "bugs": {
     "url": "https://github.com/TernSecure/auth/issues"
   },
-  "sideEffects": [
-    "**/*.css"
-  ],
   "files": [
     "dist"
   ],
@@ -26,37 +23,23 @@
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
       }
-    },
-    "./index.css": "./dist/styles/globals.css"
+    }
   },
   "main": "./dist/index.js",
   "scripts": {
     "clean": "rimraf dist",
     "build": "pnpm clean && tsup",
     "build:add": "tsc -p tsconfig.add.json",
-    "build:styles": "tailwindcss -i ./src/styles/globals.css -o ./dist/styles/globals.css --minify",
     "dev": "tsup --watch",
-    "dev:styles": "tailwindcss -i ./src/styles/globals.css -o ./dist/index.css --watch",
     "lint": "eslint src"
   },
   "dependencies": {
     "@tern-secure/shared": "workspace:*",
     "@tern-secure/types": "workspace:*",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "lucide-react": "^0.468.0",
-    "tailwind-merge": "^2.5.5",
-    "tailwindcss-animate": "^1.0.7",
     "tslib": "catalog:repo"
   },
   "devDependencies": {
-    "@tailwindcss/cli": "^4.1.6",
-    "@tailwindcss/postcss": "^4.1.6",
-    "autoprefixer": "^10.4.21",
-    "esbuild-plugin-postcss2": "^0.1.2",
-    "next": "^15.0.0",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^4.1.6"
+    "next": "^15.0.0"
   },
   "peerDependencies": {
     "firebase": "catalog:peer-firebase",

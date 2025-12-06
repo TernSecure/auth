@@ -13,8 +13,6 @@ export {
   handleInternalRoute,
 } from './route-handler/internal-route';
 
-export { cn } from './lib/utils';
-
 export type {
   IsoTernSecureAuthOptions,
   Browser,
