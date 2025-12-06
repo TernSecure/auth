@@ -151,7 +151,13 @@ const useCodeControl = (options?: UseCodeInputOptions) => {
   return {
     otpInputProps,
     onCodeEntryFinished,
-    reset: () => otpControlRef.current?.reset(),
+    reset: () => {
+      setValues(Array(length).fill(''));
+      clearFeedback();
+      if (otpControlRef.current && typeof otpControlRef.current.focus === 'function') {
+        otpControlRef.current.focus();
+      }
+    },
     setError,
   };
 };
