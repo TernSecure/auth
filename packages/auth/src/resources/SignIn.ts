@@ -163,7 +163,8 @@ export class SignIn extends TernSecureBase implements SignInResource {
   };
 
   createRecaptchaVerifier = (containerOrId: string | HTMLElement, parameters?: any): ApplicationVerifier => {
-    return new RecaptchaVerifier(this.auth, containerOrId, parameters);
+    window.recaptchaVerifier = new RecaptchaVerifier(this.auth, containerOrId, parameters);
+    return window.recaptchaVerifier;
   };
 
   authenticateWithPhoneNumber = async (params: SignInPhoneParams): Promise<SignInResponse> => {

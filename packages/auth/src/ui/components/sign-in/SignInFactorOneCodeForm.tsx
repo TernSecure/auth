@@ -1,11 +1,13 @@
 import { useTernSecure } from '@tern-secure/shared/react';
 import type { EmailCodeFactor, PhoneCodeFactor } from '@tern-secure/types';
+//import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 import type { ApplicationVerifier } from 'firebase/auth';
+import { getAuth, RecaptchaVerifier} from "firebase/auth";
 import React from 'react';
 
 import type { VerificationCodeCardProps } from '../../common/VerificationCodeCard';
 import { VerificationCodeCard } from '../../common/VerificationCodeCard';
-import { useAuthSignIn, useSignInContext } from '../../ctx';
+import { useAuthSignIn, useSignInContext, useTernSecureOptions } from '../../ctx';
 import { useCardState } from '../../elements';
 import { useRouter } from '../../router';
 
@@ -15,20 +17,29 @@ export type SignInFactorOneCodeCard = Pick<VerificationCodeCardProps, 'onBackLin
 
 export type SignInFactorOneCodeFormProps = SignInFactorOneCodeCard;
 
+const RECAPTCHA_ENTERPRISE_SITE_KEY = '6Lc2aCIsAAAAAAZ2fYnqkPGqGnlsi6KE94qEzGKX'; 
+
+const VERIFIER_CONTAINER_ID = 'recaptcha-verifier-container';
+
 export const SignInFactorOneCodeForm = (props: SignInFactorOneCodeFormProps) => {
   const signIn = useAuthSignIn();
   const card = useCardState();
   const { navigate } = useRouter();
   const { afterSignInUrl } = useSignInContext();
   const ternSecure = useTernSecure();
+  const ternSecureOptions = useTernSecureOptions();
   const recaptchaContainerRef = React.useRef<HTMLDivElement>(null);
   const [verifier, setVerifier] = React.useState<ApplicationVerifier | null>(null);
   const [isInitializing, setIsInitializing] = React.useState(false);
   const initializationAttempted = React.useRef(false);
+  
+  const app = ternSecure.firebaseApp;
+const auth = getAuth(app);
 
   const sendSmsCode = React.useCallback(
-    async (appVerifier: ApplicationVerifier) => {
+    async () => {
       if (!signIn?.identifier) return;
+      const appVerifier = window.recaptchaVerifier;
       const res = await signIn.authenticateWithPhoneNumber({
         phoneNumber: signIn.identifier,
         appVerifier,
@@ -45,6 +56,7 @@ export const SignInFactorOneCodeForm = (props: SignInFactorOneCodeFormProps) => 
     [signIn, card],
   );
 
+
   const initializeRecaptcha = React.useCallback(async () => {
     if (
       props.factor.strategy === 'phone_code' &&
@@ -60,25 +72,30 @@ export const SignInFactorOneCodeForm = (props: SignInFactorOneCodeFormProps) => 
         const container = recaptchaContainerRef.current;
 
         if (!container.id) {
-          container.id = 'recaptcha-container';
+          container.id = VERIFIER_CONTAINER_ID;
         }
 
-        const appVerifier = signIn.createRecaptchaVerifier(container, {
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, container, {
           size: 'invisible',
           callback: (_response: any) => {
-            // reCAPTCHA solved
+            console.log('reCAPTCHA solved. Appcheck Verified this flow', _response);
           },
           'expired-callback': () => {
-            // Response expired - reset verifier
-            setVerifier(null);
+            card.setError({
+              status: 'error',
+              message: 'reCAPTCHA expired. Please try again.',
+            });
             setIsInitializing(false);
             initializationAttempted.current = false;
           },
         });
 
+        const appVerifier = window.recaptchaVerifier;
         setVerifier(appVerifier);
-        await sendSmsCode(appVerifier);
+
+        await sendSmsCode();
       } catch (e) {
+        console.error('Failed to initialize reCAPTCHA verifier', e);
         card.setError({
           status: 'error',
           message: 'Failed to initialize security verification',
@@ -92,7 +109,15 @@ export const SignInFactorOneCodeForm = (props: SignInFactorOneCodeFormProps) => 
 
   React.useEffect(() => {
     void initializeRecaptcha();
-  }, [initializeRecaptcha]);
+
+    return () => {
+      if (window.recaptchaVerifier) {
+        window.recaptchaVerifier.clear();
+        delete window.recaptchaVerifier;
+      }
+    };
+  }, []);
+
 
   const action = (
     code: string,
@@ -128,7 +153,7 @@ export const SignInFactorOneCodeForm = (props: SignInFactorOneCodeFormProps) => 
     e.preventDefault();
     const run = async () => {
       if (props.factor.strategy === 'phone_code' && signIn?.identifier && verifier) {
-        await sendSmsCode(verifier);
+        await sendSmsCode();
       }
     };
     void run();
@@ -143,7 +168,7 @@ export const SignInFactorOneCodeForm = (props: SignInFactorOneCodeFormProps) => 
       {props.factor.strategy === 'phone_code' && (
         <div
           ref={recaptchaContainerRef}
-          id='recaptcha-container'
+          id={VERIFIER_CONTAINER_ID}
           style={{
             minHeight: '78px',
             display: 'flex',

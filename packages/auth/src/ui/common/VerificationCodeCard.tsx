@@ -12,10 +12,11 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  Field as FieldCn,
-  OTPCodeControl,
-  OTPResendButton,
-  OTPRoot,
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+  TimerButton,
   useCardState,
   useFieldOTP,
 } from '../elements';
@@ -43,6 +44,20 @@ export const VerificationCodeCard = (props: PropsWithChildren<VerificationCodeCa
     onResendCodeClicked: props.onResendCodeClicked,
   });
 
+  const handleContinue = () => {
+    const { values, length } = otp.otpControl.otpInputProps;
+    const code = values.join('');
+    if (code.length < length) {
+      card.setError({
+        status: 'error',
+        message: 'Please enter the code.',
+        error: new Error('Incomplete code'),
+      });
+      return;
+    }
+    otp.onFakeContinue();
+  };
+
   return (
     <div className='tern:relative tern:flex tern:justify-center tern:p-6 tern:md:p-10'>
       <div className='tern:w-full tern:max-w-sm'>
@@ -59,12 +74,12 @@ export const VerificationCodeCard = (props: PropsWithChildren<VerificationCodeCa
             )}
             <TernOTPInput
               {...otp}
-              label={props.inputLabel}
               onResendCode={otp.onResendCode}
             />
             <Button
+              className="tern:w-full"
               disabled={otp.isLoading}
-              onClick={otp.onFakeContinue}
+              onClick={handleContinue}
             >
               {props.submitButtonText}
             </Button>
@@ -76,27 +91,56 @@ export const VerificationCodeCard = (props: PropsWithChildren<VerificationCodeCa
 };
 
 const TernOTPInput = (props: OTPInputProps) => {
-  const { otpControl, label, resendButton, description, isLoading, isDisabled, onResendCode, centerAlign } = props;
-  const { ref, ...restInputProps } = otpControl.otpInputProps;
+  const { otpControl, resendButton, description, isLoading, isDisabled, onResendCode, centerAlign = true } = props;
+  const { values, setValues, length, feedback, feedbackType, ref } = otpControl.otpInputProps;
   
-  // Filter out non-DOM props
-  const { values, setValues, clearFeedback, feedback, feedbackType, ...domSafeProps } = restInputProps;
+  const value = values.join('');
   
+  const handleChange = (newValue: string) => {
+      const newValues = newValue.split('');
+      while (newValues.length < length) {
+          newValues.push('');
+      }
+      setValues(newValues);
+  };
+
   return (
-    <FieldCn {...domSafeProps}>
-      <OTPRoot 
-        label={label}
-        resendButton={resendButton}
-        description={description}
-        isLoading={isLoading}
-        isDisabled={isDisabled}
-        onResendCode={onResendCode}
-        otpControl={otpControl}
-        centerAlign={centerAlign}
-      >
-        <OTPCodeControl ref={ref} />
-        <OTPResendButton />
-      </OTPRoot>
-    </FieldCn>
+    <div className={cn("tern:flex tern:flex-col tern:gap-4", centerAlign && "tern:items-center")}>
+
+        <InputOTP
+            maxLength={length}
+            value={value}
+            onChange={handleChange}
+            disabled={isDisabled || isLoading}
+            ref={ref}
+        >
+            <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+            </InputOTPGroup>
+            <InputOTPSeparator />
+            <InputOTPGroup>
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+            </InputOTPGroup>
+        </InputOTP>
+        
+        {description && <div className="tern:text-sm tern:text-muted-foreground">{description}</div>}
+        
+        {onResendCode && (
+            <TimerButton
+                onClick={onResendCode}
+                startDisabled
+                disabled={feedbackType === 'success' || isLoading}
+                showCounter={feedbackType !== 'success'}
+                throttleTimeInSec={60}
+                className="tern:text-sm tern:text-muted-foreground hover:tern:text-primary tern:underline tern:underline-offset-4"
+            >
+                Resend Code
+            </TimerButton>
+        )}
+    </div>
   );
 };

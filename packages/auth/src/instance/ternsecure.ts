@@ -39,7 +39,7 @@ import {
   ReCaptchaEnterpriseProvider,
   ReCaptchaV3Provider,
 } from 'firebase/app-check';
-import type { Auth, Auth as TernAuth } from 'firebase/auth';
+import type { Auth, Auth as TernAuth, RecaptchaVerifier } from 'firebase/auth';
 import {
   browserLocalPersistence,
   browserPopupRedirectResolver,
@@ -67,6 +67,7 @@ export function inBrowser(): boolean {
 
 export { TernAuth };
 
+
 declare global {
   interface Window {
     TernSecure?: TernSecureAuth;
@@ -76,6 +77,7 @@ declare global {
     frontEndDomain?: TernSecureAuthInterface['frontEndDomain'];
     proxyUrl?: TernSecureAuthInterface['proxyUrl'];
     FIREBASE_APPCHECK_DEBUG_TOKEN?: string | boolean;
+    recaptchaVerifier?: RecaptchaVerifier;
   }
 }
 

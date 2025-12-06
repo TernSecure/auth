@@ -41,6 +41,7 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "core-js": "3.41.0",
+    "input-otp": "^1.4.2",
     "lucide-react": "^0.468.0",
     "regenerator-runtime": "0.13.11",
     "server-only": "^0.0.1",
