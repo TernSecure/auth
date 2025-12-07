@@ -344,7 +344,7 @@ importers:
         specifier: ^5.9.6
         version: 5.10.0
       next:
-        specifier: ^13.0.0 || ^14.0.0 || ^15.0.0
+        specifier: ^13.5.7 || ^14.2.25 || ^15.2.3 || ^16
         version: 15.3.2(@opentelemetry/api@1.9.0)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)(sass@1.94.2)
       react:
         specifier: catalog:peer-react
