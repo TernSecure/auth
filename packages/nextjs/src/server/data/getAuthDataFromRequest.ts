@@ -114,8 +114,9 @@ export async function getAuthDataFromRequest(req: RequestLike): Promise<AuthObje
       userId: null
     }
   }
-  const { user, claims } = firebaseUser;
-  const authObject = signedInAuthObject(authToken as string, claims as any);
+  const { user } = firebaseUser;
+  const jwt = ternDecodeJwt(authToken as string);
+  const authObject = signedInAuthObject(authToken as string, jwt.payload);
   return {
     ...authObject,
     user: user || null,
