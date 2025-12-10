@@ -81,6 +81,16 @@
         "default": "./dist/jwt/index.js"
       }
     },
+    "./functions": {
+      "import": {
+        "types": "./dist/functions/index.d.ts",
+        "default": "./dist/functions/index.mjs"
+      },
+      "require": {
+        "types": "./dist/functions/index.d.ts",
+        "default": "./dist/functions/index.js"
+      }
+    },
     "./package.json": "./package.json"
   },
   "main": "./dist/index.js",
@@ -96,7 +106,6 @@
   "dependencies": {
     "@tern-secure/shared": "workspace:*",
     "@tern-secure/types": "workspace:*",
-    "@upstash/redis": "^1.35.2",
     "cookie": "1.0.2",
     "jose": "^5.10.0",
     "tslib": "catalog:repo"
@@ -107,7 +116,9 @@
     "vitest-environment-miniflare": "2.14.4"
   },
   "peerDependencies": {
-    "firebase-admin": "catalog:peer-firebase"
+    "@upstash/redis": "^1.35.2",
+    "firebase-admin": "catalog:peer-firebase",
+    "firebase-functions": "^6.1.2"
   },
   "engines": {
     "node": ">=20"

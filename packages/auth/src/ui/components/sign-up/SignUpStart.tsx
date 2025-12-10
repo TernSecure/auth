@@ -2,8 +2,7 @@ import { useTernSecure } from '@tern-secure/shared/react';
 import type { SignUpFormValues } from '@tern-secure/types';
 
 import { cn } from '../../../lib/utils';
-import { useTernSecureOptions } from '../../ctx';
-import { useAuthSignUp, useSignUpContext } from '../../ctx';
+import { useAuthSignUp, useSignUpContext,useTernSecureOptions } from '../../ctx';
 import {
   Alert,
   AlertDescription,
