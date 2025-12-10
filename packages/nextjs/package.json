@@ -77,7 +77,6 @@
     "tslib": "catalog:repo"
   },
   "peerDependencies": {
-    "@upstash/redis": "^1.35.2",
     "firebase": "catalog:peer-firebase",
     "next": "^13.5.7 || ^14.2.25 || ^15.2.3 || ^16",
     "react": "catalog:peer-react",
