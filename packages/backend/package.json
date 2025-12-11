@@ -15,6 +15,7 @@
     "admin",
     "auth",
     "app-check",
+    "functions",
     "internal",
     "jwt"
   ],
