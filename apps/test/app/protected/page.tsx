@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
 
 export default async function ProtectedPage() {
   const { user, require, redirectToSignIn } = await auth();
-  if (!require({ role: 'admin' })) return <div>Access Denied</div>;
+  if (!require({ role: 'admin' })) return <div>Access Denied now</div>;
 
   if (!user) return redirectToSignIn();
 

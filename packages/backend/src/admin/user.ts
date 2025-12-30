@@ -47,3 +47,6 @@ export function RetrieveUser(tenantId?: string) {
         getUserByPhoneNumber,
     }
 }
+
+
+export type { UserRecord }

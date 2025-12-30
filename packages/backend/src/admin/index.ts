@@ -1,17 +1,17 @@
-export { 
-    createSessionCookie, 
+export {
+    createSessionCookie,
     createCustomTokenClaims,
     clearSessionCookie
 } from './sessionTernSecure'
-export { 
-    adminTernSecureAuth, 
-    adminTernSecureDb, 
+export {
+    adminTernSecureAuth,
+    adminTernSecureDb,
     appCheckAdmin,
-    TernSecureTenantManager 
+    TernSecureTenantManager
 } from '../utils/admin-init'
 export { initializeAdminConfig } from '../utils/config'
 export { createTenant, createTenantUser } from './tenant'
-export { 
+export {
     CreateNextSessionCookie,
     GetNextServerSessionCookie,
     GetNextIdToken,
@@ -25,3 +25,4 @@ export {
 export type { SignInAuthObject, RequestState } from '../instance/backendInstance'
 export { createBackendInstance, authenticateRequest, signedIn } from '../instance/backendInstance'
 export { RetrieveUser } from './user'
+export type { UserRecord } from './user'
