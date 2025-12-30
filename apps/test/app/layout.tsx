@@ -33,14 +33,14 @@ export default async function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <TernSecureProvider
           appName='TernSecure'
-          appCheck={{
-            provider: 'reCaptchaV3',
-            siteKey: '6LfzGRgsAAAAAGEvbwbcLgT4IHWmuWv4kEDRA5hi',
+          //appCheck={{
+          //  provider: 'reCaptchaV3',
+          //  siteKey: '6LfzGRgsAAAAAGEvbwbcLgT4IHWmuWv4kEDRA5hi',
             //siteKey: '6Lc2aCIsAAAAAAZ2fYnqkPGqGnlsi6KE94qEzGKX',
             //siteKey: '6LfophwsAAAAAMvW43vd87iiuBCWDRYQZGS0rsRH',
-            isTokenAutoRefreshEnabled: true,
-            debugToken: process.env.FIREBASE_APPCHECK_DEBUG_TOKEN || false,
-          }}
+          //  isTokenAutoRefreshEnabled: true,
+          //  debugToken: process.env.FIREBASE_APPCHECK_DEBUG_TOKEN || false,
+         //</body> }}
           //requiresVerification={false}
           persistence='browserCookie'
           ternUIUrl='http://localhost:4000/ternsecure.browser.js'
