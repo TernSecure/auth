@@ -91,38 +91,35 @@ export async function getTernSecureAuthData(
   return authObjectToSerializable({ ...initialState, ...authObject });
 }
 
-export async function getAuthDataFromRequest(req: RequestLike): Promise<AuthObject & Aobj> {
+
+/**
+ * Given the issue ( https://github.com/firebase/firebase-js-sdk/issues/9423 ) that affects the authenticateRequest function, 
+ * change from Promise<AuthObject & Aobj> to Promise<AuthObject> only. no firebaseserverapp user object needed.
+ * @param req 
+ * @returns 
+ */
+export async function getAuthDataFromRequest(req: RequestLike): Promise<AuthObject> {
   const authStatus = getAuthKeyFromRequest(req, "AuthStatus");
   const authToken = getAuthKeyFromRequest(req, "AuthToken");
 
   if (!authStatus || authStatus !== AuthStatus.SignedIn) {
     return {
       ...signedOutAuthObject(),
-      user: null,
-      userId: null
     }
   }
 
-  const firebaseUser = await authenticateRequest(
-    authToken as string,
-    req as any
-  );
-  if (!firebaseUser || !firebaseUser.claims) {
-    return {
-      ...signedOutAuthObject(),
-      user: null,
-      userId: null
-    }
-  }
-  const { user } = firebaseUser;
   const jwt = ternDecodeJwt(authToken as string);
   const authObject = signedInAuthObject(authToken as string, jwt.payload);
   return {
     ...authObject,
-    user: user || null,
   };
 }
 
+/***
+ * InitializeServerApp seems to have issue with Refer header. firebase doesnt have a fix yet. 
+ * see link https://github.com/firebase/firebase-js-sdk/issues/9423
+ * we might need to use this feature in the future when firebase fix this issue.
+ */
 const authenticateRequest = async (
   token: string,
   request: Request,

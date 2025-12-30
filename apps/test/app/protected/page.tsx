@@ -4,10 +4,10 @@ import { ProtectedPageClient } from './protectedClient';
 export const dynamic = 'force-dynamic';
 
 export default async function ProtectedPage() {
-  const { user, require, redirectToSignIn } = await auth();
+  const { sessionClaims, require, redirectToSignIn } = await auth();
   if (!require({ role: 'admin' })) return <div>Access Denied now</div>;
 
-  if (!user) return redirectToSignIn();
+  if (!sessionClaims?.aud) return redirectToSignIn();
 
-  return <ProtectedPageClient user={user} />;
+  return <ProtectedPageClient user={sessionClaims} />;
 }

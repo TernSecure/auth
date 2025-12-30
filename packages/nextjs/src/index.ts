@@ -15,6 +15,7 @@ export {
 } from './components/uiComponents'
 
 export type {
+  DecodedIdToken,
   TernSecureUser,
   SignInResponse,
   SignUpResponse,
