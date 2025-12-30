@@ -50,6 +50,7 @@ export async function verifyNextTernIdToken(idToken: string) {
   return VerifyNextTernIdToken(idToken);
 }
 
-export function RetrieveUser() {
+// eslint-disable-next-line @typescript-eslint/require-await
+export async function retrieveUser() {
   return RetrieveUserBackend(TENANT_ID);
 }
