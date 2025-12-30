@@ -1,12 +1,11 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type { TernSecureUser } from "@tern-secure/nextjs";
+import type { DecodedIdToken } from "@tern-secure/nextjs";
 
-export type SerializableTernSecureUser = Omit<TernSecureUser, 'delete' | 'getIdToken' | 'getIdTokenResult' | 'reload' | 'toJSON'>;
 
 interface ProtectedPageClientProps {
-  user: SerializableTernSecureUser;
+  user: DecodedIdToken;
 }
 
 export function ProtectedPageClient({
