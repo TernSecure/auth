@@ -1,7 +1,7 @@
 import type { RequestProcessorContext } from '@tern-secure/backend';
+import { RetrieveUser } from '@tern-secure/backend/admin';
 import type { SignInCreateParams } from '@tern-secure/types';
 
-import { RetrieveUser } from './actions';
 import {
   createApiErrorResponse,
   createApiSuccessResponse,

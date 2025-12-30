@@ -6,8 +6,7 @@ export {
     createSessionCookieServer,
     createNextSessionCookie,
     setNextServerSession,
-    setNextServerToken,
-    RetrieveUser
+    setNextServerToken
 } from './actions'
 
 export { EndpointRouter } from './endpointRouter'
