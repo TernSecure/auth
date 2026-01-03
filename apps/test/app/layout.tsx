@@ -45,6 +45,7 @@ export default async function RootLayout({
           persistence='browserCookie'
           ternUIUrl='http://localhost:4000/ternsecure.browser.js'
           apiUrl='localhost:3000'
+          requiresVerification={false}
         >
           <ThemeProvider
             attribute='class'

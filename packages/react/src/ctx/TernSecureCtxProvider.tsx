@@ -46,6 +46,7 @@ export function TernSecureCtxProvider(props: TernSecureCtxProviderProps) {
     () => ({ value: instance}),[instanceStatus],
   );
 
+
   return (
     <IsoTernSecureAuthCtx.Provider value={ternAuthCtx}>
       <AuthProviderCtx.Provider value={authCtx}>{children}</AuthProviderCtx.Provider>

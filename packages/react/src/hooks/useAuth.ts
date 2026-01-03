@@ -48,7 +48,7 @@ export const useAuth = (initialAuthStateOrOptions: UseAuthOptions = {}): UseAuth
   const ctx = useAuthProviderCtx();
   let authCtx = ctx;
 
-  if (authCtx.user === undefined) {
+  if (authCtx.user === undefined && !authCtx.userId) {
     authCtx = initialAuthState != null ? initialAuthState : {};
   }
 
@@ -60,6 +60,7 @@ export const useAuth = (initialAuthStateOrOptions: UseAuthOptions = {}): UseAuth
 
 export function useDeriveAuth(authObject: any): UseAuthReturn {
   const { signOut } = authObject ?? {};
+
   const payload = resolvedAuthState({ authObject: { ...authObject, signOut } });
 
   if (!payload) {
@@ -91,6 +92,27 @@ type AuthStateOptions = {
 const resolvedAuthState = ({
   authObject: { userId, user, sessionClaims, signOut },
 }: AuthStateOptions): UseAuthReturn | undefined => {
+
+  if (!user && sessionClaims) {
+    const isVerified = sessionClaims.email_verified || false;
+    const isLoaded = true;
+    const isValid = true;
+    const isAuthenticated = isValid && isVerified;
+    const status = deriveAuthStatus(isLoaded, isAuthenticated, isVerified);
+
+    return {
+      isLoaded,
+      isVerified,
+      isAuthenticated,
+      isValid,
+      user: null,
+      userId: userId || sessionClaims.sub || sessionClaims.user_id || null,
+      sessionClaims,
+      status,
+      signOut,
+    } as const;
+  }
+
   if (!user) {
     return {
       isLoaded: false,

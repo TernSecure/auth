@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation"
 
 export default function Dashboard() {
  const router = useRouter();
- const { user, sessionClaims } = useAuth();
+ const { user, isLoaded, sessionClaims } = useAuth();
  
- if (!user) return null;
+ //if (!user) return null;
  
  const redirectToHome = () => {
   router.push('/');
