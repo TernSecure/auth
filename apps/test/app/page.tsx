@@ -14,7 +14,9 @@ import { useRouter } from 'next/navigation';
 export default function Home() {
   const router = useRouter();
   const auth = useAuth();
-  const { user, userId, isLoaded, isAuthenticated, isValid } = auth;
+
+  const { user, userId, isLoaded, isAuthenticated, isValid, sessionClaims } = auth;
+
 
   // on server userObject is undefined, if we dont check !user, there will hydration error
   //if (!user) return <div>Loading...</div>;
@@ -45,7 +47,7 @@ export default function Home() {
       <h1> is user signedIn? {isAuthenticated ? 'Yes' : 'No'}</h1>
       <h1> isLoaded? {isLoaded ? 'Yes' : 'No'}</h1>
       <h1> is user valid? {isValid ? 'Yes' : 'No'}</h1>
-      <h1>Welcome, {user?.displayName || user?.email}</h1>
+      <h1>Welcome, {user?.displayName || user?.email || sessionClaims?.email}</h1>
       <button onClick={redirectToMoPage}>Visit Mo Page</button>
 
       <button
