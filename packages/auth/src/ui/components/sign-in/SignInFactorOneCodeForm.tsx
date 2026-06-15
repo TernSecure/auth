@@ -2,7 +2,7 @@ import { useTernSecure } from '@tern-secure/shared/react';
 import type { EmailCodeFactor, PhoneCodeFactor } from '@tern-secure/types';
 //import { initializeAppCheck, ReCaptchaEnterpriseProvider } from "firebase/app-check";
 import type { ApplicationVerifier } from 'firebase/auth';
-import { getAuth, RecaptchaVerifier} from "firebase/auth";
+import { getAuth, RecaptchaVerifier } from 'firebase/auth';
 import React from 'react';
 
 import type { VerificationCodeCardProps } from '../../common/VerificationCodeCard';
@@ -17,7 +17,7 @@ export type SignInFactorOneCodeCard = Pick<VerificationCodeCardProps, 'onBackLin
 
 export type SignInFactorOneCodeFormProps = SignInFactorOneCodeCard;
 
-const RECAPTCHA_ENTERPRISE_SITE_KEY = '6Lc2aCIsAAAAAAZ2fYnqkPGqGnlsi6KE94qEzGKX'; 
+const RECAPTCHA_ENTERPRISE_SITE_KEY = '6Lc2aCIsAAAAAAZ2fYnqkPGqGnlsi6KE94qEzGKX';
 
 const VERIFIER_CONTAINER_ID = 'recaptcha-verifier-container';
 
@@ -32,30 +32,26 @@ export const SignInFactorOneCodeForm = (props: SignInFactorOneCodeFormProps) => 
   const [verifier, setVerifier] = React.useState<ApplicationVerifier | null>(null);
   const [isInitializing, setIsInitializing] = React.useState(false);
   const initializationAttempted = React.useRef(false);
-  
+
   const app = ternSecure.firebaseApp;
-const auth = getAuth(app);
+  const auth = getAuth(app);
 
-  const sendSmsCode = React.useCallback(
-    async () => {
-      if (!signIn?.identifier) return;
-      const appVerifier = window.recaptchaVerifier;
-      const res = await signIn.authenticateWithPhoneNumber({
-        phoneNumber: signIn.identifier,
-        appVerifier,
+  const sendSmsCode = React.useCallback(async () => {
+    if (!signIn?.identifier) return;
+    const appVerifier = window.recaptchaVerifier;
+    const res = await signIn.authenticateWithPhoneNumber({
+      phoneNumber: signIn.identifier,
+      appVerifier,
+    });
+
+    if (res.status === 'error') {
+      card.setError({
+        status: 'error',
+        message: res.message,
+        error: res.error,
       });
-
-      if (res.status === 'error') {
-        card.setError({
-          status: 'error',
-          message: res.message,
-          error: res.error,
-        });
-      }
-    },
-    [signIn, card],
-  );
-
+    }
+  }, [signIn, card]);
 
   const initializeRecaptcha = React.useCallback(async () => {
     if (
@@ -117,7 +113,6 @@ const auth = getAuth(app);
       }
     };
   }, []);
-
 
   const action = (
     code: string,
