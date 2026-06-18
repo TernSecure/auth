@@ -39,6 +39,7 @@ export const SignInFactorOneCodeForm = (props: SignInFactorOneCodeFormProps) => 
   const sendSmsCode = React.useCallback(async () => {
     if (!signIn?.identifier) return;
     const appVerifier = window.recaptchaVerifier;
+    console.log('Sending SMS code with reCAPTCHA verifier:', appVerifier);
     const res = await signIn.authenticateWithPhoneNumber({
       phoneNumber: signIn.identifier,
       appVerifier,
