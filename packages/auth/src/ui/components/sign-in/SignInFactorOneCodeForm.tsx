@@ -17,8 +17,6 @@ export type SignInFactorOneCodeCard = Pick<VerificationCodeCardProps, 'onBackLin
 
 export type SignInFactorOneCodeFormProps = SignInFactorOneCodeCard;
 
-const RECAPTCHA_ENTERPRISE_SITE_KEY = '6Lc2aCIsAAAAAAZ2fYnqkPGqGnlsi6KE94qEzGKX';
-
 const VERIFIER_CONTAINER_ID = 'recaptcha-verifier-container';
 
 export const SignInFactorOneCodeForm = (props: SignInFactorOneCodeFormProps) => {
@@ -29,91 +27,94 @@ export const SignInFactorOneCodeForm = (props: SignInFactorOneCodeFormProps) => 
   const ternSecure = useTernSecure();
   const ternSecureOptions = useTernSecureOptions();
   const recaptchaContainerRef = React.useRef<HTMLDivElement>(null);
-  const [verifier, setVerifier] = React.useState<ApplicationVerifier | null>(null);
-  const [isInitializing, setIsInitializing] = React.useState(false);
-  const initializationAttempted = React.useRef(false);
+  const verifierRef = React.useRef<RecaptchaVerifier | null>(null);
+  // Guards the one-time automatic send. A ref survives StrictMode's
+  // mount -> cleanup -> mount cycle, so the SMS is only requested once.
+  const smsSentRef = React.useRef(false);
 
   const app = ternSecure.firebaseApp;
   const auth = getAuth(app);
 
-  const sendSmsCode = React.useCallback(async () => {
-    if (!signIn?.identifier) return;
-    const appVerifier = window.recaptchaVerifier;
-    console.log('Sending SMS code with reCAPTCHA verifier:', appVerifier);
-    const res = await signIn.authenticateWithPhoneNumber({
-      phoneNumber: signIn.identifier,
-      appVerifier,
-    });
-
-    if (res.status === 'error') {
-      card.setError({
-        status: 'error',
-        message: res.message,
-        error: res.error,
-      });
+  // Lazily create (or reuse) the reCAPTCHA verifier. Keeping creation lazy
+  // means a verifier torn down by an unmount/cleanup is transparently
+  // rebuilt on the next use, so callers never observe a null verifier.
+  const ensureRecaptcha = React.useCallback((): ApplicationVerifier => {
+    if (verifierRef.current) {
+      return verifierRef.current;
     }
-  }, [signIn, card]);
 
-  const initializeRecaptcha = React.useCallback(async () => {
-    if (
-      props.factor.strategy === 'phone_code' &&
-      signIn &&
-      recaptchaContainerRef.current &&
-      !verifier &&
-      !isInitializing &&
-      !initializationAttempted.current
-    ) {
-      initializationAttempted.current = true;
-      setIsInitializing(true);
-      try {
-        const container = recaptchaContainerRef.current;
+    const container = recaptchaContainerRef.current;
+    if (!container) {
+      throw new Error('reCAPTCHA container is not mounted yet');
+    }
 
-        if (!container.id) {
-          container.id = VERIFIER_CONTAINER_ID;
-        }
+    if (!container.id) {
+      container.id = VERIFIER_CONTAINER_ID;
+    }
 
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, container, {
-          size: 'invisible',
-          callback: (_response: any) => {
-            console.log('reCAPTCHA solved. Appcheck Verified this flow', _response);
-          },
-          'expired-callback': () => {
-            card.setError({
-              status: 'error',
-              message: 'reCAPTCHA expired. Please try again.',
-            });
-            setIsInitializing(false);
-            initializationAttempted.current = false;
-          },
-        });
-
-        const appVerifier = window.recaptchaVerifier;
-        setVerifier(appVerifier);
-
-        await sendSmsCode();
-      } catch (e) {
-        console.error('Failed to initialize reCAPTCHA verifier', e);
+    const appVerifier = new RecaptchaVerifier(auth, container, {
+      size: 'invisible',
+      callback: (_response: any) => {
+        console.log('reCAPTCHA solved. Appcheck Verified this flow', _response);
+      },
+      'expired-callback': () => {
         card.setError({
           status: 'error',
-          message: 'Failed to initialize security verification',
-          error: e,
+          message: 'reCAPTCHA expired. Please try again.',
         });
-        setIsInitializing(false);
-        initializationAttempted.current = false;
+      },
+    });
+
+    verifierRef.current = appVerifier;
+    window.recaptchaVerifier = appVerifier;
+    return appVerifier;
+  }, [auth, card]);
+
+  const sendSmsCode = React.useCallback(async () => {
+    if (!signIn?.identifier) return;
+
+    try {
+      const appVerifier = ensureRecaptcha();
+      const res = await signIn.authenticateWithPhoneNumber({
+        phoneNumber: signIn.identifier,
+        appVerifier,
+      });
+
+      if (res.status === 'error') {
+        card.setError({
+          status: 'error',
+          message: res.message,
+          error: res.error,
+        });
       }
+    } catch (e) {
+      console.error('Failed to send SMS verification code', e);
+      card.setError({
+        status: 'error',
+        message: 'Failed to initialize security verification',
+        error: e,
+      });
     }
-  }, [props.factor.strategy, signIn, verifier, isInitializing, sendSmsCode, card]);
+  }, [signIn, card, ensureRecaptcha]);
 
   React.useEffect(() => {
-    void initializeRecaptcha();
+    if (props.factor.strategy !== 'phone_code' || !signIn?.identifier) {
+      return;
+    }
+
+    if (!smsSentRef.current) {
+      smsSentRef.current = true;
+      void sendSmsCode();
+    }
 
     return () => {
+      verifierRef.current?.clear();
+      verifierRef.current = null;
       if (window.recaptchaVerifier) {
-        window.recaptchaVerifier.clear();
         delete window.recaptchaVerifier;
       }
     };
-  }, []);
+  }, [props.factor.strategy, signIn?.identifier, sendSmsCode]);
 
   const action = (
     code: string,
@@ -148,7 +149,7 @@ export const SignInFactorOneCodeForm = (props: SignInFactorOneCodeFormProps) => 
   const handleResend = (e: React.MouseEvent) => {
     e.preventDefault();
     const run = async () => {
-      if (props.factor.strategy === 'phone_code' && signIn?.identifier && verifier) {
+      if (props.factor.strategy === 'phone_code' && signIn?.identifier) {
         await sendSmsCode();
       }
     };
