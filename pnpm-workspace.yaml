@@ -1,13 +1,6 @@
 packages:
   - 'packages/*'
 
-# Force a single copy of the React types across the whole tree. Transitive deps
-# (e.g. radix-ui) otherwise pull a newer @types/react, and two copies break
-# structural type checks (Slot props) and portable .d.ts emit (TS2742).
-#overrides:
-#  '@types/react': 19.2.7
-#  '@types/react-dom': 19.2.3
-
 catalogs:
   react:
     react: 19.2.0
