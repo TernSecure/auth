@@ -17,7 +17,7 @@ export default function LoginPage() {
         {name: 'github'},
         {name: 'facebook'}
       ]}
-      //initialValues={{ phoneNumber: '' }}
+      initialValues={{ phoneNumber: '' }}
     />
   );
 }
