@@ -115,6 +115,38 @@ export async function getAuthDataFromRequest(req: RequestLike): Promise<AuthObje
   };
 }
 
+export async function getAuthDataFromRequestWithServerApp(req: RequestLike): Promise<AuthObject & Aobj> {
+  const authStatus = getAuthKeyFromRequest(req, "AuthStatus");
+  const authToken = getAuthKeyFromRequest(req, "AuthToken");
+
+  if (!authStatus || authStatus !== AuthStatus.SignedIn) {
+    return {
+      ...signedOutAuthObject(),
+      user: null,
+      userId: null
+    }
+  }
+
+  const firebaseUser = await authenticateRequest(
+    authToken as string,
+    req as any
+  );
+  if (!firebaseUser || !firebaseUser.claims) {
+    return {
+      ...signedOutAuthObject(),
+      user: null,
+      userId: null
+    }
+  }
+  const { user } = firebaseUser;
+  const jwt = ternDecodeJwt(authToken as string);
+  const authObject = signedInAuthObject(authToken as string, jwt.payload);
+  return {
+    ...authObject,
+    user: user || null,
+  };
+}
+
 /***
  * InitializeServerApp seems to have issue with Refer header. firebase doesnt have a fix yet. 
  * see link https://github.com/firebase/firebase-js-sdk/issues/9423
