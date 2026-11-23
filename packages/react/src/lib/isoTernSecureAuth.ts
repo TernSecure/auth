@@ -68,6 +68,10 @@ export function inBrowser(): boolean {
   return typeof window !== 'undefined';
 }
 
+interface PreAddListenerHandlers {
+  nativeUnsubscribe?: UnsubscribeCallback;
+}
+
 interface PreMountState {
   signInNodes: Map<HTMLDivElement, SignInProps | undefined>;
   signUpNodes: Map<HTMLDivElement, SignUpProps | undefined>;
@@ -88,7 +92,12 @@ export class IsoTernSecureAuth implements TernSecureAuth {
   private readonly TernSecure: TernSecureProps;
   private ternauth: TernSecureAuthProps | null = null;
   private ternui: Browser | HeadlessUIBrowser | null = null;
-  private preAddListener = new Map<ListenerCallback, { unsubscribe: UnsubscribeCallback }>();
+  /**
+   * Listeners registered before the underlying instance has loaded.
+   * `nativeUnsubscribe` stays undefined until the listener is handed over to the
+   * loaded instance, so unsubscribing early only removes the queued entry.
+   */
+  private preAddListener = new Map<ListenerCallback, PreAddListenerHandlers>();
   private premountState: PreMountState = {
     signInNodes: new Map(),
     signUpNodes: new Map(),
@@ -333,7 +342,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
     this.premountState.methodCalls.forEach(cb => cb());
 
     this.preAddListener.forEach((listenerHandlers, listener) => {
-      listenerHandlers.unsubscribe = ternui.addListener(listener);
+      listenerHandlers.nativeUnsubscribe = ternui.addListener(listener);
     });
 
 
@@ -381,7 +390,7 @@ export class IsoTernSecureAuth implements TernSecureAuth {
 
     this.ternauth = ternauth;
     this.preAddListener.forEach((listenerHandlers, listener) => {
-      listenerHandlers.unsubscribe = ternauth.addListener(listener);
+      listenerHandlers.nativeUnsubscribe = ternauth.addListener(listener);
     });
 
     this.#eventBus.getListeners('status').forEach(listener => {
@@ -422,11 +431,11 @@ export class IsoTernSecureAuth implements TernSecureAuth {
       const unsubscribe = () => {
         const listenerHandlers = this.preAddListener.get(listener);
         if (listenerHandlers) {
-          listenerHandlers.unsubscribe();
+          listenerHandlers.nativeUnsubscribe?.();
           this.preAddListener.delete(listener);
         }
       };
-      this.preAddListener.set(listener, { unsubscribe });
+      this.preAddListener.set(listener, { nativeUnsubscribe: undefined });
       return unsubscribe;
     }
   };
