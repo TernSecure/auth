@@ -39,8 +39,10 @@ jobs:
           turbo-team: ${{ vars.TURBO_TEAM }}
           turbo-token: ${{ secrets.TURBO_TOKEN }}
 
+      # The "Version Packages" PR (changeset-release/*) consumes every changeset by design,
+      # so it must not be required to contain one.
       - name: Require changeset
-        if: ${{ !(github.event_name == 'merge_group') }}
+        if: ${{ github.event_name != 'merge_group' && !startsWith(github.head_ref, 'changeset-release/') }}
         run: pnpm changeset status --since=origin/main
 
       - name: Turbo Build
