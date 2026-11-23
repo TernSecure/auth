@@ -78,7 +78,7 @@
   },
   "peerDependencies": {
     "firebase": "catalog:peer-firebase",
-    "next": "^13.5.7 || ^14.2.25 || ^15.2.3 || ^16",
+    "next": "^15.2.8 || ^15.3.8 || ^15.4.10 || ^15.5.9 || ^15.6.0-0 || ^16.0.10 || ^16.1.0-0",
     "react": "catalog:peer-react",
     "react-dom": "catalog:peer-react"
   },
