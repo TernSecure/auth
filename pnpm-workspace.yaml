@@ -1,6 +1,15 @@
 packages:
   - 'packages/*'
 
+allowBuilds:
+  '@firebase/util': false
+  '@parcel/watcher': true
+  core-js: false
+  esbuild: true
+  protobufjs: false
+  sharp: true
+  unrs-resolver: true
+
 catalogs:
   react:
     react: 19.2.0
